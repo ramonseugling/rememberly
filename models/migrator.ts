@@ -1,6 +1,6 @@
 import database from 'infra/database';
 import { ServiceError } from 'infra/errors';
-import { default as migrationRunner } from 'node-pg-migrate';
+import { runner as migrationRunner } from 'node-pg-migrate';
 import { join } from 'path';
 import { Client } from 'pg';
 
