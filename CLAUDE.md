@@ -51,7 +51,10 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 
 ### UI
 
-- **Tailwind CSS** + **shadcn/ui** para componentes
+- **Tailwind CSS v4** com `@theme` (sem `tailwind.config.ts`)
+- **shadcn/ui** para componentes base (`components/ui/`)
+- **Fontes Google**: Fredoka (heading) + Quicksand (body) via `next/font/google`
+- Design system definido em `styles/globals.css`
 
 ### Deploy
 
@@ -112,9 +115,20 @@ HTTP Request
 ```
 pages/
   index.tsx
+  _app.tsx           → wrapper global com fontes aplicadas
+  _document.tsx      → HTML base
   api/
     v1/              → todos os endpoints aqui
-components/          → componentes React
+components/
+  ui/                → componentes shadcn/ui (Button, Card, Badge...)
+  layout/            → layout.tsx
+  header/            → header.tsx
+  footer/            → footer.tsx
+  [feature]/         → cada componente em seu próprio diretório
+lib/
+  fonts.ts           → instâncias next/font/google centralizadas
+  utils.ts           → cn() (clsx + tailwind-merge)
+mocks/               → dados mock para desenvolvimento
 models/              → lógica de negócio (user.ts, event.ts, session.ts)
 infra/
   database.ts        → pool de conexão PostgreSQL
@@ -122,6 +136,8 @@ infra/
   controller.ts      → middleware: auth, autorização, erros
   migrations/        → arquivos de migration
   scripts/           → utilitários (ex: wait-for-postgres)
+styles/
+  globals.css        → design system (Tailwind v4 @theme, CSS vars, utilitários)
 tests/
   orchestrator.ts    → setup/teardown dos testes
   integration/
@@ -176,11 +192,36 @@ Cada erro implementa `toJSON()` para resposta consistente na API.
 
 ## Convenções de código
 
-- Componentes: `export default function NomeDoComponente()`
-- Tipar props explicitamente com `interface`
+### Componentes
+
+- **Pages** (`pages/*.tsx`): `export default function NomeDaPagina()`
+- **Componentes** (`components/**/*.tsx`): `export const NomeDoComponente = () => {}`
+- Um componente por diretório, arquivo com nome explícito (não `index.tsx`)
+  - Ex: `components/date-card/date-card.tsx`
+- Props tipadas com `interface`:
+  ```ts
+  interface DateCardProps {
+    name: string;
+    type: 'birthday' | 'anniversary';
+  }
+  ```
+- Importações sempre com alias `@/`:
+  - `import { Button } from '@/components/ui/button'`
+
+### Geral
+
 - Sem `any`
 - Sem comentários óbvios
 - Mensagens de erro voltadas ao usuário em português
+
+### Fontes (next/font/google)
+
+Instâncias centralizadas em `lib/fonts.ts`. Aplicadas em `pages/_app.tsx`:
+
+- `quicksand.className` na div wrapper → fonte do corpo via herança CSS
+- `fredoka.style.fontFamily` via `<style>` tag → aplicada em `h1-h6` e `.font-heading`
+
+Motivo: no Pages Router, variáveis CSS de fontes não ficam disponíveis em elementos pai (body/html) quando aplicadas em divs filhas. O `<style>` tag injeta o valor real da fonte gerado pelo next/font.
 
 ## Commits
 
