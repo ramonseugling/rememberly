@@ -9,6 +9,7 @@ const config: Config = {
   moduleNameMapper: {
     '^infra/(.*)$': '<rootDir>/infra/$1',
     '^models/(.*)$': '<rootDir>/models/$1',
+    '^tests/(.*)$': '<rootDir>/tests/$1',
   },
 };
 

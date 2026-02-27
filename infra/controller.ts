@@ -7,9 +7,25 @@ import {
   NotFoundError,
   ServiceError,
 } from 'infra/errors';
+import session from 'models/session';
+
+export interface AuthenticatedRequest extends NextApiRequest {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
 
 type Handler = (req: NextApiRequest, res: NextApiResponse) => Promise<void>;
+type AuthenticatedHandler = (
+  req: AuthenticatedRequest,
+  res: NextApiResponse,
+) => Promise<void>;
 type MethodHandlers = Partial<Record<string, Handler>>;
+type AuthenticatedMethodHandlers = Partial<
+  Record<string, AuthenticatedHandler>
+>;
 
 function onNoMatch(_req: NextApiRequest, res: NextApiResponse) {
   const error = new MethodNotAllowedError();
@@ -49,4 +65,47 @@ function controller(handlers: MethodHandlers) {
   };
 }
 
+function authenticatedController(handlers: AuthenticatedMethodHandlers) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    const method = req.method?.toUpperCase();
+    const handler = method ? handlers[method] : undefined;
+
+    if (!handler) {
+      return onNoMatch(req, res);
+    }
+
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+
+      if (!token) {
+        throw new UnauthorizedError({
+          message: 'Token de autenticação não fornecido.',
+          action: 'Faça login para obter um token.',
+        });
+      }
+
+      const foundSession = await session.findOneValidByToken(token);
+
+      if (!foundSession) {
+        throw new UnauthorizedError({
+          message: 'Sessão inválida ou expirada.',
+          action: 'Faça login novamente.',
+        });
+      }
+
+      const authenticatedReq = req as AuthenticatedRequest;
+      authenticatedReq.user = {
+        id: foundSession.user_id,
+        name: foundSession.name,
+        email: foundSession.email,
+      };
+
+      await handler(authenticatedReq, res);
+    } catch (error) {
+      onError(error, req, res);
+    }
+  };
+}
+
+export { authenticatedController };
 export default controller;
