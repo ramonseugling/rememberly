@@ -9,12 +9,14 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 ### Entidades
 
 **User**
+
 - `name` — nome
 - `email` — e-mail (único)
 - `password` — senha (hash bcrypt)
 - `id`, `created_at`, `updated_at`
 
 **Event**
+
 - `title` — nome livre (ex: "Pedro", "Aniversário de namoro com Ana")
 - `type` — enum: `birthday`, `dating_anniversary`, `wedding_anniversary`, `celebration`
 - `date` — data do evento (dia + mês, sem ano obrigatório — eventos repetem anualmente)
@@ -42,18 +44,22 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 ## Decisões técnicas
 
 ### Notificações
+
 - **Cron job**: Vercel Cron Jobs — executa diariamente de manhã chamando um endpoint interno
 - **E-mail**: Nodemailer + SMTP
 - Localmente: MailCatcher para interceptar e-mails sem envio real
 
 ### UI
+
 - **Tailwind CSS** + **shadcn/ui** para componentes
 
 ### Deploy
+
 - A definir — Vercel Cron Jobs exige hospedagem na Vercel
 - Banco de dados: a definir (Railway ou Supabase)
 
 ## Stack
+
 - Next.js 16, React 19, TypeScript (strict mode)
 - PostgreSQL (via `pg` — sem ORM, SQL puro com queries parametrizadas)
 - `node-pg-migrate` para migrations
@@ -78,21 +84,25 @@ HTTP Request
 ### Camadas
 
 **Controller** (`pages/api/v1/`)
+
 - Recebe a requisição HTTP
 - Delega para o model correspondente
 - Devolve a resposta
 
 **Middleware** (`infra/controller.ts`)
+
 - **Autenticação**: valida se o usuário está logado (sessão válida)
 - **Autorização**: valida se o usuário tem permissão para acessar o recurso
 - **Erros**: captura exceções e formata a resposta de erro
 
 **Model** (`models/`)
+
 - Toda a lógica de negócio
 - Queries ao banco de dados
 - Validações de domínio
 
 **Infra** (`infra/`)
+
 - `database.ts` — pool de conexão e execução de queries
 - `errors.ts` — classes de erro customizadas
 - `migrations/` — schema do banco
@@ -128,6 +138,7 @@ tests/
 ## Erros customizados (`infra/errors.ts`)
 
 Criar hierarquia de erros com classes tipadas:
+
 - `ValidationError` → 400
 - `NotFoundError` → 404
 - `UnauthorizedError` → 401

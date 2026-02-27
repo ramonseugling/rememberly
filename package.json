@@ -12,8 +12,8 @@
     "migrations:up": "node -r dotenv/config --env-file=.env.development -e \"require('./models/migrator.ts').default.runPendingMigrations()\"",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "test": "dotenv -e .env.development -- jest --detectOpenHandles --runInBand --forceExit",
-    "test:watch": "dotenv -e .env.development -- jest --watch --runInBand",
+    "test": "node --env-file=.env.development ./node_modules/.bin/jest --detectOpenHandles --runInBand --forceExit",
+    "test:watch": "node --env-file=.env.development ./node_modules/.bin/jest --watch --runInBand",
     "prepare": "husky"
   },
   "author": "",
