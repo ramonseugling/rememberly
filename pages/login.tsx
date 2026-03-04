@@ -4,7 +4,17 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-export default function Login() {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface LoginProps {
+  onUserChange: (user: User | null) => void;
+}
+
+export default function Login({ onUserChange }: LoginProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +40,7 @@ export default function Login() {
       return;
     }
 
+    onUserChange(data.user);
     router.push('/');
   }
 

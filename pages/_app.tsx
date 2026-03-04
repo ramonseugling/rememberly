@@ -28,7 +28,7 @@ export default function App({ Component, pageProps }: AppProps) {
         }
       `}</style>
       <Layout user={user}>
-        <Component {...pageProps} user={user} />
+        <Component {...pageProps} user={user} onUserChange={setUser} />
       </Layout>
     </div>
   );

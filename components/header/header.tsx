@@ -28,9 +28,6 @@ export const Header = ({ user }: HeaderProps) => {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground hidden sm:block">
-                  {user.name}
-                </span>
                 <Button
                   variant="link"
                   size="icon"

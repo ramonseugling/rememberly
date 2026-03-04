@@ -7,9 +7,3 @@ services:
       POSTGRES_DB: my_forever_dates
     ports:
       - '5432:5432'
-
-  mailcatcher:
-    image: sj26/mailcatcher
-    ports:
-      - '1025:1025'
-      - '1080:1080'
