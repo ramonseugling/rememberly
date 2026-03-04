@@ -42,7 +42,7 @@ export default function StatusPage() {
             <li className="flex justify-between">
               <span className="text-gray-400">Banco de dados</span>
               <span className="max-w-[200px] truncate text-right text-xs text-gray-300">
-                {status.dependencies.database?.version}
+                {status.dependencies?.database?.version}
               </span>
             </li>
           </ul>
