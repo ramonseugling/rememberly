@@ -8,6 +8,9 @@ node_modules/
 .next/
 out/
 
+# TypeScript
+*.tsbuildinfo
+
 # env files
 .env*
 !.env.example

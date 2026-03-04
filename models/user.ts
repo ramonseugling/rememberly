@@ -13,23 +13,38 @@ async function create(input: CreateUserInput) {
 
   const hashedPassword = await password.hash(input.password);
 
-  const result = await database.query(
-    `INSERT INTO users (name, email, password)
-     VALUES ($1, $2, $3)
-     RETURNING id, name, email, created_at, updated_at`,
-    [input.name, input.email.toLowerCase(), hashedPassword],
-  );
+  const newUser = await runInsertQuery({
+    ...input,
+    password: hashedPassword,
+  });
 
-  return result.rows[0];
+  return newUser;
+
+  async function runInsertQuery(values: CreateUserInput) {
+    const result = await database.query(
+      `INSERT INTO users (name, email, password)
+       VALUES ($1, $2, $3)
+       RETURNING id, name, email, created_at, updated_at`,
+      [values.name, values.email.toLowerCase(), values.password],
+    );
+
+    return result.rows[0];
+  }
 }
 
 async function findOneByEmail(email: string) {
-  const result = await database.query(
-    `SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`,
-    [email],
-  );
+  const userFound = await runSelectQuery(email);
 
-  return result.rows[0] ?? null;
+  return userFound;
+
+  async function runSelectQuery(email: string) {
+    const result = await database.query(
+      `SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+      [email],
+    );
+
+    return result.rows[0] ?? null;
+  }
 }
 
 async function validateUniqueEmail(email: string) {

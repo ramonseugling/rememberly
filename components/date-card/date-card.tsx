@@ -4,7 +4,11 @@ import { Badge } from '@/components/ui/badge';
 
 interface DateCardProps {
   name: string;
-  type: 'birthday' | 'anniversary' | 'celebration' | 'other';
+  type:
+    | 'birthday'
+    | 'dating_anniversary'
+    | 'wedding_anniversary'
+    | 'celebration';
   date: string;
   daysUntil: number;
 }
@@ -14,7 +18,8 @@ export const DateCard = ({ name, type, date, daysUntil }: DateCardProps) => {
     switch (type) {
       case 'birthday':
         return <Cake className="w-5 h-5" />;
-      case 'anniversary':
+      case 'dating_anniversary':
+      case 'wedding_anniversary':
         return <Heart className="w-5 h-5" />;
       case 'celebration':
         return <PartyPopper className="w-5 h-5" />;
@@ -33,12 +38,12 @@ export const DateCard = ({ name, type, date, daysUntil }: DateCardProps) => {
     switch (type) {
       case 'birthday':
         return 'Aniversário';
-      case 'anniversary':
+      case 'dating_anniversary':
         return 'Aniversário de Namoro';
+      case 'wedding_anniversary':
+        return 'Aniversário de Casamento';
       case 'celebration':
         return 'Comemoração';
-      default:
-        return 'Outro';
     }
   };
 

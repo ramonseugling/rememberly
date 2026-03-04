@@ -6,8 +6,8 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
-describe('POST /api/v1/sessions', () => {
-  it('deve retornar token ao fazer login com credenciais válidas', async () => {
+describe('GET /api/v1/sessions', () => {
+  it('deve retornar o usuário autenticado com session_token válido', async () => {
     const body = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
@@ -20,33 +20,33 @@ describe('POST /api/v1/sessions', () => {
       body: JSON.stringify(body),
     });
 
-    const response = await fetch('http://localhost:3000/api/v1/sessions', {
+    const loginRes = await fetch('http://localhost:3000/api/v1/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: body.email, password: body.password }),
     });
 
-    expect(response.status).toBe(201);
+    const cookie = loginRes.headers.get('set-cookie') ?? '';
+
+    const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      method: 'GET',
+      headers: { Cookie: cookie },
+    });
+
+    expect(response.status).toBe(200);
 
     const data = await response.json();
-    expect(data.user).toBeDefined();
     expect(data.user.email).toBe(body.email.toLowerCase());
-    expect(response.headers.get('set-cookie')).toContain('session_token=');
   });
 
-  it('deve retornar 401 com credenciais inválidas', async () => {
+  it('deve retornar 401 sem session_token', async () => {
     const response = await fetch('http://localhost:3000/api/v1/sessions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'naoexiste@email.com',
-        password: 'senhaerrada',
-      }),
+      method: 'GET',
     });
 
     expect(response.status).toBe(401);
 
     const data = await response.json();
-    expect(data.name).toBe('UnauthorizedError');
+    expect(data.user).toBeNull();
   });
 });

@@ -75,7 +75,9 @@ function authenticatedController(handlers: AuthenticatedMethodHandlers) {
     }
 
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '');
+      const token =
+        req.cookies?.session_token ??
+        req.headers.authorization?.replace('Bearer ', '');
 
       if (!token) {
         throw new UnauthorizedError({

@@ -6,13 +6,31 @@ import { HelloCard } from '@/components/hello-card/hello-card';
 import { UrgentDateCard } from '@/components/urgent-date-card/urgent-date-card';
 import { EmptyState } from '@/components/empty-state/empty-state';
 
-export default function Home() {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface HomeProps {
+  user?: User | null;
+}
+
+export default function Home({ user }: HomeProps) {
+  if (!user) {
+    return (
+      <section className="container mx-auto px-4 py-8">
+        <EmptyState showLoginCta />
+      </section>
+    );
+  }
+
   return (
     <div>
       <section className="container mx-auto px-4 py-8">
         {dates.length > 0 && (
           <>
-            <HelloCard />
+            <HelloCard name={user.name} />
             <UrgentDateCard />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {dates.map((date, index) => (

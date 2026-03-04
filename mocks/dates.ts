@@ -16,7 +16,7 @@ export const dates = [
   {
     id: 3,
     name: 'Aniversário de Namoro',
-    type: 'anniversary' as const,
+    type: 'dating_anniversary' as const,
     date: '25 de Janeiro',
     daysUntil: 13,
   },
