@@ -1,14 +1,12 @@
-import { Calendar, Heart, Gift, PartyPopper, Cake } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Cake, Calendar, Gift, Heart, PartyPopper } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { EVENT_TYPES } from '@/lib/constants';
+import type { EventType } from '@/lib/types';
 
 interface DateCardProps {
   name: string;
-  type:
-    | 'birthday'
-    | 'dating_anniversary'
-    | 'wedding_anniversary'
-    | 'celebration';
+  type: EventType;
   date: string;
   daysUntil: number;
 }
@@ -34,18 +32,8 @@ export const DateCard = ({ name, type, date, daysUntil }: DateCardProps) => {
     return 'bg-card';
   };
 
-  const getTypeLabel = () => {
-    switch (type) {
-      case 'birthday':
-        return 'Aniversário';
-      case 'dating_anniversary':
-        return 'Aniversário de Namoro';
-      case 'wedding_anniversary':
-        return 'Aniversário de Casamento';
-      case 'celebration':
-        return 'Comemoração';
-    }
-  };
+  const getTypeLabel = () =>
+    EVENT_TYPES.find((t) => t.value === type)?.label ?? type;
 
   const getDaysText = () => {
     if (daysUntil === 0) return 'Hoje! 🎉';

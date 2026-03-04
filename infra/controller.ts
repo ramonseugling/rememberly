@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import {
   InternalServerError,
   MethodNotAllowedError,
-  UnauthorizedError,
-  ValidationError,
   NotFoundError,
   ServiceError,
+  UnauthorizedError,
+  ValidationError,
 } from 'infra/errors';
 import session from 'models/session';
 

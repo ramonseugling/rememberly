@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { AppProps } from 'next/app';
 import { Layout } from '@/components/layout/layout';
 import { fredoka, quicksand } from '@/lib/fonts';

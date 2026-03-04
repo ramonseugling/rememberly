@@ -1,5 +1,5 @@
-import { dates } from '@/mocks/dates';
 import { Heart } from 'lucide-react';
+import { dates } from '@/mocks/dates';
 
 export const UrgentDateCard = () => {
   const urgentDates = dates.filter((date) => date.daysUntil <= 7);
