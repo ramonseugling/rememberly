@@ -6,6 +6,7 @@ import { AddEventModal } from '@/components/add-event-modal/add-event-modal';
 import { DateCard } from '@/components/date-card/date-card';
 import { EmptyState } from '@/components/empty-state/empty-state';
 import { HelloCard } from '@/components/hello-card/hello-card';
+import { LandingPage } from '@/components/landing-page/landing-page';
 import { UrgentDateCard } from '@/components/urgent-date-card/urgent-date-card';
 import { dates } from '@/mocks/dates';
 import session from 'models/session';
@@ -50,11 +51,7 @@ export default function Home({ user }: HomeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!user) {
-    return (
-      <section className="container mx-auto px-4 py-8">
-        <EmptyState showLoginCta />
-      </section>
-    );
+    return <LandingPage />;
   }
 
   return (

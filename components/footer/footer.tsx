@@ -10,7 +10,7 @@ export const Footer = () => {
           rel="noopener noreferrer"
         >
           <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent inline-block">
-            Desenvolvido com ❤️ por Ramon Seugling
+            Desenvolvido com ❤️ para você nunca esquecer quem ama.
           </span>
         </Link>
       </div>
