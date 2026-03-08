@@ -6,6 +6,7 @@ import { AddEventModal } from '@/components/add-event-modal/add-event-modal';
 import { DateCard } from '@/components/date-card/date-card';
 import { EmptyState } from '@/components/empty-state/empty-state';
 import { HelloCard } from '@/components/hello-card/hello-card';
+import { NextYearDateCard } from '@/components/next-year-date-card/next-year-date-card';
 import { UpdateEventModal } from '@/components/update-event-modal/update-event-modal';
 import { UrgentDateCard } from '@/components/urgent-date-card/urgent-date-card';
 import { MONTHS } from '@/lib/constants';
@@ -25,6 +26,7 @@ interface EventCard {
   type: EventType;
   date: string;
   daysUntil: number;
+  isNextYear: boolean;
   event_day: number;
   event_month: number;
 }
@@ -78,14 +80,14 @@ export const getServerSideProps: GetServerSideProps<DatesProps> = async (
           e.event_month - 1,
           e.event_day,
         );
-        const targetDate =
-          thisYearDate >= todayMidnight
-            ? thisYearDate
-            : new Date(
-                todayMidnight.getFullYear() + 1,
-                e.event_month - 1,
-                e.event_day,
-              );
+        const isNextYear = thisYearDate < todayMidnight;
+        const targetDate = !isNextYear
+          ? thisYearDate
+          : new Date(
+              todayMidnight.getFullYear() + 1,
+              e.event_month - 1,
+              e.event_day,
+            );
 
         const daysUntil = Math.round(
           (targetDate.getTime() - todayMidnight.getTime()) /
@@ -98,6 +100,7 @@ export const getServerSideProps: GetServerSideProps<DatesProps> = async (
           type: e.type as EventType,
           date: `${e.event_day} de ${MONTHS[e.event_month - 1]}`,
           daysUntil,
+          isNextYear,
           event_day: e.event_day,
           event_month: e.event_month,
         };
@@ -124,13 +127,23 @@ export default function Dates({ user, events }: DatesProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {events.map((e, index) => (
                 <div key={e.id} style={{ animationDelay: `${index * 0.1}s` }}>
-                  <DateCard
-                    title={e.title}
-                    type={e.type}
-                    date={e.date}
-                    daysUntil={e.daysUntil}
-                    onClick={() => setSelectedEvent(e)}
-                  />
+                  {e.isNextYear ? (
+                    <NextYearDateCard
+                      title={e.title}
+                      type={e.type}
+                      date={e.date}
+                      daysUntil={e.daysUntil}
+                      onClick={() => setSelectedEvent(e)}
+                    />
+                  ) : (
+                    <DateCard
+                      title={e.title}
+                      type={e.type}
+                      date={e.date}
+                      daysUntil={e.daysUntil}
+                      onClick={() => setSelectedEvent(e)}
+                    />
+                  )}
                 </div>
               ))}
             </div>
