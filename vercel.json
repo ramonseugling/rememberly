@@ -1,4 +1,9 @@
 {
   "buildCommand": "npm run migrations:up:production && next build",
-  "crons": []
+  "crons": [
+    {
+      "path": "/api/v1/notifications/send",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

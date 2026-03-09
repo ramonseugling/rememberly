@@ -14,4 +14,3 @@ out/
 # env files
 .env*
 !.env.example
-!.env.development
