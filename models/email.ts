@@ -40,11 +40,11 @@ function buildEmailHtml(
       <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
         Olá, <strong>${userName}</strong>! 👋
       </p>
-      <div style="background: linear-gradient(135deg, #f8e8ed, #fdf0e8); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-        <p style="color: #3b4571; font-size: 14px; margin: 0 0 8px 0;">
+      <div style="background: linear-gradient(135deg, #e06490, #f0894d); padding: 24px; border-radius: 24px; margin-bottom: 24px;">
+        <p style="color: rgba(255,255,255,0.85); font-size: 14px; margin: 0 0 8px 0;">
           ${typeLabel}
         </p>
-        <p style="color: #3b4571; font-size: 20px; font-weight: 600; margin: 0;">
+        <p style="color: #ffffff; font-size: 20px; font-weight: 600; margin: 0;">
           ${eventTitle}
         </p>
       </div>
