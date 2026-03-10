@@ -1,6 +1,7 @@
+import { log } from 'next-axiom';
 import crypto from 'crypto';
 import database from 'infra/database';
-import { NotFoundError, ValidationError } from 'infra/errors';
+import { ValidationError } from 'infra/errors';
 import password from 'models/password';
 import user from 'models/user';
 
@@ -23,6 +24,8 @@ async function createToken(email: string) {
      VALUES ($1, $2, $3)`,
     [token, foundUser.id, expiresAt],
   );
+
+  log.info('password_reset_token_created', { userId: foundUser.id });
 
   return { token, user: foundUser };
 }
@@ -58,6 +61,8 @@ async function resetPassword(token: string, newPassword: string) {
     `UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1`,
     [tokenRow.id],
   );
+
+  log.info('password_reset_completed', { userId: tokenRow.user_id });
 }
 
 async function invalidatePreviousTokens(userId: string) {

@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import { Analytics } from '@vercel/analytics/next';
 import { Layout } from '@/components/layout/layout';
 import { fredoka, quicksand } from '@/lib/fonts';
 import '../styles/globals.css';
@@ -14,6 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <Layout user={pageProps.user}>
         <Component {...pageProps} />
       </Layout>
+      <Analytics />
     </div>
   );
 }

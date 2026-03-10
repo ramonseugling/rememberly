@@ -1,3 +1,4 @@
+import { log } from 'next-axiom';
 import { Resend } from 'resend';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -24,6 +25,12 @@ async function sendEventNotification(input: SendEventNotificationInput) {
     to: input.to,
     subject: `${typeLabel} — ${input.eventTitle}`,
     html: buildEmailHtml(input.userName, input.eventTitle, typeLabel),
+  });
+
+  log.info('event_notification_sent', {
+    to: input.to,
+    eventType: input.eventType,
+    eventTitle: input.eventTitle,
   });
 }
 
@@ -71,6 +78,8 @@ async function sendPasswordResetEmail(input: SendPasswordResetEmailInput) {
     subject: 'Redefinição de senha — My Forever Dates',
     html: buildPasswordResetHtml(input.userName, input.resetUrl),
   });
+
+  log.info('password_reset_email_sent', { to: input.to });
 }
 
 function buildPasswordResetHtml(userName: string, resetUrl: string) {

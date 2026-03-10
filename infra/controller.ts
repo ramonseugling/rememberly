@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { log } from 'next-axiom';
 import {
   InternalServerError,
   MethodNotAllowedError,
@@ -44,7 +45,7 @@ function onError(error: unknown, _req: NextApiRequest, res: NextApiResponse) {
   }
 
   const internalError = new InternalServerError({ cause: error });
-  console.error(error);
+  log.error('internal_server_error', { error: String(error) });
   return res.status(internalError.status_code).json(internalError.toJSON());
 }
 

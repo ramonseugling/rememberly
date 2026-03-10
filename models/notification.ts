@@ -1,3 +1,4 @@
+import { log } from 'next-axiom';
 import database from 'infra/database';
 import email from 'models/email';
 
@@ -28,14 +29,26 @@ async function sendTodayNotifications() {
 
   const events: TodayEvent[] = result.rows;
 
+  log.info('cron_notifications_start', { day, month, total: events.length });
+
   for (const event of events) {
-    await email.sendEventNotification({
-      to: event.user_email,
-      userName: event.user_name,
-      eventTitle: event.event_title,
-      eventType: event.event_type,
-    });
+    try {
+      await email.sendEventNotification({
+        to: event.user_email,
+        userName: event.user_name,
+        eventTitle: event.event_title,
+        eventType: event.event_type,
+      });
+    } catch (err) {
+      log.error('cron_notification_failed', {
+        to: event.user_email,
+        eventTitle: event.event_title,
+        error: String(err),
+      });
+    }
   }
+
+  log.info('cron_notifications_done', { sent: events.length });
 
   return { sent: events.length };
 }
