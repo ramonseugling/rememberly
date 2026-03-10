@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { forgotPasswordSchema, parseSchema } from '@/lib/validators';
 import controller from 'infra/controller';
 import email from 'models/email';
 import passwordReset from 'models/password-reset';
@@ -8,7 +9,7 @@ export default controller({
 });
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
-  const { email: userEmail } = req.body;
+  const { email: userEmail } = parseSchema(forgotPasswordSchema, req.body);
 
   const result = await passwordReset.createToken(userEmail);
 

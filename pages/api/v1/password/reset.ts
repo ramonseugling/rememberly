@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { parseSchema, resetPasswordSchema } from '@/lib/validators';
 import controller from 'infra/controller';
-import { ValidationError } from 'infra/errors';
 import passwordReset from 'models/password-reset';
 
 export default controller({
@@ -8,14 +8,7 @@ export default controller({
 });
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
-  const { token, password } = req.body;
-
-  if (!token || !password) {
-    throw new ValidationError({
-      message: 'Token e nova senha são obrigatórios.',
-      action: 'Preencha todos os campos e tente novamente.',
-    });
-  }
+  const { token, password } = parseSchema(resetPasswordSchema, req.body);
 
   await passwordReset.resetPassword(token, password);
 

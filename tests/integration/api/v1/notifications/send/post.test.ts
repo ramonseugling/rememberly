@@ -54,13 +54,10 @@ async function createEventForToday(token: string) {
   return response.json();
 }
 
-describe('POST /api/v1/notifications/send', () => {
+describe('GET /api/v1/notifications/send', () => {
   it('deve retornar 401 sem CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
-      {
-        method: 'POST',
-      },
     );
 
     expect(response.status).toBe(401);
@@ -73,7 +70,6 @@ describe('POST /api/v1/notifications/send', () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
-        method: 'POST',
         headers: {
           Authorization: 'Bearer token-invalido',
         },
@@ -90,7 +86,6 @@ describe('POST /api/v1/notifications/send', () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
-        method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.CRON_SECRET}`,
         },
@@ -110,7 +105,6 @@ describe('POST /api/v1/notifications/send', () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
-        method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.CRON_SECRET}`,
         },
@@ -127,7 +121,7 @@ describe('POST /api/v1/notifications/send', () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
-        method: 'GET',
+        method: 'POST',
       },
     );
 

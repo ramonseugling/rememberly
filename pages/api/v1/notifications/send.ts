@@ -4,10 +4,10 @@ import { UnauthorizedError } from 'infra/errors';
 import notification from 'models/notification';
 
 export default controller({
-  POST: handlePost,
+  GET: handleGet,
 });
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const authorization = req.headers.authorization;
 
   if (

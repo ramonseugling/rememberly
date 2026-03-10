@@ -1,4 +1,5 @@
 import type { NextApiResponse } from 'next';
+import { parseSchema, updateEventSchema } from '@/lib/validators';
 import {
   AuthenticatedRequest,
   authenticatedController,
@@ -19,7 +20,10 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
 
 async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
-  const { title, type, event_day, event_month } = req.body;
+  const { title, type, event_day, event_month } = parseSchema(
+    updateEventSchema,
+    req.body,
+  );
 
   const updatedEvent = await event.update(id, req.user.id, {
     title,

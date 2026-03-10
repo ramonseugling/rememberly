@@ -1,5 +1,6 @@
 import { log } from 'next-axiom';
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/sanitize';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   birthday: '🎂 Aniversário',
@@ -19,12 +20,16 @@ async function sendEventNotification(input: SendEventNotificationInput) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const typeLabel = EVENT_TYPE_LABELS[input.eventType] ?? input.eventType;
 
+  const safeUserName = escapeHtml(input.userName);
+  const safeEventTitle = escapeHtml(input.eventTitle);
+  const safeTypeLabel = escapeHtml(typeLabel);
+
   await resend.emails.send({
     from:
       process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
     to: input.to,
     subject: `${typeLabel} — ${input.eventTitle}`,
-    html: buildEmailHtml(input.userName, input.eventTitle, typeLabel),
+    html: buildEmailHtml(safeUserName, safeEventTitle, safeTypeLabel),
   });
 
   log.info('event_notification_sent', {
@@ -71,12 +76,15 @@ interface SendPasswordResetEmailInput {
 async function sendPasswordResetEmail(input: SendPasswordResetEmailInput) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
+  const safeUserName = escapeHtml(input.userName);
+  const safeResetUrl = escapeHtml(input.resetUrl);
+
   await resend.emails.send({
     from:
       process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
     to: input.to,
     subject: 'Redefinição de senha',
-    html: buildPasswordResetHtml(input.userName, input.resetUrl),
+    html: buildPasswordResetHtml(safeUserName, safeResetUrl),
   });
 
   log.info('password_reset_email_sent', { to: input.to });

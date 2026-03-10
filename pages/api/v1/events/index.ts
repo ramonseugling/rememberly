@@ -1,4 +1,5 @@
 import type { NextApiResponse } from 'next';
+import { createEventSchema, parseSchema } from '@/lib/validators';
 import {
   AuthenticatedRequest,
   authenticatedController,
@@ -16,7 +17,10 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { title, type, event_day, event_month } = req.body;
+  const { title, type, event_day, event_month } = parseSchema(
+    createEventSchema,
+    req.body,
+  );
 
   const createdEvent = await event.create(req.user.id, {
     title,

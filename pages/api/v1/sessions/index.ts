@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createSessionSchema, parseSchema } from '@/lib/validators';
 import controller from 'infra/controller';
 import session from 'models/session';
 
@@ -31,7 +32,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
-  const { email, password } = req.body;
+  const { email, password } = parseSchema(createSessionSchema, req.body);
 
   const createdSession = await session.create(email, password);
 
