@@ -12,10 +12,11 @@ import {
 import { Button } from '@/components/ui/button';
 
 const eventTypes = [
-  { label: 'aniversários', color: 'hsl(340, 75%, 68%)' },
-  { label: 'datas especiais', color: 'hsl(25, 85%, 65%)' },
-  { label: 'aniversários de namoro', color: 'hsl(280, 65%, 70%)' },
-  { label: 'aniversários de casamento', color: 'hsl(0, 70%, 65%)' },
+  { label: 'aniversário de amigos', color: 'hsl(340, 75%, 68%)' },
+  { label: 'aniversário de familiares', color: 'hsl(25, 85%, 65%)' },
+  { label: 'aniversário de namoro', color: 'hsl(280, 65%, 70%)' },
+  { label: 'aniversário de casamento', color: 'hsl(0, 70%, 65%)' },
+  { label: 'celebrações especiais', color: 'hsl(45, 90%, 60%)' },
 ];
 
 export const HeroSection = () => {
@@ -29,7 +30,7 @@ export const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative isolate flex flex-col items-center overflow-hidden sm:min-h-[calc(100vh-57px)] sm:justify-center">
+    <section className="relative isolate flex min-h-[calc(100dvh-57px)] items-center justify-center overflow-hidden">
       <div className="absolute inset-0 gradient-soft" />
       <div
         className="absolute inset-0 opacity-5"
@@ -73,12 +74,12 @@ export const HeroSection = () => {
       </motion.div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex max-w-4xl flex-col items-center px-4 text-center pt-10 pb-10 sm:pt-0 sm:pb-0 sm:justify-center sm:min-h-[calc(100vh-57px)]">
+      <div className="relative z-10 flex w-full max-w-4xl flex-col items-center px-6 py-16 text-center sm:py-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8 hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur-sm"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur-sm"
         >
           <Sparkles className="h-4 w-4" />
           <span>O seu novo assistente de datas importantes</span>
@@ -90,11 +91,11 @@ export const HeroSection = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-6 flex w-full flex-col items-center"
         >
-          <h1 className="flex flex-col items-center font-bold tracking-tight leading-[1.1]">
-            <span className="mb-2 block text-foreground text-4xl sm:text-6xl lg:text-7xl sm:mb-4">
+          <h1 className="flex flex-col items-center font-bold tracking-tight leading-tight">
+            <span className="mb-2 block text-foreground text-5xl sm:text-6xl lg:text-7xl sm:mb-3">
               Nunca mais esqueça
             </span>
-            <div className="w-full max-w-[900px] px-4 py-2 text-center overflow-hidden">
+            <div className="relative h-[120px] w-full overflow-hidden sm:h-auto sm:overflow-visible">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={index}
@@ -102,7 +103,7 @@ export const HeroSection = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.35, ease: 'easeInOut' }}
-                  className="block w-full text-center whitespace-nowrap text-3xl sm:text-6xl lg:text-7xl"
+                  className="absolute inset-0 flex items-center justify-center text-center text-5xl sm:static sm:block sm:whitespace-nowrap sm:text-6xl lg:text-7xl"
                   style={{ color: eventTypes[index].color }}
                 >
                   {eventTypes[index].label}
@@ -116,7 +117,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mx-auto mb-10 max-w-2xl px-4 text-base font-medium leading-relaxed text-muted-foreground sm:text-xl"
+          className="mx-auto mb-10 max-w-lg text-base font-medium leading-relaxed text-muted-foreground sm:text-xl"
         >
           Ajudamos você a lembrar as datas mais importantes de quem você ama.
         </motion.p>
@@ -125,38 +126,17 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex w-full flex-col items-center justify-center gap-3 px-6 sm:w-auto sm:flex-row sm:gap-4"
         >
           <Link href="/signup">
             <Button
               size="lg"
-              className="gradient-warm text-white shadow-warm text-sm px-5 py-2 rounded-2xl transition-smooth hover:scale-105 hover:opacity-90 sm:text-lg sm:px-8 sm:py-6 sm:rounded-full"
+              className="gradient-warm text-white shadow-warm text-base px-8 py-5 rounded-full transition-smooth hover:scale-105 hover:opacity-90 sm:text-lg sm:px-10 sm:py-6"
             >
               Criar minha conta grátis
-              <ChevronRight className="ml-2 h-5 w-5" />
+              <ChevronRight className="ml-2 h-5 w-5 mt-1" />
             </Button>
           </Link>
         </motion.div>
-
-        {/* <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-12 flex flex-wrap justify-center gap-6 px-4 text-sm font-medium text-muted-foreground"
-        >
-          <div className="flex items-center gap-2">
-            <BellRing className="h-4 w-4 text-primary" />
-            <span>Lembretes por e-mail</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-primary" />
-            <span>100% Gratuito</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            <span>Cadastre quantas datas quiser</span>
-          </div>
-        </motion.div> */}
       </div>
     </section>
   );

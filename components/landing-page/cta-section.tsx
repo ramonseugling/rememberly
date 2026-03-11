@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const CtaSection = () => {
@@ -27,11 +27,11 @@ export const CtaSection = () => {
         <Link href="/signup">
           <Button
             size="lg"
-            className="gradient-warm text-white shadow-warm text-sm px-5 py-2 rounded-2xl transition-smooth hover:scale-105 hover:opacity-90 animate-fade-in sm:text-lg sm:px-12 sm:py-6 sm:rounded-full"
+            className="gradient-warm text-white shadow-warm text-base px-8 py-5 rounded-full transition-smooth hover:scale-105 hover:opacity-90 animate-fade-in sm:text-lg sm:px-10 sm:py-6"
             style={{ animationDelay: '0.4s' }}
           >
-            <Sparkles className="mr-2 h-5 w-5" />
             Criar minha conta grátis
+            <ChevronRight className="ml-2 h-5 w-5 mt-1" />
           </Button>
         </Link>
       </div>

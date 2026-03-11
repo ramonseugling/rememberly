@@ -17,7 +17,7 @@ export const FeaturesSection = () => {
             <div className="w-16 h-16 mx-auto mb-6 gradient-warm rounded-2xl flex items-center justify-center shadow-soft">
               <Calendar className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-semibold mb-4">Registre Datas</h3>
+            <h3 className="text-2xl font-semibold mb-4">Registre datas</h3>
             <p className="text-muted-foreground">
               Adicione aniversários, casamentos e todas as datas importantes da
               sua família e amigos
@@ -45,7 +45,7 @@ export const FeaturesSection = () => {
             <div className="w-16 h-16 mx-auto mb-6 gradient-warm rounded-2xl flex items-center justify-center shadow-soft">
               <Heart className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-semibold mb-4">Compartilhe Amor</h3>
+            <h3 className="text-2xl font-semibold mb-4">Compartilhe amor</h3>
             <p className="text-muted-foreground">
               Mostre carinho lembrando-se de cada aniversário e celebrando
               momentos únicos
