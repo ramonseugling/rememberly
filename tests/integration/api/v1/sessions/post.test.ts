@@ -14,10 +14,12 @@ describe('POST /api/v1/sessions', () => {
       password: 'senha123',
     };
 
+    const otpRecord = await orchestrator.createValidOtp(body.email);
+
     await fetch('http://localhost:3000/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, otp_code: otpRecord.code }),
     });
 
     const response = await fetch('http://localhost:3000/api/v1/sessions', {

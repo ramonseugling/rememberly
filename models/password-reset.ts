@@ -16,6 +16,10 @@ async function createToken(email: string) {
     return null;
   }
 
+  if (!foundUser.password) {
+    return { googleOnly: true as const };
+  }
+
   await checkRateLimit(foundUser.id);
 
   await invalidatePreviousTokens(foundUser.id);

@@ -23,6 +23,23 @@ export const createUserSchema = z.object({
     })
     .min(8, 'A senha deve ter pelo menos 8 caracteres.')
     .max(72, 'A senha deve ter no máximo 72 caracteres.'),
+  otp_code: z
+    .string({
+      required_error: 'O código de verificação é obrigatório.',
+    })
+    .length(6, 'O código de verificação deve ter 6 dígitos.')
+    .regex(/^\d{6}$/, 'O código de verificação deve conter apenas números.'),
+});
+
+export const createOtpSchema = z.object({
+  email: z
+    .string({
+      required_error: 'O e-mail é obrigatório.',
+    })
+    .trim()
+    .email('E-mail inválido.')
+    .max(254, 'O e-mail deve ter no máximo 254 caracteres.')
+    .transform((val) => val.toLowerCase()),
 });
 
 export const createSessionSchema = z.object({

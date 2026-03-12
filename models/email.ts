@@ -117,6 +117,57 @@ function buildPasswordResetHtml(userName: string, resetUrl: string) {
   `;
 }
 
-const email = { sendEventNotification, sendPasswordResetEmail };
+interface SendOtpEmailInput {
+  to: string;
+  code: string;
+}
+
+async function sendOtpEmail(input: SendOtpEmailInput) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const safeCode = escapeHtml(input.code);
+
+  await resend.emails.send({
+    from:
+      process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
+    to: input.to,
+    subject: 'Seu código de verificação',
+    html: buildOtpHtml(safeCode),
+  });
+
+  log.info('otp_email_sent', { to: input.to });
+}
+
+function buildOtpHtml(code: string) {
+  return `
+    <div style="font-family: 'Quicksand', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 16px;">
+      <h1 style="font-family: 'Fredoka', sans-serif; color: #e0668a; font-size: 24px; margin-bottom: 8px;">
+        My Forever Dates
+      </h1>
+      <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
+        Olá! 👋
+      </p>
+      <p style="color: #3b4571; font-size: 15px; margin-bottom: 24px;">
+        Use o código abaixo para verificar seu e-mail e concluir o cadastro:
+      </p>
+      <div style="background: linear-gradient(135deg, #e06490, #f0894d); padding: 24px; border-radius: 24px; margin-bottom: 24px; text-align: center;">
+        <p style="color: rgba(255,255,255,0.85); font-size: 14px; margin: 0 0 8px 0;">
+          Código de verificação
+        </p>
+        <p style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: 8px; font-family: monospace;">
+          ${code}
+        </p>
+      </div>
+      <p style="color: #7a7fa5; font-size: 13px; margin-bottom: 8px;">
+        Este código expira em <strong>10 minutos</strong>.
+      </p>
+      <p style="color: #7a7fa5; font-size: 13px;">
+        Se você não solicitou este código, ignore este e-mail.
+      </p>
+    </div>
+  `;
+}
+
+const email = { sendEventNotification, sendPasswordResetEmail, sendOtpEmail };
 
 export default email;

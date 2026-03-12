@@ -13,7 +13,15 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   const result = await passwordReset.createToken(userEmail);
 
-  if (result) {
+  if (result && 'googleOnly' in result) {
+    return res.status(200).json({
+      message:
+        'Esta conta foi criada com o Google. Use o botão "Continuar com Google" para entrar.',
+      google_only: true,
+    });
+  }
+
+  if (result && 'token' in result) {
     const resetUrl = `${process.env.APP_URL}/reset-password?token=${result.token}`;
     await email.sendPasswordResetEmail({
       to: result.user.email,

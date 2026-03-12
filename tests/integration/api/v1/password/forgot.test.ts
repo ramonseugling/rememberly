@@ -7,6 +7,23 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
+async function createUserWithOtp() {
+  const email = faker.internet.email();
+  const otpRecord = await orchestrator.createValidOtp(email);
+  const res = await fetch('http://localhost:3000/api/v1/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: faker.person.fullName(),
+      email,
+      password: 'senha12345',
+      otp_code: otpRecord.code,
+    }),
+  });
+  const createdUser = await res.json();
+  return { ...createdUser, email };
+}
+
 describe('POST /api/v1/password/forgot', () => {
   it('deve retornar 200 mesmo quando e-mail não existe', async () => {
     const response = await fetch(
@@ -25,24 +42,14 @@ describe('POST /api/v1/password/forgot', () => {
   });
 
   it('deve retornar 200 quando e-mail existe (sem vazar informação)', async () => {
-    const userBody = {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      password: 'senha123',
-    };
-
-    await fetch('http://localhost:3000/api/v1/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userBody),
-    });
+    const createdUser = await createUserWithOtp();
 
     const response = await fetch(
       'http://localhost:3000/api/v1/password/forgot',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userBody.email }),
+        body: JSON.stringify({ email: createdUser.email }),
       },
     );
 
@@ -50,6 +57,37 @@ describe('POST /api/v1/password/forgot', () => {
 
     const data = await response.json();
     expect(data.message).toBeDefined();
+  });
+
+  it('deve retornar 200 com google_only para conta Google (sem senha)', async () => {
+    const googleEmail = faker.internet.email();
+    await database.query(`INSERT INTO users (name, email) VALUES ($1, $2)`, [
+      faker.person.fullName(),
+      googleEmail.toLowerCase(),
+    ]);
+
+    const response = await fetch(
+      'http://localhost:3000/api/v1/password/forgot',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: googleEmail }),
+      },
+    );
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+    expect(data.google_only).toBe(true);
+
+    const tokenResult = await database.query(
+      `SELECT COUNT(*) FROM password_reset_tokens
+       JOIN users ON password_reset_tokens.user_id = users.id
+       WHERE LOWER(users.email) = LOWER($1)`,
+      [googleEmail],
+    );
+
+    expect(parseInt(tokenResult.rows[0].count, 10)).toBe(0);
   });
 
   it('deve retornar 405 para método GET', async () => {
@@ -61,21 +99,6 @@ describe('POST /api/v1/password/forgot', () => {
   });
 
   describe('rate limiting', () => {
-    async function createUser() {
-      const userBody = {
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        password: 'senha123',
-      };
-      const res = await fetch('http://localhost:3000/api/v1/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userBody),
-      });
-      const createdUser = await res.json();
-      return { ...createdUser, email: userBody.email };
-    }
-
     async function requestPasswordReset(email: string) {
       return fetch('http://localhost:3000/api/v1/password/forgot', {
         method: 'POST',
@@ -85,7 +108,7 @@ describe('POST /api/v1/password/forgot', () => {
     }
 
     it('deve permitir até 2 requisições por hora', async () => {
-      const createdUser = await createUser();
+      const createdUser = await createUserWithOtp();
 
       const first = await requestPasswordReset(createdUser.email);
       expect(first.status).toBe(200);
@@ -95,7 +118,7 @@ describe('POST /api/v1/password/forgot', () => {
     });
 
     it('deve retornar 429 na 3ª requisição dentro de uma hora', async () => {
-      const createdUser = await createUser();
+      const createdUser = await createUserWithOtp();
 
       await requestPasswordReset(createdUser.email);
       await requestPasswordReset(createdUser.email);
@@ -108,7 +131,7 @@ describe('POST /api/v1/password/forgot', () => {
     });
 
     it('não deve contar tokens criados há mais de 1 hora', async () => {
-      const createdUser = await createUser();
+      const createdUser = await createUserWithOtp();
 
       await database.query(
         `INSERT INTO password_reset_tokens (token, user_id, expires_at, created_at)

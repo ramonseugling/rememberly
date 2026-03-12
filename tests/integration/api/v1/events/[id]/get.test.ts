@@ -13,10 +13,12 @@ async function createUserAndSession() {
     password: 'senha123',
   };
 
+  const otpRecord = await orchestrator.createValidOtp(userData.email);
+
   await fetch('http://localhost:3000/api/v1/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(userData),
+    body: JSON.stringify({ ...userData, otp_code: otpRecord.code }),
   });
 
   const sessionResponse = await fetch('http://localhost:3000/api/v1/sessions', {

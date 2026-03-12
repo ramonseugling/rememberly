@@ -14,10 +14,12 @@ async function createUserAndToken() {
     password: 'senha123',
   };
 
+  const otpRecord = await orchestrator.createValidOtp(userBody.email);
+
   await fetch('http://localhost:3000/api/v1/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(userBody),
+    body: JSON.stringify({ ...userBody, otp_code: otpRecord.code }),
   });
 
   const userResult = await database.query(
@@ -133,10 +135,12 @@ describe('POST /api/v1/password/reset', () => {
       password: 'senha123',
     };
 
+    const otpRecord = await orchestrator.createValidOtp(userBody.email);
+
     await fetch('http://localhost:3000/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userBody),
+      body: JSON.stringify({ ...userBody, otp_code: otpRecord.code }),
     });
 
     const userResult = await database.query(
