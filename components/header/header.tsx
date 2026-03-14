@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { LogOut, User } from 'lucide-react';
@@ -26,6 +27,12 @@ export const Header = ({ user }: HeaderProps) => {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Image
+              src="/logo.svg"
+              alt="My Forever Dates"
+              width={40}
+              height={40}
+            />
             <h1 className="text-1xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent inline-block">
               My Forever Dates
             </h1>

@@ -31,6 +31,8 @@ async function sendTodayNotifications() {
 
   log.info('cron_notifications_start', { day, month, total: events.length });
 
+  let sent = 0;
+
   for (const event of events) {
     try {
       await email.sendEventNotification({
@@ -39,6 +41,7 @@ async function sendTodayNotifications() {
         eventTitle: event.event_title,
         eventType: event.event_type,
       });
+      sent++;
     } catch (err) {
       log.error('cron_notification_failed', {
         to: event.user_email,
@@ -48,9 +51,9 @@ async function sendTodayNotifications() {
     }
   }
 
-  log.info('cron_notifications_done', { sent: events.length });
+  log.info('cron_notifications_done', { sent });
 
-  return { sent: events.length };
+  return { sent };
 }
 
 const notification = { sendTodayNotifications };
