@@ -1,7 +1,7 @@
 import { withAxiom } from 'next-axiom';
 
 export default withAxiom({
-  transpilePackages: ['@faker-js/faker', 'node-pg-migrate'],
+  transpilePackages: ['@faker-js/faker'],
   async headers() {
     return [
       {

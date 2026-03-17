@@ -3,7 +3,7 @@ import type { Config } from 'jest';
 
 const createJestConfig = nextJest({ dir: './' });
 
-const config: Config = {
+const customConfig: Config = {
   testEnvironment: 'node',
   testTimeout: 60000,
   moduleNameMapper: {
@@ -14,4 +14,12 @@ const config: Config = {
   },
 };
 
-export default createJestConfig(config);
+export default async () => {
+  const nextJestConfig = await createJestConfig(customConfig)();
+  return {
+    ...nextJestConfig,
+    transformIgnorePatterns: [
+      '/node_modules/(?!(node-pg-migrate|@faker-js/faker)/)',
+    ],
+  };
+};
