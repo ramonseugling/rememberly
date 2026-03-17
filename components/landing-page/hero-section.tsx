@@ -1,22 +1,30 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Balloon,
-  CalendarHeart,
-  ChevronRight,
-  Gift,
-  PartyPopper,
-  Sparkles,
-} from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const eventTypes = [
-  { label: 'aniversário de amigos', color: 'hsl(340, 75%, 68%)' },
-  { label: 'aniversário de familiares', color: 'hsl(25, 85%, 65%)' },
-  { label: 'aniversário de namoro', color: 'hsl(280, 65%, 70%)' },
-  { label: 'aniversário de casamento', color: 'hsl(0, 70%, 65%)' },
-  { label: 'celebrações especiais', color: 'hsl(45, 90%, 60%)' },
+  {
+    label: 'aniversário de amigos',
+    gradient: 'linear-gradient(135deg, hsl(340,75%,68%), hsl(280,65%,70%))',
+  },
+  {
+    label: 'aniversário de familiares',
+    gradient: 'linear-gradient(135deg, hsl(25,85%,65%), hsl(340,75%,68%))',
+  },
+  {
+    label: 'aniversário de namoro',
+    gradient: 'linear-gradient(135deg, hsl(280,65%,70%), hsl(0,70%,65%))',
+  },
+  {
+    label: 'aniversário de casamento',
+    gradient: 'linear-gradient(135deg, hsl(340,75%,68%), hsl(25,85%,65%))',
+  },
+  {
+    label: 'celebrações especiais',
+    gradient: 'linear-gradient(135deg, hsl(25,85%,65%), hsl(280,65%,70%))',
+  },
 ];
 
 export const HeroSection = () => {
@@ -46,31 +54,52 @@ export const HeroSection = () => {
         transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
         className="absolute top-[3%] left-[2%] hidden pointer-events-none sm:block md:top-[8%] md:left-[8%] lg:top-[10%] lg:left-[12%]"
       >
-        <PartyPopper
-          className="w-20 h-20 text-primary opacity-30"
-          fill="currentColor"
-        />
+        <span
+          role="img"
+          aria-hidden="true"
+          className="text-7xl opacity-40 select-none"
+        >
+          🎉
+        </span>
       </motion.div>
       <motion.div
         animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
         className="absolute bottom-[5%] right-[2%] hidden pointer-events-none sm:block md:bottom-[12%] md:right-[8%] lg:bottom-[20%] lg:right-[12%]"
       >
-        <Balloon className="w-20 h-20 text-secondary opacity-30" />
+        <span
+          role="img"
+          aria-hidden="true"
+          className="text-7xl opacity-40 select-none"
+        >
+          🎈
+        </span>
       </motion.div>
       <motion.div
         animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
         className="absolute top-[5%] right-[2%] hidden pointer-events-none lg:block lg:top-[15%] lg:right-[10%]"
       >
-        <Gift className="w-20 h-20 text-accent opacity-30" />
+        <span
+          role="img"
+          aria-hidden="true"
+          className="text-7xl opacity-40 select-none"
+        >
+          🎁
+        </span>
       </motion.div>
       <motion.div
         animate={{ y: [0, 15, 0], rotate: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut' }}
         className="absolute bottom-[5%] left-[2%] hidden pointer-events-none lg:block lg:bottom-[15%] lg:left-[10%]"
       >
-        <CalendarHeart className="w-20 h-20 text-primary opacity-20" />
+        <span
+          role="img"
+          aria-hidden="true"
+          className="text-7xl opacity-30 select-none"
+        >
+          🗓️
+        </span>
       </motion.div>
 
       {/* Main Content */}
@@ -104,7 +133,12 @@ export const HeroSection = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.35, ease: 'easeInOut' }}
                   className="absolute inset-0 flex items-center justify-center text-center text-5xl sm:static sm:block sm:whitespace-nowrap sm:text-6xl lg:text-7xl"
-                  style={{ color: eventTypes[index].color }}
+                  style={{
+                    background: eventTypes[index].gradient,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
                 >
                   {eventTypes[index].label}
                 </motion.span>
@@ -119,7 +153,8 @@ export const HeroSection = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mx-auto mb-10 max-w-lg text-base font-medium leading-relaxed text-muted-foreground sm:text-xl"
         >
-          Ajudamos você a lembrar as datas mais importantes de quem você ama.
+          Ajudamos você a lembrar as datas mais importantes de quem importa para
+          você.
         </motion.p>
 
         <motion.div

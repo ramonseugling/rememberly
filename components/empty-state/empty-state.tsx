@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
@@ -9,8 +8,10 @@ interface EmptyStateProps {
 export const EmptyState = ({ showLoginCta = false }: EmptyStateProps) => {
   return (
     <div className="text-center py-16 animate-fade-in">
-      <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-muted flex items-center justify-center">
-        <Calendar className="w-12 h-12 text-muted-foreground" />
+      <div className="mb-6">
+        <span role="img" aria-hidden="true" className="text-7xl select-none">
+          🗓️
+        </span>
       </div>
       <h3 className="text-2xl font-heading font-semibold mb-2">
         {showLoginCta

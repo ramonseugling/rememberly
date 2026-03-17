@@ -1,23 +1,21 @@
-import { Bell, Calendar, Star } from 'lucide-react';
-
 const steps = [
   {
     step: '1',
-    icon: <Star className="w-7 h-7 text-white" />,
+    emoji: '🌟',
     title: 'Crie sua conta',
     description:
-      'Cadastre-se gratuitamente com nome, e-mail e senha em segundos',
+      'Cadastre-se gratuitamente com nome, e-mail e senha ou Google em segundos',
   },
   {
     step: '2',
-    icon: <Calendar className="w-7 h-7 text-white" />,
+    emoji: '🗓️',
     title: 'Adicione as datas',
     description:
-      'Registre aniversários, namoros, casamentos e outras celebrações',
+      'Registre aniversários, aniversário de namoro, aniversário de casamento e outras celebrações',
   },
   {
     step: '3',
-    icon: <Bell className="w-7 h-7 text-white" />,
+    emoji: '🔔',
     title: 'Receba lembretes',
     description:
       'Todo dia do evento você recebe um e-mail — nunca mais vai esquecer!',
@@ -36,15 +34,21 @@ export const HowItWorksSection = () => {
         </p>
 
         <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
-          {steps.map(({ step, icon, title, description }, index) => (
+          {steps.map(({ step, emoji, title, description }, index) => (
             <div
               key={step}
               className="flex flex-col items-center text-center animate-fade-in"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className="relative mb-6">
-                <div className="w-16 h-16 gradient-warm rounded-full flex items-center justify-center shadow-soft">
-                  {icon}
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <span
+                    role="img"
+                    aria-hidden="true"
+                    className="text-5xl select-none"
+                  >
+                    {emoji}
+                  </span>
                 </div>
                 <span className="absolute -top-2 -right-2 w-6 h-6 bg-accent text-white text-xs font-bold rounded-full flex items-center justify-center">
                   {step}
