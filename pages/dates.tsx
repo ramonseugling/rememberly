@@ -119,9 +119,9 @@ export default function Dates({ user, events }: DatesProps) {
   const [selectedEvent, setSelectedEvent] = useState<EventCard | null>(null);
 
   const urgentCount = events.filter((e) => e.daysUntil <= 7).length;
-  const currentMonth = new Date().getMonth();
+  const currentMonth = new Date().getMonth() + 1;
   const hasCurrentMonthEvents = events.some(
-    (e) => e.event_month === currentMonth,
+    (e) => e.event_month === currentMonth && !e.isNextYear,
   );
 
   return (
