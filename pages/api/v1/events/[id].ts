@@ -20,10 +20,14 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
 
 async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
-  const { title, type, custom_type, event_day, event_month } = parseSchema(
-    updateEventSchema,
-    req.body,
-  );
+  const {
+    title,
+    type,
+    custom_type,
+    event_day,
+    event_month,
+    reminder_days_before,
+  } = parseSchema(updateEventSchema, req.body);
 
   const updatedEvent = await event.update(id, req.user.id, {
     title,
@@ -31,6 +35,7 @@ async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {
     custom_type,
     event_day,
     event_month,
+    reminder_days_before,
   });
 
   res.status(200).json(updatedEvent);

@@ -4,6 +4,10 @@
     {
       "path": "/api/v1/notifications/send",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/v1/notifications/send-reminders",
+      "schedule": "0 12 * * *"
     }
   ]
 }

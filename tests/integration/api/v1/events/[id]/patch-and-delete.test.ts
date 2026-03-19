@@ -278,6 +278,50 @@ describe('PATCH /api/v1/events/[id]', () => {
     const data = await response.json();
     expect(data.name).toBe('ValidationError');
   });
+
+  it('deve atualizar reminder_days_before', async () => {
+    const { token } = await createUserAndSession();
+    const created = await createEvent(token, { reminder_days_before: 0 });
+
+    const response = await fetch(
+      `http://localhost:3000/api/v1/events/${created.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reminder_days_before: 7 }),
+      },
+    );
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+    expect(data.reminder_days_before).toBe(7);
+  });
+
+  it('deve retornar 400 ao atualizar reminder_days_before com valor inválido', async () => {
+    const { token } = await createUserAndSession();
+    const created = await createEvent(token);
+
+    const response = await fetch(
+      `http://localhost:3000/api/v1/events/${created.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reminder_days_before: 5 }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+    expect(data.name).toBe('ValidationError');
+  });
 });
 
 describe('DELETE /api/v1/events/[id]', () => {

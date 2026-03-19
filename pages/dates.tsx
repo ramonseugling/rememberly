@@ -30,6 +30,7 @@ interface EventCard {
   isNextYear: boolean;
   event_day: number;
   event_month: number;
+  reminder_days_before: number;
 }
 
 interface DatesProps {
@@ -57,6 +58,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           custom_type?: string | null;
           event_day: number;
           event_month: number;
+          reminder_days_before: number;
         }) => {
           const thisYearDate = new Date(
             todayMidnight.getFullYear(),
@@ -87,6 +89,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
             isNextYear,
             event_day: e.event_day,
             event_month: e.event_month,
+            reminder_days_before: e.reminder_days_before ?? 0,
           };
         },
       )

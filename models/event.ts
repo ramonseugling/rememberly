@@ -17,6 +17,7 @@ interface CreateEventInput {
   custom_type?: string | null;
   event_day: number;
   event_month: number;
+  reminder_days_before?: number;
 }
 
 interface UpdateEventInput {
@@ -25,6 +26,7 @@ interface UpdateEventInput {
   custom_type?: string | null;
   event_day?: number;
   event_month?: number;
+  reminder_days_before?: number;
 }
 
 function validateType(type: string): asserts type is EventType {
@@ -98,8 +100,8 @@ async function create(userId: string, input: CreateEventInput) {
     input.type === 'custom' ? validateCustomType(input.custom_type) : null;
 
   const result = await database.query(
-    `INSERT INTO events (title, type, custom_type, event_day, event_month, user_id)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO events (title, type, custom_type, event_day, event_month, reminder_days_before, user_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       input.title.trim(),
@@ -107,6 +109,7 @@ async function create(userId: string, input: CreateEventInput) {
       customType,
       input.event_day,
       input.event_month,
+      input.reminder_days_before ?? 0,
       userId,
     ],
   );
@@ -195,6 +198,11 @@ async function update(id: string, userId: string, input: UpdateEventInput) {
   if (input.event_month !== undefined) {
     fields.push(`event_month = $${paramIndex++}`);
     values.push(input.event_month);
+  }
+
+  if (input.reminder_days_before !== undefined) {
+    fields.push(`reminder_days_before = $${paramIndex++}`);
+    values.push(input.reminder_days_before);
   }
 
   if (fields.length === 0) {

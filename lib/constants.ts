@@ -23,6 +23,15 @@ export const MONTHS = [
   'Dezembro',
 ] as const;
 
+export const REMINDER_OPTIONS = [
+  { value: '0', label: 'Nenhuma' },
+  { value: '1', label: '1 dia antes' },
+  { value: '3', label: '3 dias antes' },
+  { value: '7', label: '1 semana antes' },
+  { value: '15', label: '15 dias antes' },
+  { value: '30', label: '30 dias antes' },
+] as const;
+
 export const DAYS_IN_MONTH: Record<number, number> = {
   1: 31,
   2: 29,

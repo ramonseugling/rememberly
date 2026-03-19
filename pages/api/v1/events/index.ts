@@ -17,10 +17,14 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { title, type, custom_type, event_day, event_month } = parseSchema(
-    createEventSchema,
-    req.body,
-  );
+  const {
+    title,
+    type,
+    custom_type,
+    event_day,
+    event_month,
+    reminder_days_before,
+  } = parseSchema(createEventSchema, req.body);
 
   const createdEvent = await event.create(req.user.id, {
     title,
@@ -28,6 +32,7 @@ async function handlePost(req: AuthenticatedRequest, res: NextApiResponse) {
     custom_type,
     event_day,
     event_month,
+    reminder_days_before,
   });
 
   res.status(201).json(createdEvent);

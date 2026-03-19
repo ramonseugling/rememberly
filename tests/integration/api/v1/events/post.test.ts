@@ -292,4 +292,75 @@ describe('POST /api/v1/events', () => {
     expect(data.type).toBe('birthday');
     expect(data.custom_type).toBeNull();
   });
+
+  it('deve criar evento com reminder_days_before', async () => {
+    const { token } = await createUserAndSession();
+
+    const response = await fetch('http://localhost:3000/api/v1/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: 'Aniversário da Ana',
+        type: 'birthday',
+        event_day: 10,
+        event_month: 7,
+        reminder_days_before: 7,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+
+    const data = await response.json();
+    expect(data.reminder_days_before).toBe(7);
+  });
+
+  it('deve usar reminder_days_before padrão 0 quando não informado', async () => {
+    const { token } = await createUserAndSession();
+
+    const response = await fetch('http://localhost:3000/api/v1/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: 'Sem lembrete',
+        type: 'birthday',
+        event_day: 5,
+        event_month: 3,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+
+    const data = await response.json();
+    expect(data.reminder_days_before).toBe(0);
+  });
+
+  it('deve retornar 400 quando reminder_days_before é inválido', async () => {
+    const { token } = await createUserAndSession();
+
+    const response = await fetch('http://localhost:3000/api/v1/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: 'Evento',
+        type: 'birthday',
+        event_day: 15,
+        event_month: 6,
+        reminder_days_before: 10,
+      }),
+    });
+
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+    expect(data.name).toBe('ValidationError');
+  });
 });

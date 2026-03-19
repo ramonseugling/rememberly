@@ -106,6 +106,16 @@ export const createEventSchema = z
       .int('O mês deve ser um número inteiro.')
       .min(1, 'O mês deve ser entre 1 e 12.')
       .max(12, 'O mês deve ser entre 1 e 12.'),
+    reminder_days_before: z
+      .number({
+        invalid_type_error: 'A notificação antecipada deve ser um número.',
+      })
+      .int('A notificação antecipada deve ser um número inteiro.')
+      .refine(
+        (v) => [0, 1, 3, 7, 15, 30].includes(v),
+        'Valor inválido para notificação antecipada. Use: 0, 1, 3, 7, 15 ou 30.',
+      )
+      .default(0),
   })
   .refine(
     (data) => {
@@ -168,6 +178,16 @@ export const updateEventSchema = z
       .int('O mês deve ser um número inteiro.')
       .min(1, 'O mês deve ser entre 1 e 12.')
       .max(12, 'O mês deve ser entre 1 e 12.')
+      .optional(),
+    reminder_days_before: z
+      .number({
+        invalid_type_error: 'A notificação antecipada deve ser um número.',
+      })
+      .int('A notificação antecipada deve ser um número inteiro.')
+      .refine(
+        (v) => [0, 1, 3, 7, 15, 30].includes(v),
+        'Valor inválido para notificação antecipada. Use: 0, 1, 3, 7, 15 ou 30.',
+      )
       .optional(),
   })
   .refine(

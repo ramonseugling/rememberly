@@ -16,7 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DAYS_IN_MONTH, EVENT_TYPES, MONTHS } from '@/lib/constants';
+import {
+  DAYS_IN_MONTH,
+  EVENT_TYPES,
+  MONTHS,
+  REMINDER_OPTIONS,
+} from '@/lib/constants';
 import type { EventType } from '@/lib/types';
 
 interface AddEventModalProps {
@@ -30,6 +35,7 @@ interface FormState {
   customType: string;
   day: string;
   month: string;
+  reminderDaysBefore: string;
 }
 
 interface FormErrors {
@@ -47,6 +53,7 @@ const INITIAL_FORM: FormState = {
   customType: '',
   day: '',
   month: '',
+  reminderDaysBefore: '0',
 };
 
 export const AddEventModal = ({ open, onOpenChange }: AddEventModalProps) => {
@@ -89,6 +96,7 @@ export const AddEventModal = ({ open, onOpenChange }: AddEventModalProps) => {
             form.type === 'custom' ? form.customType.trim() : undefined,
           event_day: Number(form.day),
           event_month: Number(form.month),
+          reminder_days_before: Number(form.reminderDaysBefore),
         }),
       });
 
@@ -246,24 +254,23 @@ export const AddEventModal = ({ open, onOpenChange }: AddEventModalProps) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 opacity-60">
-            <div className="flex items-center gap-2">
-              <Label>Notificação antecipada</Label>
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                Em breve
-              </span>
-            </div>
-            <Select>
-              <SelectTrigger className="cursor-not-allowed">
-                <SelectValue placeholder="1 dia antes" />
+          <div className="flex flex-col gap-1.5">
+            <Label>Notificação antecipada</Label>
+            <Select
+              value={form.reminderDaysBefore}
+              onValueChange={(value) =>
+                setForm((f) => ({ ...f, reminderDaysBefore: value }))
+              }
+            >
+              <SelectTrigger className="cursor-pointer">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">No dia do evento</SelectItem>
-                <SelectItem value="1">1 dia antes</SelectItem>
-                <SelectItem value="3">3 dias antes</SelectItem>
-                <SelectItem value="7">1 semana antes</SelectItem>
-                <SelectItem value="15">15 dias antes</SelectItem>
-                <SelectItem value="30">30 dias antes</SelectItem>
+                {REMINDER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

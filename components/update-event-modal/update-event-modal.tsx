@@ -16,7 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DAYS_IN_MONTH, EVENT_TYPES, MONTHS } from '@/lib/constants';
+import {
+  DAYS_IN_MONTH,
+  EVENT_TYPES,
+  MONTHS,
+  REMINDER_OPTIONS,
+} from '@/lib/constants';
 import type { EventType } from '@/lib/types';
 
 interface EventData {
@@ -26,6 +31,7 @@ interface EventData {
   custom_type?: string | null;
   event_day: number;
   event_month: number;
+  reminder_days_before: number;
 }
 
 interface UpdateEventModalProps {
@@ -40,6 +46,7 @@ interface FormState {
   customType: string;
   day: string;
   month: string;
+  reminderDaysBefore: string;
 }
 
 interface FormErrors {
@@ -58,6 +65,7 @@ function eventToForm(e: EventData): FormState {
     customType: e.custom_type ?? '',
     day: String(e.event_day),
     month: String(e.event_month),
+    reminderDaysBefore: String(e.reminder_days_before ?? 0),
   };
 }
 
@@ -85,7 +93,8 @@ export const UpdateEventModal = ({
     form.type !== initialForm.type ||
     form.customType !== initialForm.customType ||
     form.day !== initialForm.day ||
-    form.month !== initialForm.month;
+    form.month !== initialForm.month ||
+    form.reminderDaysBefore !== initialForm.reminderDaysBefore;
 
   const daysInMonth = form.month
     ? (DAYS_IN_MONTH[Number(form.month)] ?? 31)
@@ -121,6 +130,7 @@ export const UpdateEventModal = ({
             form.type === 'custom' ? form.customType.trim() : undefined,
           event_day: Number(form.day),
           event_month: Number(form.month),
+          reminder_days_before: Number(form.reminderDaysBefore),
         }),
       });
 
@@ -283,6 +293,27 @@ export const UpdateEventModal = ({
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Notificação antecipada</Label>
+            <Select
+              value={form.reminderDaysBefore}
+              onValueChange={(value) =>
+                setForm((f) => ({ ...f, reminderDaysBefore: value }))
+              }
+            >
+              <SelectTrigger className="cursor-pointer">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REMINDER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
