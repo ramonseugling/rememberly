@@ -1,6 +1,33 @@
 import { z } from 'zod';
 import { ValidationError } from 'infra/errors';
 
+const birthdayFields = {
+  birth_day: z
+    .number({
+      required_error: 'O dia de nascimento é obrigatório.',
+      invalid_type_error: 'O dia de nascimento deve ser um número.',
+    })
+    .int('O dia deve ser um número inteiro.')
+    .min(1, 'O dia deve ser entre 1 e 31.')
+    .max(31, 'O dia deve ser entre 1 e 31.'),
+  birth_month: z
+    .number({
+      required_error: 'O mês de nascimento é obrigatório.',
+      invalid_type_error: 'O mês de nascimento deve ser um número.',
+    })
+    .int('O mês deve ser um número inteiro.')
+    .min(1, 'O mês deve ser entre 1 e 12.')
+    .max(12, 'O mês deve ser entre 1 e 12.'),
+  birth_year: z
+    .number({
+      required_error: 'O ano de nascimento é obrigatório.',
+      invalid_type_error: 'O ano de nascimento deve ser um número.',
+    })
+    .int('O ano deve ser um número inteiro.')
+    .min(1900, 'O ano deve ser a partir de 1900.')
+    .max(new Date().getFullYear(), 'O ano não pode ser no futuro.'),
+};
+
 export const createUserSchema = z.object({
   name: z
     .string({
@@ -29,6 +56,11 @@ export const createUserSchema = z.object({
     })
     .length(6, 'O código de verificação deve ter 6 dígitos.')
     .regex(/^\d{6}$/, 'O código de verificação deve conter apenas números.'),
+  ...birthdayFields,
+});
+
+export const updateUserSchema = z.object({
+  ...birthdayFields,
 });
 
 export const createOtpSchema = z.object({

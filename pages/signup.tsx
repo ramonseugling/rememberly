@@ -5,9 +5,23 @@ import { useRouter } from 'next/router';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DAYS_IN_MONTH, MONTHS } from '@/lib/constants';
 import { withGuest } from 'infra/page-guard';
 
 export const getServerSideProps: GetServerSideProps = withGuest();
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from(
+  { length: CURRENT_YEAR - 1900 + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
 
 export default function Signup() {
   const router = useRouter();
@@ -16,10 +30,24 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const daysInMonth = birthMonth
+    ? (DAYS_IN_MONTH[Number(birthMonth)] ?? 31)
+    : 31;
+
+  const handleBirthDayChange = (value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const num = Number(value);
+    if (value !== '' && (num < 1 || num > daysInMonth)) return;
+    setBirthDay(value.slice(0, 2));
+  };
 
   const handleOtpChange = useCallback(
     (index: number, value: string) => {
@@ -103,7 +131,15 @@ export default function Signup() {
     const signupRes = await fetch('/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, otp_code: otpCode }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        otp_code: otpCode,
+        birth_day: Number(birthDay),
+        birth_month: Number(birthMonth),
+        birth_year: Number(birthYear),
+      }),
     });
 
     const signupData = await signupRes.json();
@@ -266,6 +302,61 @@ export default function Signup() {
                         <Eye className="w-4 h-4" />
                       )}
                     </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Data de nascimento
+                  </label>
+                  <div className="flex gap-3">
+                    <div className="w-20">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        value={birthDay}
+                        onChange={(e) => handleBirthDayChange(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth text-center"
+                        placeholder="Dia"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Select
+                        value={birthMonth}
+                        onValueChange={(value) => {
+                          setBirthMonth(value);
+                          const maxDay = DAYS_IN_MONTH[Number(value)] ?? 31;
+                          if (Number(birthDay) > maxDay)
+                            setBirthDay(String(maxDay));
+                        }}
+                      >
+                        <SelectTrigger className="rounded-2xl py-3 h-auto cursor-pointer">
+                          <SelectValue placeholder="Mês" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {MONTHS.map((name, i) => (
+                            <SelectItem key={i + 1} value={String(i + 1)}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="w-28">
+                      <Select value={birthYear} onValueChange={setBirthYear}>
+                        <SelectTrigger className="rounded-2xl py-3 h-auto cursor-pointer">
+                          <SelectValue placeholder="Ano" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {YEARS.map((y) => (
+                            <SelectItem key={y} value={String(y)}>
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 

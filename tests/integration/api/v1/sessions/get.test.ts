@@ -12,6 +12,9 @@ describe('GET /api/v1/sessions', () => {
       name: faker.person.fullName(),
       email: faker.internet.email(),
       password: 'senha123',
+      birth_day: faker.number.int({ min: 1, max: 28 }),
+      birth_month: faker.number.int({ min: 1, max: 12 }),
+      birth_year: faker.number.int({ min: 1950, max: 2005 }),
     };
 
     const otpRecord = await orchestrator.createValidOtp(body.email);

@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddEventModal } from '@/components/add-event-modal/add-event-modal';
+import { BirthdayModal } from '@/components/birthday-modal/birthday-modal';
 import { DateCard } from '@/components/date-card/date-card';
 import { EmptyState } from '@/components/empty-state/empty-state';
 import { HelloCard } from '@/components/hello-card/hello-card';
@@ -18,6 +19,9 @@ interface User {
   id: string;
   name: string;
   email: string;
+  birth_day: number | null;
+  birth_month: number | null;
+  birth_year: number | null;
 }
 
 interface EventCard {
@@ -165,6 +169,7 @@ export default function Dates({ user, events }: DatesProps) {
           }}
         />
       )}
+      <BirthdayModal open={user.birth_day === null} />
     </div>
   );
 }

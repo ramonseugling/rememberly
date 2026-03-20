@@ -16,12 +16,22 @@ async function createValidOtp(email: string) {
 }
 
 async function createAuthCookie(
-  user: { name?: string; email?: string; password?: string } = {},
+  user: {
+    name?: string;
+    email?: string;
+    password?: string;
+    birth_day?: number;
+    birth_month?: number;
+    birth_year?: number;
+  } = {},
 ): Promise<string> {
   const data = {
     name: user.name ?? faker.person.fullName(),
     email: user.email ?? faker.internet.email(),
     password: user.password ?? 'senha123',
+    birth_day: user.birth_day ?? faker.number.int({ min: 1, max: 28 }),
+    birth_month: user.birth_month ?? faker.number.int({ min: 1, max: 12 }),
+    birth_year: user.birth_year ?? faker.number.int({ min: 1950, max: 2005 }),
   };
 
   const otpRecord = await createValidOtp(data.email);
