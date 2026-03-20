@@ -46,3 +46,7 @@ export const DAYS_IN_MONTH: Record<number, number> = {
   11: 30,
   12: 31,
 };
+
+export const EXPIRATION_IN_MS = 1000 * 60 * 60; // 1 hora
+export const RATE_LIMIT_MAX = 2;
+export const RATE_LIMIT_WINDOW = '1 hour';

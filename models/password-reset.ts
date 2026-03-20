@@ -1,13 +1,14 @@
 import { log } from 'next-axiom';
 import crypto from 'crypto';
+import {
+  EXPIRATION_IN_MS,
+  RATE_LIMIT_MAX,
+  RATE_LIMIT_WINDOW,
+} from '@/lib/constants';
 import database from 'infra/database';
 import { TooManyRequestsError, ValidationError } from 'infra/errors';
 import password from 'models/password';
 import user from 'models/user';
-
-const EXPIRATION_IN_MS = 1000 * 60 * 60; // 1 hora
-const RATE_LIMIT_MAX = 2;
-const RATE_LIMIT_WINDOW = '1 hour';
 
 async function createToken(email: string) {
   const foundUser = await user.findOneByEmail(email);
