@@ -51,11 +51,81 @@ async function createAuthCookie(
   return loginRes.headers.get('set-cookie') ?? '';
 }
 
+function extractToken(cookie: string): string {
+  return cookie.match(/session_token=([^;]+)/)?.[1] ?? '';
+}
+
+async function createUserAndToken(
+  user: Parameters<typeof createAuthCookie>[0] = {},
+) {
+  const cookie = await createAuthCookie(user);
+  return extractToken(cookie);
+}
+
+async function createGroup(token: string, name?: string) {
+  const response = await fetch('http://localhost:3000/api/v1/groups', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name: name ?? `Grupo ${faker.word.noun()}` }),
+  });
+
+  return response.json();
+}
+
+async function joinGroup(token: string, inviteCode: string) {
+  const response = await fetch('http://localhost:3000/api/v1/groups/join', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ invite_code: inviteCode }),
+  });
+
+  return response.json();
+}
+
+async function createGroupEvent(
+  token: string,
+  groupId: string,
+  overrides: Record<string, unknown> = {},
+) {
+  const eventData = {
+    title: overrides.title ?? `Evento ${faker.person.firstName()}`,
+    type: overrides.type ?? 'birthday',
+    event_day: overrides.event_day ?? faker.number.int({ min: 1, max: 28 }),
+    event_month: overrides.event_month ?? faker.number.int({ min: 1, max: 12 }),
+    ...overrides,
+  };
+
+  const response = await fetch(
+    `http://localhost:3000/api/v1/groups/${groupId}/events`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(eventData),
+    },
+  );
+
+  return response.json();
+}
+
 const orchestrator = {
   clearDatabase,
   runPendingMigrations,
   createValidOtp,
   createAuthCookie,
+  extractToken,
+  createUserAndToken,
+  createGroup,
+  joinGroup,
+  createGroupEvent,
 };
 
 export default orchestrator;

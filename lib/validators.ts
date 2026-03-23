@@ -263,6 +263,146 @@ export const resetPasswordSchema = z.object({
     .max(72, 'A senha deve ter no máximo 72 caracteres.'),
 });
 
+export const createGroupSchema = z.object({
+  name: z
+    .string({
+      required_error: 'O nome do grupo é obrigatório.',
+    })
+    .trim()
+    .min(1, 'O nome do grupo é obrigatório.')
+    .max(100, 'O nome do grupo deve ter no máximo 100 caracteres.'),
+});
+
+export const updateGroupSchema = z.object({
+  name: z
+    .string({
+      required_error: 'O nome do grupo é obrigatório.',
+    })
+    .trim()
+    .min(1, 'O nome do grupo é obrigatório.')
+    .max(100, 'O nome do grupo deve ter no máximo 100 caracteres.'),
+});
+
+export const joinGroupSchema = z.object({
+  invite_code: z
+    .string({
+      required_error: 'O código de convite é obrigatório.',
+    })
+    .trim()
+    .min(1, 'O código de convite é obrigatório.'),
+});
+
+const groupEventFields = {
+  title: z
+    .string()
+    .trim()
+    .min(1, 'O título do evento é obrigatório.')
+    .max(200, 'O título deve ter no máximo 200 caracteres.')
+    .optional(),
+  type: z
+    .enum(
+      [
+        'birthday',
+        'dating_anniversary',
+        'wedding_anniversary',
+        'celebration',
+        'custom',
+      ],
+      {
+        errorMap: () => ({
+          message:
+            'Tipo de evento inválido. Use: birthday, dating_anniversary, wedding_anniversary, celebration ou custom.',
+        }),
+      },
+    )
+    .optional(),
+  custom_type: z
+    .string()
+    .trim()
+    .min(
+      1,
+      'O tipo personalizado é obrigatório quando o tipo é "Personalizado".',
+    )
+    .max(100, 'O tipo personalizado deve ter no máximo 100 caracteres.')
+    .optional()
+    .nullable(),
+  event_day: z
+    .number({
+      invalid_type_error: 'O dia do evento deve ser um número.',
+    })
+    .int('O dia deve ser um número inteiro.')
+    .min(1, 'O dia deve ser entre 1 e 31.')
+    .max(31, 'O dia deve ser entre 1 e 31.')
+    .optional(),
+  event_month: z
+    .number({
+      invalid_type_error: 'O mês do evento deve ser um número.',
+    })
+    .int('O mês deve ser um número inteiro.')
+    .min(1, 'O mês deve ser entre 1 e 12.')
+    .max(12, 'O mês deve ser entre 1 e 12.')
+    .optional(),
+  source_event_id: z.string().uuid('ID do evento inválido.').optional(),
+};
+
+export const createGroupEventSchema = z
+  .object(groupEventFields)
+  .refine(
+    (data) => {
+      if (data.source_event_id) return true;
+      return (
+        !!data.title &&
+        !!data.type &&
+        data.event_day !== undefined &&
+        data.event_month !== undefined
+      );
+    },
+    {
+      message:
+        'Informe título, tipo, dia e mês do evento, ou source_event_id para copiar de um evento existente.',
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.source_event_id) return true;
+      if (data.type === 'custom') {
+        return !!data.custom_type && data.custom_type.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message:
+        'O tipo personalizado é obrigatório quando o tipo é "Personalizado".',
+      path: ['custom_type'],
+    },
+  );
+
+export const updateGroupEventSchema = z
+  .object({
+    title: groupEventFields.title,
+    type: groupEventFields.type,
+    custom_type: groupEventFields.custom_type,
+    event_day: groupEventFields.event_day,
+    event_month: groupEventFields.event_month,
+  })
+  .refine(
+    (data) => Object.values(data).some((v) => v !== undefined),
+    'Informe ao menos um campo para atualizar.',
+  )
+  .refine(
+    (data) => {
+      if (data.type === 'custom') {
+        return !!data.custom_type && data.custom_type.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message:
+        'O tipo personalizado é obrigatório quando o tipo é "Personalizado".',
+      path: ['custom_type'],
+    },
+  );
+
 export function parseSchema<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
 

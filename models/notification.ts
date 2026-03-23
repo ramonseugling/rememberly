@@ -8,6 +8,7 @@ interface TodayEvent {
   event_custom_type: string | null;
   user_name: string;
   user_email: string;
+  group_name?: string | null;
 }
 
 interface ReminderEvent {
@@ -26,7 +27,8 @@ async function sendTodayNotifications() {
   const day = today.getUTCDate();
   const month = today.getUTCMonth() + 1;
 
-  const result = await database.query(
+  // 1. Personal events
+  const personalResult = await database.query(
     `SELECT
        e.title AS event_title,
        e.type AS event_type,
@@ -40,18 +42,49 @@ async function sendTodayNotifications() {
     [day, month],
   );
 
-  const events: TodayEvent[] = result.rows;
+  // 2. Group events → notify all group members
+  const groupEventResult = await database.query(
+    `SELECT
+       ge.title AS event_title,
+       ge.type AS event_type,
+       ge.custom_type AS event_custom_type,
+       g.name AS group_name,
+       u.name AS user_name,
+       u.email AS user_email
+     FROM group_events ge
+     JOIN groups g ON g.id = ge.group_id
+     JOIN group_members gm ON gm.group_id = ge.group_id
+     JOIN users u ON u.id = gm.user_id
+     WHERE ge.event_day = $1
+       AND ge.event_month = $2`,
+    [day, month],
+  );
 
-  log.info('cron_notifications_start', { day, month, total: events.length });
+  const personalEvents: TodayEvent[] = personalResult.rows;
+  const groupEvents: TodayEvent[] = groupEventResult.rows;
+
+  const allEvents = [...personalEvents, ...groupEvents];
+
+  log.info('cron_notifications_start', {
+    day,
+    month,
+    personal: personalEvents.length,
+    group_events: groupEvents.length,
+    total: allEvents.length,
+  });
 
   let sent = 0;
 
-  for (const event of events) {
+  for (const event of allEvents) {
     try {
+      const eventTitle = event.group_name
+        ? `${event.event_title} (Grupo: ${event.group_name})`
+        : event.event_title;
+
       await email.sendEventNotification({
         to: event.user_email,
         userName: event.user_name,
-        eventTitle: event.event_title,
+        eventTitle,
         eventType: event.event_type,
         customType: event.event_custom_type,
       });
