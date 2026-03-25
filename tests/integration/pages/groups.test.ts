@@ -5,9 +5,9 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
-describe('GET /dates', () => {
+describe('GET /groups', () => {
   it('deve redirecionar para / quando usuário não está autenticado', async () => {
-    const response = await fetch('http://localhost:3000/dates', {
+    const response = await fetch('http://localhost:3000/groups', {
       redirect: 'manual',
     });
 
@@ -15,10 +15,10 @@ describe('GET /dates', () => {
     expect(response.headers.get('location')).toBe('/');
   });
 
-  it('deve exibir a página de datas quando usuário está autenticado', async () => {
+  it('deve exibir a página de grupos quando usuário está autenticado', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
-    const response = await fetch('http://localhost:3000/dates', {
+    const response = await fetch('http://localhost:3000/groups', {
       redirect: 'manual',
       headers: { Cookie: cookie },
     });
@@ -26,16 +26,12 @@ describe('GET /dates', () => {
     expect(response.status).toBe(200);
   });
 
-  it('deve exibir a página de datas quando usuário tem eventos de grupo', async () => {
-    const cookie = await orchestrator.createAuthCookie({
-      birth_day: 15,
-      birth_month: 6,
-    });
+  it('deve exibir a página de grupos quando user tem grupos', async () => {
+    const cookie = await orchestrator.createAuthCookie();
     const token = orchestrator.extractToken(cookie);
-
     await orchestrator.createGroup(token, 'Família');
 
-    const response = await fetch('http://localhost:3000/dates', {
+    const response = await fetch('http://localhost:3000/groups', {
       redirect: 'manual',
       headers: { Cookie: cookie },
     });

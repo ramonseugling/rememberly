@@ -1,4 +1,4 @@
-import { Cake, Calendar, Gift, Heart, PartyPopper } from 'lucide-react';
+import { Cake, Calendar, Gift, Heart, PartyPopper, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EVENT_TYPES } from '@/lib/constants';
@@ -10,6 +10,7 @@ interface DateCardProps {
   customType?: string | null;
   date: string;
   daysUntil: number;
+  groupName?: string;
   onClick?: () => void;
 }
 
@@ -19,6 +20,7 @@ export const DateCard = ({
   customType,
   date,
   daysUntil,
+  groupName,
   onClick,
 }: DateCardProps) => {
   const getIcon = () => {
@@ -103,17 +105,31 @@ export const DateCard = ({
           </Badge>
         </div>
 
-        <div className="flex items-center gap-2 mt-4">
-          <Calendar
-            className={`w-4 h-4 ${isUrgent ? 'text-white/70' : 'text-muted-foreground'}`}
-          />
-          <span
-            className={`text-sm font-medium ${
-              isUrgent ? 'text-white/90' : 'text-muted-foreground'
-            }`}
-          >
-            {date}
-          </span>
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2">
+            <Calendar
+              className={`w-4 h-4 ${isUrgent ? 'text-white/70' : 'text-muted-foreground'}`}
+            />
+            <span
+              className={`text-sm font-medium ${
+                isUrgent ? 'text-white/90' : 'text-muted-foreground'
+              }`}
+            >
+              {date}
+            </span>
+          </div>
+          {groupName && (
+            <div
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${
+                isUrgent
+                  ? 'bg-white/20 text-white'
+                  : 'bg-violet-500/10 text-violet-600'
+              }`}
+            >
+              <Users className="w-3 h-3" />
+              <span className="text-xs font-medium">{groupName}</span>
+            </div>
+          )}
         </div>
       </div>
     </Card>

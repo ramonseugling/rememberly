@@ -74,17 +74,6 @@ describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
 
     await orchestrator.joinGroup(memberToken, group.invite_code);
 
-    // Verify auto-birthday event exists for member
-    const eventsBeforeRes = await fetch(
-      `http://localhost:3000/api/v1/groups/${group.id}/events`,
-      { headers: { Authorization: `Bearer ${ownerToken}` } },
-    );
-    const eventsBefore = await eventsBeforeRes.json();
-    const memberBirthdayBefore = eventsBefore.find(
-      (e: { title: string }) => e.title === 'Membro',
-    );
-    expect(memberBirthdayBefore).toBeDefined();
-
     // Get member's user ID from members list
     const membersRes = await fetch(
       `http://localhost:3000/api/v1/groups/${group.id}/members`,
@@ -112,17 +101,6 @@ describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
     );
     const afterMembers = await afterRes.json();
     expect(afterMembers.length).toBe(1);
-
-    // Verify auto-birthday event was deleted
-    const eventsAfterRes = await fetch(
-      `http://localhost:3000/api/v1/groups/${group.id}/events`,
-      { headers: { Authorization: `Bearer ${ownerToken}` } },
-    );
-    const eventsAfter = await eventsAfterRes.json();
-    const memberBirthdayAfter = eventsAfter.find(
-      (e: { title: string }) => e.title === 'Membro',
-    );
-    expect(memberBirthdayAfter).toBeUndefined();
   });
 
   it('deve permitir membro sair do grupo', async () => {

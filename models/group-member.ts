@@ -8,32 +8,6 @@ import group from 'models/group';
 
 const MAX_MEMBERS = 50;
 
-async function autoCreateBirthdayEvent(groupId: string, userId: string) {
-  const userResult = await database.query(
-    `SELECT name, birth_day, birth_month FROM users WHERE id = $1`,
-    [userId],
-  );
-
-  const user = userResult.rows[0];
-
-  if (!user || !user.birth_day || !user.birth_month) {
-    return;
-  }
-
-  await database.query(
-    `INSERT INTO group_events (group_id, title, type, event_day, event_month, created_by, source_user_id)
-     VALUES ($1, $2, 'birthday', $3, $4, $5, $5)`,
-    [groupId, user.name, user.birth_day, user.birth_month, userId],
-  );
-}
-
-async function deleteAutoBirthdayEvents(groupId: string, userId: string) {
-  await database.query(
-    `DELETE FROM group_events WHERE group_id = $1 AND source_user_id = $2`,
-    [groupId, userId],
-  );
-}
-
 async function join(inviteCode: string, userId: string) {
   if (!inviteCode || inviteCode.trim() === '') {
     throw new ValidationError({
@@ -78,8 +52,6 @@ async function join(inviteCode: string, userId: string) {
     [foundGroup.id, userId],
   );
 
-  await autoCreateBirthdayEvent(foundGroup.id, userId);
-
   const newCount = memberCount + 1;
 
   return { ...foundGroup, member_count: newCount, role: 'member' };
@@ -120,8 +92,6 @@ async function remove(
       });
     }
   }
-
-  await deleteAutoBirthdayEvents(groupId, targetUserId);
 
   await database.query(
     `DELETE FROM group_members WHERE group_id = $1 AND user_id = $2`,
@@ -187,15 +157,32 @@ async function countMembers(groupId: string): Promise<number> {
   return result.rows[0].count;
 }
 
+async function findAllBirthdaysForUser(userId: string) {
+  const result = await database.query(
+    `SELECT u.name AS title, u.birth_day AS event_day, u.birth_month AS event_month,
+            g.name AS group_name, g.id AS group_id
+     FROM group_members gm
+     JOIN groups g ON g.id = gm.group_id
+     JOIN group_members my_membership ON my_membership.group_id = gm.group_id AND my_membership.user_id = $1
+     JOIN users u ON u.id = gm.user_id
+     WHERE gm.user_id != $1
+       AND u.birth_day IS NOT NULL AND u.birth_month IS NOT NULL
+     ORDER BY u.birth_month ASC, u.birth_day ASC`,
+    [userId],
+  );
+
+  return result.rows;
+}
+
 const groupMember = {
   join,
   remove,
   findAllByGroupId,
+  findAllBirthdaysForUser,
   findMembership,
   assertMember,
   assertOwner,
   countMembers,
-  autoCreateBirthdayEvent,
 };
 
 export default groupMember;

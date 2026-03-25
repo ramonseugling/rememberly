@@ -5,7 +5,6 @@ import {
   authenticatedController,
 } from 'infra/controller';
 import group from 'models/group';
-import groupEvent from 'models/group-event';
 import groupMember from 'models/group-member';
 
 export default authenticatedController({
@@ -19,7 +18,6 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
   const membership = await groupMember.assertMember(id, req.user.id);
   const foundGroup = await group.findById(id);
   const members = await groupMember.findAllByGroupId(id);
-  const events = await groupEvent.findAllByGroupId(id);
   const memberCount = await groupMember.countMembers(id);
 
   res.status(200).json({
@@ -27,7 +25,6 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
     role: membership.role,
     member_count: memberCount,
     members,
-    events,
   });
 }
 

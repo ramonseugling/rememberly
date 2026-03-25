@@ -72,28 +72,6 @@ async function create(userId: string, input: { name: string }) {
     [createdGroup.id, userId],
   );
 
-  // Auto-create birthday event for the owner
-  const userResult = await database.query(
-    `SELECT name, birth_day, birth_month FROM users WHERE id = $1`,
-    [userId],
-  );
-
-  const ownerUser = userResult.rows[0];
-
-  if (ownerUser?.birth_day && ownerUser?.birth_month) {
-    await database.query(
-      `INSERT INTO group_events (group_id, title, type, event_day, event_month, created_by, source_user_id)
-       VALUES ($1, $2, 'birthday', $3, $4, $5, $5)`,
-      [
-        createdGroup.id,
-        ownerUser.name,
-        ownerUser.birth_day,
-        ownerUser.birth_month,
-        userId,
-      ],
-    );
-  }
-
   return { ...createdGroup, member_count: 1, role: 'owner' };
 }
 

@@ -130,6 +130,14 @@ h6 {
   font-family: var(--font-heading);
 }
 
+.gradient-groups {
+  background: linear-gradient(135deg, hsl(271, 70%, 58%), hsl(310, 70%, 63%));
+}
+
+.groups-context {
+  --color-ring: hsl(271, 70%, 58%);
+}
+
 .gradient-warm {
   background: linear-gradient(135deg, hsl(340, 75%, 68%), hsl(25, 85%, 65%));
 }

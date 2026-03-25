@@ -42,34 +42,36 @@ async function sendTodayNotifications() {
     [day, month],
   );
 
-  // 2. Group events → notify all group members
-  const groupEventResult = await database.query(
+  // 2. Group member birthdays → notify all group members
+  const groupBirthdayResult = await database.query(
     `SELECT
-       ge.title AS event_title,
-       ge.type AS event_type,
-       ge.custom_type AS event_custom_type,
+       birthday_user.name AS event_title,
+       'birthday' AS event_type,
+       NULL AS event_custom_type,
        g.name AS group_name,
-       u.name AS user_name,
-       u.email AS user_email
-     FROM group_events ge
-     JOIN groups g ON g.id = ge.group_id
-     JOIN group_members gm ON gm.group_id = ge.group_id
-     JOIN users u ON u.id = gm.user_id
-     WHERE ge.event_day = $1
-       AND ge.event_month = $2`,
+       recipient.name AS user_name,
+       recipient.email AS user_email
+     FROM group_members birthday_member
+     JOIN users birthday_user ON birthday_user.id = birthday_member.user_id
+     JOIN groups g ON g.id = birthday_member.group_id
+     JOIN group_members recipient_member ON recipient_member.group_id = birthday_member.group_id
+       AND recipient_member.user_id != birthday_member.user_id
+     JOIN users recipient ON recipient.id = recipient_member.user_id
+     WHERE birthday_user.birth_day = $1
+       AND birthday_user.birth_month = $2`,
     [day, month],
   );
 
   const personalEvents: TodayEvent[] = personalResult.rows;
-  const groupEvents: TodayEvent[] = groupEventResult.rows;
+  const groupBirthdays: TodayEvent[] = groupBirthdayResult.rows;
 
-  const allEvents = [...personalEvents, ...groupEvents];
+  const allEvents = [...personalEvents, ...groupBirthdays];
 
   log.info('cron_notifications_start', {
     day,
     month,
     personal: personalEvents.length,
-    group_events: groupEvents.length,
+    group_birthdays: groupBirthdays.length,
     total: allEvents.length,
   });
 

@@ -13,7 +13,9 @@ interface User {
 type AuthenticatedHandler<P extends Record<string, unknown>> = (
   context: GetServerSidePropsContext,
   user: User,
-) => Promise<{ props: P }>;
+) => Promise<
+  { props: P } | { redirect: { destination: string; permanent: boolean } }
+>;
 
 async function getValidUser(
   context: GetServerSidePropsContext,

@@ -14,6 +14,7 @@ import { MONTHS } from '@/lib/constants';
 import type { EventType } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import event from 'models/event';
+import groupMember from 'models/group-member';
 
 interface User {
   id: string;
@@ -35,6 +36,7 @@ interface EventCard {
   event_day: number;
   event_month: number;
   reminder_days_before: number;
+  groupName?: string;
 }
 
 interface DatesProps {
@@ -42,9 +44,34 @@ interface DatesProps {
   events: EventCard[];
 }
 
+function computeDaysUntil(
+  eventDay: number,
+  eventMonth: number,
+  todayMidnight: Date,
+) {
+  const thisYearDate = new Date(
+    todayMidnight.getFullYear(),
+    eventMonth - 1,
+    eventDay,
+  );
+  const isNextYear = thisYearDate < todayMidnight;
+  const targetDate = !isNextYear
+    ? thisYearDate
+    : new Date(todayMidnight.getFullYear() + 1, eventMonth - 1, eventDay);
+
+  const daysUntil = Math.round(
+    (targetDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  return { daysUntil, isNextYear };
+}
+
 export const getServerSideProps: GetServerSideProps = withAuth(
   async (_context, user) => {
-    const rawEvents = await event.findAllByUserId(user.id);
+    const [rawEvents, rawGroupBirthdays] = await Promise.all([
+      event.findAllByUserId(user.id),
+      groupMember.findAllBirthdaysForUser(user.id),
+    ]);
 
     const today = new Date();
     const todayMidnight = new Date(
@@ -53,51 +80,69 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       today.getDate(),
     );
 
-    const events: EventCard[] = rawEvents
-      .map(
-        (e: {
-          id: string;
-          title: string;
-          type: string;
-          custom_type?: string | null;
-          event_day: number;
-          event_month: number;
-          reminder_days_before: number;
-        }) => {
-          const thisYearDate = new Date(
-            todayMidnight.getFullYear(),
-            e.event_month - 1,
-            e.event_day,
-          );
-          const isNextYear = thisYearDate < todayMidnight;
-          const targetDate = !isNextYear
-            ? thisYearDate
-            : new Date(
-                todayMidnight.getFullYear() + 1,
-                e.event_month - 1,
-                e.event_day,
-              );
+    const personalEvents: EventCard[] = rawEvents.map(
+      (e: {
+        id: string;
+        title: string;
+        type: string;
+        custom_type?: string | null;
+        event_day: number;
+        event_month: number;
+        reminder_days_before: number;
+      }) => {
+        const { daysUntil, isNextYear } = computeDaysUntil(
+          e.event_day,
+          e.event_month,
+          todayMidnight,
+        );
 
-          const daysUntil = Math.round(
-            (targetDate.getTime() - todayMidnight.getTime()) /
-              (1000 * 60 * 60 * 24),
-          );
+        return {
+          id: e.id,
+          title: e.title,
+          type: e.type as EventType,
+          custom_type: e.custom_type,
+          date: `${e.event_day} de ${MONTHS[e.event_month - 1]}`,
+          daysUntil,
+          isNextYear,
+          event_day: e.event_day,
+          event_month: e.event_month,
+          reminder_days_before: e.reminder_days_before ?? 0,
+        };
+      },
+    );
 
-          return {
-            id: e.id,
-            title: e.title,
-            type: e.type as EventType,
-            custom_type: e.custom_type,
-            date: `${e.event_day} de ${MONTHS[e.event_month - 1]}`,
-            daysUntil,
-            isNextYear,
-            event_day: e.event_day,
-            event_month: e.event_month,
-            reminder_days_before: e.reminder_days_before ?? 0,
-          };
-        },
-      )
-      .sort((a, b) => a.daysUntil - b.daysUntil);
+    const groupBirthdays: EventCard[] = rawGroupBirthdays.map(
+      (e: {
+        title: string;
+        event_day: number;
+        event_month: number;
+        group_name: string;
+        group_id: string;
+      }) => {
+        const { daysUntil, isNextYear } = computeDaysUntil(
+          e.event_day,
+          e.event_month,
+          todayMidnight,
+        );
+
+        return {
+          id: `group-${e.group_id}-${e.title}`,
+          title: e.title,
+          type: 'birthday' as EventType,
+          date: `${e.event_day} de ${MONTHS[e.event_month - 1]}`,
+          daysUntil,
+          isNextYear,
+          event_day: e.event_day,
+          event_month: e.event_month,
+          reminder_days_before: 0,
+          groupName: e.group_name,
+        };
+      },
+    );
+
+    const events = [...personalEvents, ...groupBirthdays].sort(
+      (a, b) => a.daysUntil - b.daysUntil,
+    );
 
     return { props: { user, events } };
   },
@@ -133,7 +178,10 @@ export default function Dates({ user, events }: DatesProps) {
                       customType={e.custom_type}
                       date={e.date}
                       daysUntil={e.daysUntil}
-                      onClick={() => setSelectedEvent(e)}
+                      groupName={e.groupName}
+                      onClick={
+                        e.groupName ? undefined : () => setSelectedEvent(e)
+                      }
                     />
                   ) : (
                     <DateCard
@@ -142,7 +190,10 @@ export default function Dates({ user, events }: DatesProps) {
                       customType={e.custom_type}
                       date={e.date}
                       daysUntil={e.daysUntil}
-                      onClick={() => setSelectedEvent(e)}
+                      groupName={e.groupName}
+                      onClick={
+                        e.groupName ? undefined : () => setSelectedEvent(e)
+                      }
                     />
                   )}
                 </div>

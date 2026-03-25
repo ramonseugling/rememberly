@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { LogOut, User } from 'lucide-react';
+import { Calendar, LogOut, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -41,6 +41,41 @@ export const Header = ({ user }: HeaderProps) => {
           <div className="flex items-center gap-2">
             {user ? (
               <>
+                <nav className="flex items-center gap-1 mr-2">
+                  <Link href="/dates">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className={`rounded-2xl gap-1.5 ${
+                        router.pathname === '/dates'
+                          ? 'text-primary'
+                          : 'text-muted-foreground hover:text-primary'
+                      }`}
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span className="hidden sm:inline font-[inherit]">
+                        Minhas Datas
+                      </span>
+                    </Button>
+                  </Link>
+                  <Link href="/groups">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className={`rounded-2xl gap-1.5 ${
+                        router.pathname === '/groups' ||
+                        router.pathname.startsWith('/groups/')
+                          ? 'text-violet-600'
+                          : 'text-muted-foreground hover:text-violet-600'
+                      }`}
+                    >
+                      <Users className="w-4 h-4" />
+                      <span className="hidden sm:inline font-[inherit]">
+                        Grupos
+                      </span>
+                    </Button>
+                  </Link>
+                </nav>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button

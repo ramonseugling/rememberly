@@ -27,7 +27,6 @@ describe('GET /api/v1/groups/[id]', () => {
     expect(data.member_count).toBe(1);
     expect(data.members).toBeDefined();
     expect(data.members.length).toBe(1);
-    expect(data.events).toBeDefined();
   });
 
   it('deve retornar 404 para não-membro', async () => {

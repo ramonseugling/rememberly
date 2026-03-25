@@ -1,4 +1,12 @@
-import { Cake, Calendar, Clock, Gift, Heart, PartyPopper } from 'lucide-react';
+import {
+  Cake,
+  Calendar,
+  Clock,
+  Gift,
+  Heart,
+  PartyPopper,
+  Users,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EVENT_TYPES } from '@/lib/constants';
@@ -10,6 +18,7 @@ interface NextYearDateCardProps {
   customType?: string | null;
   date: string;
   daysUntil: number;
+  groupName?: string;
   onClick?: () => void;
 }
 
@@ -33,6 +42,7 @@ export const NextYearDateCard = ({
   customType,
   date,
   daysUntil,
+  groupName,
   onClick,
 }: NextYearDateCardProps) => {
   const typeLabel =
@@ -75,9 +85,17 @@ export const NextYearDateCard = ({
               {date}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground/60">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium">Ano que vem</span>
+          <div className="flex items-center gap-3">
+            {groupName && (
+              <div className="flex items-center gap-1.5 bg-violet-500/10 text-violet-600/60 rounded-full px-2.5 py-0.5">
+                <Users className="w-3 h-3" />
+                <span className="text-xs font-medium">{groupName}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 text-muted-foreground/60">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">Ano que vem</span>
+            </div>
           </div>
         </div>
       </div>
