@@ -1,21 +1,27 @@
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Calendar, LogOut, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { UserInfo } from '@/components/user-info/user-info';
+import { ProfileModal } from '@/components/profile-modal/profile-modal';
+
+interface HeaderUser {
+  id: string;
+  name: string;
+  email: string;
+  birth_day: number | null;
+  birth_month: number | null;
+  birth_year: number | null;
+}
 
 interface HeaderProps {
-  user?: { name: string; email: string } | null;
+  user?: HeaderUser | null;
 }
 
 export const Header = ({ user }: HeaderProps) => {
   const router = useRouter();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   async function handleLogout() {
     await fetch('/api/v1/sessions', { method: 'DELETE' });
@@ -75,22 +81,22 @@ export const Header = ({ user }: HeaderProps) => {
                       </span>
                     </Button>
                   </Link>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className={`rounded-2xl gap-1.5 ${
+                      isProfileOpen
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => setIsProfileOpen(true)}
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline font-[inherit]">
+                      Perfil
+                    </span>
+                  </Button>
                 </nav>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="link"
-                      size="icon"
-                      className="rounded-2xl hover:bg-primary/10 hover:text-primary"
-                      title="Perfil"
-                    >
-                      <User className="w-5 h-5" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-64">
-                    <UserInfo name={user.name} email={user.email} />
-                  </PopoverContent>
-                </Popover>
                 <Button
                   variant="link"
                   size="icon"
@@ -100,6 +106,12 @@ export const Header = ({ user }: HeaderProps) => {
                 >
                   <LogOut className="w-5 h-5" />
                 </Button>
+
+                <ProfileModal
+                  user={user}
+                  open={isProfileOpen}
+                  onOpenChange={setIsProfileOpen}
+                />
               </>
             ) : (
               <Link href="/login">

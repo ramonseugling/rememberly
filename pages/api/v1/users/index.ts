@@ -52,12 +52,13 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { birth_day, birth_month, birth_year } = parseSchema(
+  const { name, birth_day, birth_month, birth_year } = parseSchema(
     updateUserSchema,
     req.body,
   );
 
   const updatedUser = await user.update(req.user.id, {
+    name,
     birth_day,
     birth_month,
     birth_year,

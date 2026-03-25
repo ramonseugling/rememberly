@@ -2,8 +2,12 @@ import { Footer } from '@/components/footer/footer';
 import { Header } from '@/components/header/header';
 
 interface User {
+  id: string;
   name: string;
   email: string;
+  birth_day: number | null;
+  birth_month: number | null;
+  birth_year: number | null;
 }
 
 interface LayoutProps {

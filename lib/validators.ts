@@ -59,9 +59,22 @@ export const createUserSchema = z.object({
   ...birthdayFields,
 });
 
-export const updateUserSchema = z.object({
-  ...birthdayFields,
-});
+export const updateUserSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, 'O nome deve ter pelo menos 2 caracteres.')
+      .max(100, 'O nome deve ter no máximo 100 caracteres.')
+      .optional(),
+    birth_day: birthdayFields.birth_day.optional(),
+    birth_month: birthdayFields.birth_month.optional(),
+    birth_year: birthdayFields.birth_year.optional(),
+  })
+  .refine(
+    (data) => Object.values(data).some((v) => v !== undefined),
+    'Informe ao menos um campo para atualizar.',
+  );
 
 export const createOtpSchema = z.object({
   email: z

@@ -12,9 +12,10 @@ interface CreateUserInput {
 }
 
 interface UpdateUserInput {
-  birth_day: number;
-  birth_month: number;
-  birth_year: number;
+  name?: string;
+  birth_day?: number;
+  birth_month?: number;
+  birth_year?: number;
 }
 
 async function create(input: CreateUserInput) {
@@ -51,10 +52,20 @@ async function create(input: CreateUserInput) {
 async function update(userId: string, input: UpdateUserInput) {
   const result = await database.query(
     `UPDATE users
-     SET birth_day = $1, birth_month = $2, birth_year = $3, updated_at = NOW()
-     WHERE id = $4
+     SET name = COALESCE($1, name),
+         birth_day = COALESCE($2, birth_day),
+         birth_month = COALESCE($3, birth_month),
+         birth_year = COALESCE($4, birth_year),
+         updated_at = NOW()
+     WHERE id = $5
      RETURNING id, name, email, birth_day, birth_month, birth_year, created_at, updated_at`,
-    [input.birth_day, input.birth_month, input.birth_year, userId],
+    [
+      input.name ?? null,
+      input.birth_day ?? null,
+      input.birth_month ?? null,
+      input.birth_year ?? null,
+      userId,
+    ],
   );
 
   if (!result.rows[0]) {
