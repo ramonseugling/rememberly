@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Calendar, LogOut, User, Users } from 'lucide-react';
+import { Calendar, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileModal } from '@/components/profile-modal/profile-modal';
 
@@ -23,11 +23,6 @@ export const Header = ({ user }: HeaderProps) => {
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  async function handleLogout() {
-    await fetch('/api/v1/sessions', { method: 'DELETE' });
-    router.push('/');
-  }
-
   return (
     <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4">
@@ -47,7 +42,7 @@ export const Header = ({ user }: HeaderProps) => {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <nav className="flex items-center gap-1 mr-2">
+                <nav className="flex items-center gap-2">
                   <Link href="/dates">
                     <Button
                       variant="link"
@@ -97,15 +92,6 @@ export const Header = ({ user }: HeaderProps) => {
                     </span>
                   </Button>
                 </nav>
-                <Button
-                  variant="link"
-                  size="icon"
-                  className="rounded-2xl hover:bg-destructive/10 hover:text-destructive"
-                  title="Sair"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
 
                 <ProfileModal
                   user={user}

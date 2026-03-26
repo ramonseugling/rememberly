@@ -175,4 +175,91 @@ describe('PATCH /api/v1/users', () => {
     const data = await response.json();
     expect(data.name).toBe('ValidationError');
   });
+
+  it('deve atualizar o nome com sucesso', async () => {
+    const cookie = await orchestrator.createAuthCookie();
+
+    const response = await fetch('http://localhost:3000/api/v1/users', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookie,
+      },
+      body: JSON.stringify({ name: 'Novo Nome' }),
+    });
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+    expect(data.name).toBe('Novo Nome');
+    expect(data.password).toBeUndefined();
+  });
+
+  it('deve atualizar nome e data de nascimento juntos', async () => {
+    const cookie = await orchestrator.createAuthCookie();
+
+    const response = await fetch('http://localhost:3000/api/v1/users', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookie,
+      },
+      body: JSON.stringify({
+        name: 'Nome Atualizado',
+        birth_day: 10,
+        birth_month: 5,
+        birth_year: 1990,
+      }),
+    });
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+    expect(data.name).toBe('Nome Atualizado');
+    expect(data.birth_day).toBe(10);
+    expect(data.birth_month).toBe(5);
+    expect(data.birth_year).toBe(1990);
+  });
+
+  it('deve retornar 400 quando nome tem menos de 2 caracteres', async () => {
+    const cookie = await orchestrator.createAuthCookie();
+
+    const response = await fetch('http://localhost:3000/api/v1/users', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookie,
+      },
+      body: JSON.stringify({ name: 'A' }),
+    });
+
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+    expect(data.name).toBe('ValidationError');
+  });
+
+  it('deve manter campos não enviados inalterados ao atualizar apenas o nome', async () => {
+    const cookie = await orchestrator.createAuthCookie();
+
+    await fetch('http://localhost:3000/api/v1/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ birth_day: 15, birth_month: 6, birth_year: 1985 }),
+    });
+
+    const response = await fetch('http://localhost:3000/api/v1/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ name: 'Apenas Nome' }),
+    });
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+    expect(data.name).toBe('Apenas Nome');
+    expect(data.birth_day).toBe(15);
+    expect(data.birth_month).toBe(6);
+    expect(data.birth_year).toBe(1985);
+  });
 });

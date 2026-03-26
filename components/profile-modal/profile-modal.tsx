@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -81,6 +82,11 @@ export const ProfileModal = ({
     setDay(value.slice(0, 2));
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/v1/sessions', { method: 'DELETE' });
+    router.push('/');
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setError('O nome é obrigatório.');
@@ -123,7 +129,10 @@ export const ProfileModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="font-heading text-xl">Meu perfil</DialogTitle>
         </DialogHeader>
@@ -206,21 +215,27 @@ export const ProfileModal = ({
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex gap-2 mt-2">
+        <div className="flex items-center justify-between gap-2 mt-2">
           <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => onOpenChange(false)}
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-2"
+            onClick={handleLogout}
           >
-            Fechar
+            <LogOut className="w-4 h-4" />
+            Sair
           </Button>
-          <Button
-            className="flex-1 gradient-warm text-white hover:opacity-90 transition-smooth"
-            onClick={handleSave}
-            disabled={!hasChanges || isLoading}
-          >
-            {isLoading ? 'Salvando...' : 'Salvar'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Fechar
+            </Button>
+            <Button
+              className="gradient-warm text-white hover:opacity-90 transition-smooth"
+              onClick={handleSave}
+              disabled={!hasChanges || isLoading}
+            >
+              {isLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
