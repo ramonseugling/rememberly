@@ -173,13 +173,13 @@ export const GroupDetailModal = ({
             Convide pessoas para o grupo
           </p>
           <div className="flex gap-2 mb-3">
-            <div className="flex-1 bg-white rounded-xl px-3 py-2 text-sm text-muted-foreground border border-border/50 truncate">
+            <div className="hidden sm:flex flex-1 min-w-0 bg-white rounded-xl px-3 py-2 text-sm text-muted-foreground border border-border/50 truncate">
               {inviteLink}
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl border-violet-500/30 text-violet-600 hover:bg-violet-500/10 gap-1.5 shrink-0"
+              className="w-full sm:w-auto rounded-xl border-violet-500/30 text-violet-600 hover:bg-violet-500/10 gap-1.5 shrink-0"
               onClick={handleCopyLink}
             >
               {copied ? (

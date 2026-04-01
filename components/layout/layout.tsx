@@ -21,7 +21,7 @@ export const Layout = ({ children, user, hideHeader }: LayoutProps) => {
     <div className="relative flex min-h-screen gradient-soft flex-col">
       {!hideHeader && <Header user={user} />}
       <main className="flex-1 flex flex-col">{children}</main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
