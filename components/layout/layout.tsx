@@ -1,4 +1,4 @@
-import { Footer } from '@/components/footer/footer';
+import { BirthdayModal } from '@/components/birthday-modal/birthday-modal';
 import { Header } from '@/components/header/header';
 
 interface User {
@@ -21,7 +21,7 @@ export const Layout = ({ children, user, hideHeader }: LayoutProps) => {
     <div className="relative flex min-h-screen gradient-soft flex-col">
       {!hideHeader && <Header user={user} />}
       <main className="flex-1 flex flex-col">{children}</main>
-      {/* <Footer /> */}
+      <BirthdayModal open={!!user && user.birth_day === null} />
     </div>
   );
 };

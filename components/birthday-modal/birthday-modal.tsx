@@ -81,16 +81,24 @@ export const BirthdayModal = ({ open }: BirthdayModalProps) => {
       <DialogPortal>
         <DialogOverlay />
         <DialogPrimitive.Content
-          className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg"
+          className="fixed z-50 grid gap-4 bg-background p-6 shadow-lg duration-300
+          inset-0 w-full h-full max-w-none rounded-none border-0 overflow-y-auto
+          data-[state=open]:animate-in data-[state=closed]:animate-out
+          data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom
+          sm:inset-auto sm:left-[50%] sm:top-[50%] sm:h-auto sm:w-full sm:max-w-md sm:overflow-y-auto
+          sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:border
+          sm:data-[state=closed]:fade-out-0 sm:data-[state=open]:fade-in-0
+          sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95
+          sm:data-[state=closed]:slide-out-to-top-4 sm:data-[state=open]:slide-in-from-top-4"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle className="font-heading text-xl">
-              Qual é a sua data de nascimento?
+              Qual é o dia do seu aniversário?
             </DialogTitle>
             <DialogPrimitive.Description className="text-sm text-muted-foreground">
-              Precisamos dessa informação para celebrar seu aniversário! 🎂
+              Precisamos dessa informação para celebrar com você! 🎂
             </DialogPrimitive.Description>
           </DialogHeader>
 
