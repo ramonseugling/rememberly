@@ -3,21 +3,21 @@ import { Card } from '@/components/ui/card';
 const features = [
   {
     emoji: '🗓️',
-    title: 'Registre datas',
+    title: 'Registre aniversários',
     description:
-      'Adicione aniversários, casamentos e todas as datas importantes da sua família e amigos',
+      'Adicione os aniversários dos seus amigos, família e quem mais você não quer esquecer',
   },
   {
     emoji: '🔔',
-    title: 'Lembretes',
+    title: 'Lembretes no dia',
     description:
-      'Receba notificações por e-mail para nunca esquecer uma data especial de quem você ama',
+      'Receba um e-mail no dia do aniversário — simples, direto, sem desculpa para esquecer',
   },
   {
-    emoji: '💖',
-    title: 'Compartilhe amor',
+    emoji: '👥',
+    title: 'Grupos com amigos',
     description:
-      'Mostre carinho lembrando-se de cada aniversário e celebrando momentos únicos',
+      'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém',
   },
 ];
 
@@ -26,10 +26,11 @@ export const FeaturesSection = () => {
     <section className="py-10 sm:py-24 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-5xl font-bold text-center mb-4 animate-fade-in">
-          Celebre cada momento especial
+          Simples, direto e feito para amigos
         </h2>
         <p className="text-center text-muted-foreground text-base sm:text-lg mb-8 sm:mb-16 max-w-xl mx-auto">
-          Tudo o que você precisa para nunca deixar passar uma data importante
+          Tudo o que você precisa para nunca mais passar em branco num
+          aniversário
         </p>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">

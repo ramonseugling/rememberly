@@ -30,7 +30,7 @@ export const HowItWorksSection = () => {
           Simples assim
         </h2>
         <p className="text-center text-muted-foreground text-base sm:text-lg mb-16 max-w-xl mx-auto">
-          Em três passos você nunca mais esquece uma data
+          Em três passos você nunca mais esquece um aniversário
         </p>
 
         <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">

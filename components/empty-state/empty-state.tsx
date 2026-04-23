@@ -20,12 +20,12 @@ export const EmptyState = ({
       <h3 className="text-2xl font-heading font-semibold mb-2">
         {showLoginCta
           ? 'Bem-vindo ao My Forever Dates!'
-          : 'Nenhum evento cadastrado ainda'}
+          : 'Nenhum aniversário cadastrado ainda'}
       </h3>
       <p className="text-muted-foreground mb-6">
         {showLoginCta
-          ? 'Entre na sua conta para ver e gerenciar suas datas importantes.'
-          : 'Comece adicionando as datas importantes para você!'}
+          ? 'Entre na sua conta para ver e gerenciar seus aniversários.'
+          : 'Comece adicionando os aniversários das pessoas que você não quer esquecer!'}
       </p>
       {showLoginCta && (
         <Link href="/login">

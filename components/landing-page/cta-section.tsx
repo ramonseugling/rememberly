@@ -15,14 +15,14 @@ export const CtaSection = () => {
       />
       <div className="container mx-auto text-center relative z-10 px-4">
         <h2 className="text-3xl md:text-5xl font-bold mb-6 animate-fade-in">
-          Comece a guardar memórias hoje
+          Comece agora e nunca mais esqueça
         </h2>
         <p
           className="text-base sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in"
           style={{ animationDelay: '0.2s' }}
         >
-          Cada data especial merece ser lembrada. Nunca mais esqueça-as com My
-          Forever Dates.
+          Seus amigos merecem ser lembrados. Crie sua conta e cadastre os
+          aniversários agora.
         </p>
         <Link href="/signup">
           <Button

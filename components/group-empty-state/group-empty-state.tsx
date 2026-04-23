@@ -13,11 +13,10 @@ export const GroupEmptyState = ({ onCreateClick }: GroupEmptyStateProps) => {
           👥
         </span>
       </div>
-      <h3 className="text-2xl font-heading font-semibold mb-2">
-        Nenhum grupo ainda
-      </h3>
+      <h3 className="text-2xl font-heading font-semibold mb-2">Nenhum grupo</h3>
       <p className="text-muted-foreground mb-6">
-        Crie um grupo e convide pessoas para compartilhar datas importantes!
+        Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o
+        aniversário de ninguém!
       </p>
       <Button
         className="gradient-violet text-white hover:opacity-90 rounded-2xl px-8 py-3 font-semibold transition-smooth"

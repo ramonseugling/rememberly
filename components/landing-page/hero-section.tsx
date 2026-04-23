@@ -143,8 +143,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mx-auto mb-10 max-w-lg text-base font-medium leading-relaxed text-muted-foreground sm:text-xl"
         >
-          Ajudamos você a lembrar as datas mais importantes de quem importa para
-          você.
+          Nunca mais passe em branco no aniversário de um amigo.
         </motion.p>
 
         <motion.div
@@ -157,7 +156,7 @@ export const HeroSection = () => {
               size="lg"
               className="gradient-warm text-white shadow-warm text-base px-8 py-5 rounded-full transition-smooth hover:scale-105 hover:opacity-90 sm:text-lg sm:px-10 sm:py-6"
             >
-              Não quero mais esquecer datas importantes
+              Não quero mais esquecer aniversários
               <ChevronRight className="ml-2 h-5 w-5 mt-1" />
             </Button>
           </Link>
