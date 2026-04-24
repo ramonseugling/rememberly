@@ -8,6 +8,7 @@ interface User {
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;
+  is_admin: boolean;
 }
 
 type AuthenticatedHandler<P extends Record<string, unknown>> = (
@@ -42,6 +43,7 @@ async function getValidUser(
     birth_day: foundSession.birth_day ?? null,
     birth_month: foundSession.birth_month ?? null,
     birth_year: foundSession.birth_year ?? null,
+    is_admin: foundSession.is_admin ?? false,
   };
 }
 
@@ -74,4 +76,22 @@ function withGuest(): GetServerSideProps {
   };
 }
 
-export { withAuth, withGuest, getValidUser, isValidNextUrl };
+function withAdmin<P extends Record<string, unknown>>(
+  handler: AuthenticatedHandler<P>,
+): GetServerSideProps {
+  return async (context) => {
+    const user = await getValidUser(context);
+
+    if (!user) {
+      return { redirect: { destination: '/', permanent: false } };
+    }
+
+    if (!user.is_admin) {
+      return { redirect: { destination: '/dates', permanent: false } };
+    }
+
+    return handler(context, user);
+  };
+}
+
+export { withAuth, withAdmin, withGuest, getValidUser, isValidNextUrl };

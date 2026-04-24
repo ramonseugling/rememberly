@@ -40,7 +40,7 @@ async function findOneValidByToken(token: string) {
 
   async function runSelectQuery(token: string) {
     const result = await database.query(
-      `SELECT s.*, u.id as user_id, u.name, u.email, u.birth_day, u.birth_month, u.birth_year
+      `SELECT s.*, u.id as user_id, u.name, u.email, u.birth_day, u.birth_month, u.birth_year, u.is_admin
        FROM sessions s
        JOIN users u ON s.user_id = u.id
        WHERE s.token = $1 AND s.expires_at > NOW()
