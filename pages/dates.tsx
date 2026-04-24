@@ -111,11 +111,12 @@ export const getServerSideProps: GetServerSideProps = withAuth(
 
     const groupBirthdays: EventCard[] = rawGroupBirthdays.map(
       (e: {
+        user_id: string;
         title: string;
         event_day: number;
         event_month: number;
         group_name: string;
-        group_id: string;
+        group_count: number;
       }) => {
         const { daysUntil, isNextYear } = computeDaysUntil(
           e.event_day,
@@ -124,7 +125,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
         );
 
         return {
-          id: `group-${e.group_id}-${e.title}`,
+          id: `group-birthday-${e.user_id}`,
           title: e.title,
           type: 'birthday' as EventType,
           date: `${e.event_day} de ${MONTHS[e.event_month - 1]}`,
@@ -133,7 +134,8 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           event_day: e.event_day,
           event_month: e.event_month,
           reminder_days_before: 0,
-          groupName: e.group_name,
+          groupName:
+            e.group_count > 1 ? `${e.group_count} grupos` : e.group_name,
         };
       },
     );

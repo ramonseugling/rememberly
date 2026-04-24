@@ -182,19 +182,29 @@ async function findAllBirthdaysByUserId(userId: string) {
 
 async function findAllBirthdaysForUser(userId: string) {
   const result = await database.query(
-    `SELECT u.name AS title, u.birth_day AS event_day, u.birth_month AS event_month,
-            g.name AS group_name, g.id AS group_id
+    `SELECT u.id AS user_id, u.name AS title,
+            u.birth_day AS event_day, u.birth_month AS event_month,
+            MIN(g.name) AS group_name,
+            COUNT(DISTINCT g.id)::int AS group_count
      FROM group_members gm
      JOIN groups g ON g.id = gm.group_id
      JOIN group_members my_membership ON my_membership.group_id = gm.group_id AND my_membership.user_id = $1
      JOIN users u ON u.id = gm.user_id
      WHERE gm.user_id != $1
        AND u.birth_day IS NOT NULL AND u.birth_month IS NOT NULL
+     GROUP BY u.id, u.name, u.birth_day, u.birth_month
      ORDER BY u.birth_month ASC, u.birth_day ASC`,
     [userId],
   );
 
-  return result.rows;
+  return result.rows as {
+    user_id: string;
+    title: string;
+    event_day: number;
+    event_month: number;
+    group_name: string;
+    group_count: number;
+  }[];
 }
 
 const groupMember = {

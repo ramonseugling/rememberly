@@ -8,7 +8,6 @@ interface TodayEvent {
   event_custom_type: string | null;
   user_name: string;
   user_email: string;
-  group_name?: string | null;
 }
 
 interface ReminderEvent {
@@ -42,23 +41,22 @@ async function sendTodayNotifications() {
     [day, month],
   );
 
-  // 2. Group member birthdays → notify all group members
+  // 2. Group member birthdays → notify all group members (deduplicated by person+recipient)
   const groupBirthdayResult = await database.query(
     `SELECT
        birthday_user.name AS event_title,
        'birthday' AS event_type,
        NULL AS event_custom_type,
-       g.name AS group_name,
        recipient.name AS user_name,
        recipient.email AS user_email
      FROM group_members birthday_member
      JOIN users birthday_user ON birthday_user.id = birthday_member.user_id
-     JOIN groups g ON g.id = birthday_member.group_id
      JOIN group_members recipient_member ON recipient_member.group_id = birthday_member.group_id
        AND recipient_member.user_id != birthday_member.user_id
      JOIN users recipient ON recipient.id = recipient_member.user_id
      WHERE birthday_user.birth_day = $1
-       AND birthday_user.birth_month = $2`,
+       AND birthday_user.birth_month = $2
+     GROUP BY birthday_user.id, birthday_user.name, recipient.id, recipient.name, recipient.email`,
     [day, month],
   );
 
@@ -79,9 +77,7 @@ async function sendTodayNotifications() {
 
   for (const event of allEvents) {
     try {
-      const eventTitle = event.group_name
-        ? `${event.event_title} (Grupo: ${event.group_name})`
-        : event.event_title;
+      const eventTitle = event.event_title;
 
       await email.sendEventNotification({
         to: event.user_email,

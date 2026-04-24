@@ -55,6 +55,8 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(joaoBirthday.event_day).toBe(22);
     expect(joaoBirthday.event_month).toBe(7);
     expect(joaoBirthday.group_name).toBe('Família');
+    expect(joaoBirthday.group_count).toBe(1);
+    expect(joaoBirthday.user_id).toBeDefined();
   });
 
   it('não deve retornar o próprio aniversário do user', async () => {
@@ -121,6 +123,41 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     const groups = birthdays.map((b) => b.group_name);
     expect(groups).toContain('Trabalho');
     expect(groups).toContain('Amigos');
+  });
+
+  it('não deve duplicar aniversário de membro em múltiplos grupos', async () => {
+    const ownerCookie = await orchestrator.createAuthCookie({
+      name: 'Dono Dedup',
+      birth_day: 3,
+      birth_month: 3,
+    });
+    const ownerToken = orchestrator.extractToken(ownerCookie);
+
+    const group1 = await orchestrator.createGroup(ownerToken, 'Grupo A');
+    const group2 = await orchestrator.createGroup(ownerToken, 'Grupo B');
+
+    const sharedCookie = await orchestrator.createAuthCookie({
+      name: 'Compartilhado',
+      birth_day: 17,
+      birth_month: 9,
+    });
+    const sharedToken = orchestrator.extractToken(sharedCookie);
+    await orchestrator.joinGroup(sharedToken, group1.invite_code);
+    await orchestrator.joinGroup(sharedToken, group2.invite_code);
+
+    const ownerResult = await database.query(
+      `SELECT user_id FROM sessions WHERE token = $1`,
+      [ownerToken],
+    );
+    const ownerId = ownerResult.rows[0].user_id;
+
+    const birthdays = await groupMember.findAllBirthdaysForUser(ownerId);
+
+    const matches = birthdays.filter((b) => b.title === 'Compartilhado');
+    expect(matches.length).toBe(1);
+    expect(matches[0].group_count).toBe(2);
+    expect(matches[0].event_day).toBe(17);
+    expect(matches[0].event_month).toBe(9);
   });
 
   it('não deve retornar membros sem data de aniversário', async () => {
