@@ -16,8 +16,9 @@
 ## 📸 Preview
 
 <div align="center">
-  <img src="public/mockups/mockup-desktop.jpeg" alt="My Forever Dates — Desktop" width="58%" />
-  <img src="public/mockups/mockup-ios.jpeg" alt="My Forever Dates — Mobile" width="28%" />
+  <img src="public/mockups/mockup-desktop.jpeg" alt="My Forever Dates — Desktop" width="80%" />
+  <br/><br/>
+  <img src="public/mockups/mockup-ios.jpeg" alt="My Forever Dates — Mobile" width="40%" />
 </div>
 
 ---
