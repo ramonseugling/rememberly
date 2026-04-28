@@ -29,8 +29,7 @@ async function sendEventNotification(input: SendEventNotificationInput) {
   const safeTypeLabel = escapeHtml(typeLabel);
 
   await resend.emails.send({
-    from:
-      process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
+    from: process.env.EMAIL_FROM ?? 'rememberly <noreply@rememberly.com.br>',
     to: input.to,
     subject: `${typeLabel} — ${input.eventTitle}`,
     html: buildEmailHtml(safeUserName, safeEventTitle, safeTypeLabel),
@@ -51,7 +50,7 @@ function buildEmailHtml(
   return `
     <div style="font-family: 'Quicksand', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 16px;">
       <h1 style="font-family: 'Fredoka', sans-serif; color: #e0668a; font-size: 24px; margin-bottom: 8px;">
-        My Forever Dates
+        rememberly
       </h1>
       <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
         Olá, <strong>${userName}</strong>! 👋
@@ -94,8 +93,7 @@ async function sendReminderNotification(input: SendReminderNotificationInput) {
   const daysText = input.daysUntil === 1 ? '1 dia' : `${input.daysUntil} dias`;
 
   await resend.emails.send({
-    from:
-      process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
+    from: process.env.EMAIL_FROM ?? 'rememberly <noreply@rememberly.com.br>',
     to: input.to,
     subject: `⏰ Lembrete: Faltam ${daysText} para ${typeLabel.replace(/^[^\w]+ /, '')} — ${input.eventTitle}`,
     html: buildReminderHtml(
@@ -123,7 +121,7 @@ function buildReminderHtml(
   return `
     <div style="font-family: 'Quicksand', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 16px;">
       <h1 style="font-family: 'Fredoka', sans-serif; color: #6366f1; font-size: 24px; margin-bottom: 8px;">
-        My Forever Dates
+        rememberly
       </h1>
       <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
         Olá, <strong>${userName}</strong>! 👋
@@ -159,8 +157,7 @@ async function sendPasswordResetEmail(input: SendPasswordResetEmailInput) {
   const safeResetUrl = escapeHtml(input.resetUrl);
 
   await resend.emails.send({
-    from:
-      process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
+    from: process.env.EMAIL_FROM ?? 'rememberly <noreply@rememberly.com.br>',
     to: input.to,
     subject: 'Redefinição de senha',
     html: buildPasswordResetHtml(safeUserName, safeResetUrl),
@@ -173,7 +170,7 @@ function buildPasswordResetHtml(userName: string, resetUrl: string) {
   return `
     <div style="font-family: 'Quicksand', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 16px;">
       <h1 style="font-family: 'Fredoka', sans-serif; color: #e0668a; font-size: 24px; margin-bottom: 8px;">
-        My Forever Dates
+        rememberly
       </h1>
       <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
         Olá, <strong>${userName}</strong>! 👋
@@ -207,8 +204,7 @@ async function sendOtpEmail(input: SendOtpEmailInput) {
   const safeCode = escapeHtml(input.code);
 
   await resend.emails.send({
-    from:
-      process.env.EMAIL_FROM ?? 'My Forever Dates <noreply@myforeverdates.com>',
+    from: process.env.EMAIL_FROM ?? 'rememberly <noreply@rememberly.com.br>',
     to: input.to,
     subject: 'Seu código de verificação',
     html: buildOtpHtml(safeCode),
@@ -221,7 +217,7 @@ function buildOtpHtml(code: string) {
   return `
     <div style="font-family: 'Quicksand', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fff; border-radius: 16px;">
       <h1 style="font-family: 'Fredoka', sans-serif; color: #e0668a; font-size: 24px; margin-bottom: 8px;">
-        My Forever Dates
+        rememberly
       </h1>
       <p style="color: #3b4571; font-size: 16px; margin-bottom: 24px;">
         Olá! 👋

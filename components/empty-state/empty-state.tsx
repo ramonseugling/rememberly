@@ -19,7 +19,7 @@ export const EmptyState = ({
       </div>
       <h3 className="text-2xl font-heading font-semibold mb-2">
         {showLoginCta
-          ? 'Bem-vindo ao My Forever Dates!'
+          ? 'Bem-vindo ao rememberly!'
           : 'Nenhum aniversário cadastrado ainda'}
       </h3>
       <p className="text-muted-foreground mb-6">
