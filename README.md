@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/logo.svg" alt="Rememberly" width="64" height="64" />
   <h1>Rememberly</h1>
-  <p>Nunca mais esqueça quem importa.</p>
+  <p>Nunca mais esqueça o aniversário de seus amigos.</p>
   <p>Never forget the dates that matter most — birthdays, anniversaries and every special occasion.</p>
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-myforeverdates.com.br-ff6b9d?style=for-the-badge&logo=vercel)](https://myforeverdates.com.br)

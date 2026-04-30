@@ -42,12 +42,11 @@ export const CtaSection = () => {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 relative">
         <div className="text-center mb-12">
           <span className="pill-brand mb-5">
-            <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
             <span className="pill-brand-text">Pronto para começar?</span>
           </span>
-          <h2 className="font-heading font-bold tracking-tight leading-[1.05] text-4xl sm:text-5xl lg:text-6xl mb-4">
+          <h2 className="font-heading font-bold tracking-tight leading-[1.05] text-4xl sm:text-5xl lg:text-6xl mb-4 pb-2">
             <span className="block text-foreground">Comece agora e nunca</span>
-            <span className="block text-brand-gradient">
+            <span className="block text-brand-gradient pb-2">
               mais esqueça ninguém
             </span>
           </h2>

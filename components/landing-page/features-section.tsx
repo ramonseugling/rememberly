@@ -1,20 +1,24 @@
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 
 const features = [
   {
-    emoji: '🗓️',
+    icon: '/calendar.png',
+    alt: 'Calendário',
     title: 'Registre aniversários',
     description:
       'Adicione os aniversários dos seus amigos, família e quem mais você não quer esquecer',
   },
   {
-    emoji: '🔔',
+    icon: '/bell.png',
+    alt: 'Sino de notificação',
     title: 'Lembretes no dia',
     description:
       'Receba um e-mail no dia do aniversário — simples, direto, sem desculpa para esquecer',
   },
   {
-    emoji: '👥',
+    icon: '/group.png',
+    alt: 'Grupo de pessoas',
     title: 'Grupos com amigos',
     description:
       'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém',
@@ -34,20 +38,20 @@ export const FeaturesSection = () => {
         </p>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {features.map(({ emoji, title, description }, index) => (
+          {features.map(({ icon, alt, title, description }, index) => (
             <Card
               key={title}
               className="p-8 text-center hover:shadow-warm transition-all duration-300 hover:-translate-y-2 bg-card border-border/50 animate-fade-in"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className="mb-6">
-                <span
-                  role="img"
-                  aria-hidden="true"
-                  className="text-5xl select-none"
-                >
-                  {emoji}
-                </span>
+                <Image
+                  src={icon}
+                  alt={alt}
+                  width={140}
+                  height={140}
+                  className="mx-auto"
+                />
               </div>
               <h3 className="text-2xl font-semibold mb-4">{title}</h3>
               <p className="text-muted-foreground">{description}</p>

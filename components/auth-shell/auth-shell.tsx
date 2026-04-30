@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Bell, Heart, ShieldCheck, Users } from 'lucide-react';
-import { HeaderLanding } from '@/components/header-landing/header-landing';
+import { Bell, ShieldCheck, Users } from 'lucide-react';
 
 const TRUST_SIGNALS = [
   { icon: Users, label: 'Feito para grupos', sub: 'Amigos, família e times' },
@@ -27,8 +26,6 @@ interface AuthShellProps {
 export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
   return (
     <div className="min-h-screen flex flex-col bg-landing">
-      <HeaderLanding variant="auth" />
-
       <main className="flex-1 flex items-center justify-center px-4 py-10 sm:py-14">
         <div className="w-full max-w-6xl grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <motion.div
@@ -48,7 +45,7 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                 className="relative aspect-square w-full max-w-sm"
               >
                 <Image
-                  src="/logo-3d.png"
+                  src="/inverted-new-3d-logo.png"
                   alt="Calendário 3D"
                   fill
                   priority
@@ -66,9 +63,9 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                   delay: 0.5,
                 }}
                 aria-hidden="true"
-                className="absolute -top-4 -left-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-soft"
+                className="absolute -top-6 -left-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-soft"
               >
-                <Heart className="w-6 h-6 text-primary fill-primary" />
+                <Image src="/bell.png" alt="Bell" width={36} height={36} />
               </motion.span>
 
               <motion.span
@@ -80,20 +77,18 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                   delay: 1,
                 }}
                 aria-hidden="true"
-                className="absolute top-8 -right-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-soft"
+                className="absolute top-8 -right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-soft"
               >
-                <Bell className="w-6 h-6 text-accent" />
+                <Image src="/group.png" alt="Grupos" width={36} height={36} />
               </motion.span>
             </div>
 
-            <h2 className="mt-10 font-heading font-bold tracking-tight leading-[1.05] text-4xl xl:text-5xl">
+            <h2 className="mt-1 font-heading font-bold tracking-tight leading-[1.05] text-4xl xl:text-5xl">
               <span className="block text-foreground">Nunca mais esqueça</span>
-              <span className="block text-brand-gradient">quem importa</span>
+              <span className="block text-brand-gradient pb-2">
+                quem importa
+              </span>
             </h2>
-            <p className="mt-4 max-w-md text-base text-muted-foreground">
-              Seus grupos, aniversários e lembretes organizados em um só lugar.
-            </p>
-
             <ul className="mt-8 flex items-start gap-6">
               {TRUST_SIGNALS.map((signal) => (
                 <li key={signal.label} className="flex items-start gap-2">

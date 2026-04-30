@@ -75,8 +75,12 @@ export const HeroSection = () => {
             </span>
 
             <h1 className="font-heading font-bold tracking-tight leading-[1.2] text-5xl sm:text-6xl lg:text-7xl mb-5 pb-2">
-              <span className="block text-foreground">Nunca mais esqueça</span>
-              <span className="block text-brand-gradient">quem importa</span>
+              <span className="block text-foreground">
+                Nunca mais esqueça o
+              </span>
+              <span className="block text-brand-gradient">
+                aniversário de seus amigos
+              </span>
             </h1>
 
             <p className="max-w-xl text-base sm:text-lg text-muted-foreground mb-8 leading-relaxed">

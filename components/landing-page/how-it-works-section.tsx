@@ -1,24 +1,28 @@
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
 const STEPS = [
   {
     number: 1,
-    emoji: '🗓️',
+    icon: '/calendar.png',
+    alt: 'Calendário',
     title: 'Registre aniversários',
     description:
       'Adicione os aniversários dos seus amigos, família e quem mais você não quer esquecer.',
   },
   {
     number: 2,
-    emoji: '🔔',
+    icon: '/bell.png',
+    alt: 'Sino de notificação',
     title: 'Lembretes no dia',
     description:
       'Receba um e-mail no dia do aniversário — simples, direto, sem desculpa para esquecer.',
   },
   {
     number: 3,
-    emoji: '👥',
+    icon: '/group.png',
+    alt: 'Grupo de pessoas',
     title: 'Grupos com amigos',
     description:
       'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém.',
@@ -39,7 +43,6 @@ export const HowItWorksSection = () => {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
         <div className="text-center mb-14 lg:mb-16">
           <span className="pill-brand mb-5">
-            <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
             <span className="pill-brand-text">Como funciona</span>
           </span>
           <h2 className="font-heading font-bold tracking-tight leading-[1.2] text-4xl sm:text-5xl lg:text-6xl mb-4 pb-2">
@@ -84,12 +87,14 @@ export const HowItWorksSection = () => {
                 }}
               >
                 <div className="rounded-t-3xl rounded-b-[20px] bg-card flex-1 flex flex-col items-center text-center p-8 pt-12">
-                  <div
-                    role="img"
-                    aria-hidden="true"
-                    className="text-7xl mb-6 select-none"
-                  >
-                    {step.emoji}
+                  <div className="mb-6">
+                    <Image
+                      src={step.icon}
+                      alt={step.alt}
+                      width={140}
+                      height={140}
+                      className="mx-auto"
+                    />
                   </div>
                   <h3 className="font-heading font-bold text-2xl text-foreground mb-3">
                     {step.title}
