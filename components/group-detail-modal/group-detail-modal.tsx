@@ -191,7 +191,7 @@ export const GroupDetailModal = ({
             </Button>
           </div>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`Nunca mais vamos esquecer um aniversário!\n\nEntrei no My Forever Dates e criei o grupo *${group.name}* pra gente. Cadastra sua data de aniversário e mais ninguém nesse grupo vai esquecer um aniversário!\n\n${inviteLink}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`Nunca mais vamos esquecer um aniversário!\n\nEntrei no Rememberly e criei o grupo *${group.name}* pra gente. Cadastra sua data de aniversário e mais ninguém nesse grupo vai esquecer um aniversário!\n\n${inviteLink}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-medium py-2 px-4 rounded-xl transition-smooth"

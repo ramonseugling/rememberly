@@ -1,6 +1,7 @@
 <div align="center">
-  <img src="public/logo.svg" alt="My Forever Dates" width="64" height="64" />
-  <h1>My Forever Dates</h1>
+  <img src="public/logo.svg" alt="Rememberly" width="64" height="64" />
+  <h1>Rememberly</h1>
+  <p>Nunca mais esqueça o aniversário de seus amigos.</p>
   <p>Never forget the dates that matter most — birthdays, anniversaries and every special occasion.</p>
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-myforeverdates.com.br-ff6b9d?style=for-the-badge&logo=vercel)](https://myforeverdates.com.br)
@@ -16,16 +17,16 @@
 ## 📸 Preview
 
 <div align="center">
-  <img src="public/mockups/mockup-desktop.jpeg" alt="My Forever Dates — Desktop" width="80%" />
+  <img src="public/mockups/mockup-desktop.jpeg" alt="Rememberly — Desktop" width="80%" />
   <br/><br/>
-  <img src="public/mockups/mockup-ios.jpeg" alt="My Forever Dates — Mobile" width="40%" />
+  <img src="public/mockups/mockup-ios.jpeg" alt="Rememberly — Mobile" width="40%" />
 </div>
 
 ---
 
 ## 📖 About
 
-**My Forever Dates** is a multi-user web app that lets you register important annual dates and receive email reminders right when they happen.
+**Rememberly** is a multi-user web app that lets you register important annual dates and receive email reminders right when they happen.
 
 **The problem it solves:** we easily forget recurring dates — a friend's birthday, a wedding anniversary, the day a relationship started. This app keeps all of that in one place and sends you an email on the morning of each event, so you're always prepared to celebrate the people you care about.
 
