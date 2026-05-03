@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { GetServerSideProps } from 'next';
+import { Cake, Calendar, Clock } from 'lucide-react';
 import { AddEventModal } from '@/components/add-event-modal/add-event-modal';
 import { DateCard } from '@/components/date-card/date-card';
+import { DatesPageHeader } from '@/components/dates-page/dates-page-header';
+import { DatesSection } from '@/components/dates-page/dates-section';
+import { UpcomingWeekBanner } from '@/components/dates-page/upcoming-week-banner';
+import { ViewAllDatesButton } from '@/components/dates-page/view-all-dates-button';
 import { EmptyState } from '@/components/empty-state/empty-state';
-import { HelloCard } from '@/components/hello-card/hello-card';
 import { NextYearDateCard } from '@/components/next-year-date-card/next-year-date-card';
 import { UpdateEventModal } from '@/components/update-event-modal/update-event-modal';
-import { UrgentDateCard } from '@/components/urgent-date-card/urgent-date-card';
 import { MONTHS } from '@/lib/constants';
 import type { EventType } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
@@ -39,7 +42,10 @@ interface EventCard {
 interface DatesProps {
   user: User;
   events: EventCard[];
+  monthName: string;
 }
+
+const LATER_PREVIEW_COUNT = 3;
 
 function computeDaysUntil(
   eventDay: number,
@@ -143,68 +149,149 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       (a, b) => a.daysUntil - b.daysUntil,
     );
 
-    return { props: { user, events } };
+    return {
+      props: { user, events, monthName: MONTHS[today.getMonth()] },
+    };
   },
 );
 
-export default function Dates({ user, events }: DatesProps) {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventCard | null>(null);
+type CardAccent = 'pink' | 'orange' | 'violet';
 
-  const urgentCount = events.filter((e) => e.daysUntil <= 7).length;
-  const currentMonth = new Date().getMonth() + 1;
-  const hasCurrentMonthEvents = events.some(
-    (e) => e.event_month === currentMonth && !e.isNextYear,
-  );
+function renderCard(
+  e: EventCard,
+  variant: 'default' | 'featured',
+  accent: CardAccent,
+  onEdit: (event: EventCard) => void,
+) {
+  const onClick = e.groupName ? undefined : () => onEdit(e);
+
+  if (e.isNextYear) {
+    return (
+      <NextYearDateCard
+        title={e.title}
+        type={e.type}
+        customType={e.custom_type}
+        date={e.date}
+        daysUntil={e.daysUntil}
+        groupName={e.groupName}
+        accent={accent}
+        onClick={onClick}
+      />
+    );
+  }
 
   return (
-    <div>
+    <DateCard
+      title={e.title}
+      type={e.type}
+      customType={e.custom_type}
+      date={e.date}
+      daysUntil={e.daysUntil}
+      groupName={e.groupName}
+      variant={variant}
+      accent={accent}
+      onClick={onClick}
+    />
+  );
+}
+
+export default function Dates({ user, events, monthName }: DatesProps) {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventCard | null>(null);
+  const [showAllLater, setShowAllLater] = useState(false);
+
+  const buckets = useMemo(() => {
+    return {
+      withinWeek: events.filter((e) => e.daysUntil <= 7),
+      thisMonth: events.filter((e) => e.daysUntil > 7 && e.daysUntil <= 30),
+      later: events.filter((e) => e.daysUntil > 30),
+    };
+  }, [events]);
+
+  const upcomingCount = buckets.withinWeek.length + buckets.thisMonth.length;
+  const laterToShow = showAllLater
+    ? buckets.later
+    : buckets.later.slice(0, LATER_PREVIEW_COUNT);
+
+  if (events.length === 0) {
+    return (
       <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
-        {events.length > 0 && (
-          <>
-            <HelloCard
-              name={user.name}
-              hasCurrentMonthEvents={hasCurrentMonthEvents}
-              onAddClick={() => setIsAddModalOpen(true)}
-            />
-            <UrgentDateCard urgentCount={urgentCount} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {events.map((e, index) => (
-                <div key={e.id} style={{ animationDelay: `${index * 0.1}s` }}>
-                  {e.isNextYear ? (
-                    <NextYearDateCard
-                      title={e.title}
-                      type={e.type}
-                      customType={e.custom_type}
-                      date={e.date}
-                      daysUntil={e.daysUntil}
-                      groupName={e.groupName}
-                      onClick={
-                        e.groupName ? undefined : () => setSelectedEvent(e)
-                      }
-                    />
-                  ) : (
-                    <DateCard
-                      title={e.title}
-                      type={e.type}
-                      customType={e.custom_type}
-                      date={e.date}
-                      daysUntil={e.daysUntil}
-                      groupName={e.groupName}
-                      onClick={
-                        e.groupName ? undefined : () => setSelectedEvent(e)
-                      }
-                    />
-                  )}
+        <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
+        <AddEventModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+      </section>
+    );
+  }
+
+  return (
+    <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
+      <DatesPageHeader
+        monthName={monthName}
+        upcomingCount={upcomingCount}
+        onAddClick={() => setIsAddModalOpen(true)}
+      />
+
+      <UpcomingWeekBanner
+        count={buckets.withinWeek.length}
+        onClick={() => {
+          if (typeof window !== 'undefined') {
+            document
+              .getElementById('section-within-week')
+              ?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+      />
+
+      {buckets.withinWeek.length > 0 && (
+        <div id="section-within-week">
+          <DatesSection
+            title="Próximos 7 dias"
+            icon={Calendar}
+            iconColor="text-primary"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {buckets.withinWeek.map((e, index) => (
+                <div key={e.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                  {renderCard(e, 'default', 'pink', setSelectedEvent)}
                 </div>
               ))}
             </div>
-          </>
-        )}
-        {events.length === 0 && (
-          <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
-        )}
-      </section>
+          </DatesSection>
+        </div>
+      )}
+
+      {buckets.thisMonth.length > 0 && (
+        <DatesSection title="Este mês" icon={Cake} iconColor="text-accent">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {buckets.thisMonth.map((e, index) => (
+              <div key={e.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                {renderCard(e, 'default', 'orange', setSelectedEvent)}
+              </div>
+            ))}
+          </div>
+        </DatesSection>
+      )}
+
+      {buckets.later.length > 0 && (
+        <DatesSection
+          title="Mais pra frente"
+          icon={Clock}
+          iconColor="text-secondary"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {laterToShow.map((e, index) => (
+              <div key={e.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                {renderCard(e, 'default', 'violet', setSelectedEvent)}
+              </div>
+            ))}
+          </div>
+          {buckets.later.length > LATER_PREVIEW_COUNT && (
+            <ViewAllDatesButton
+              expanded={showAllLater}
+              onClick={() => setShowAllLater((v) => !v)}
+            />
+          )}
+        </DatesSection>
+      )}
 
       <AddEventModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
       {selectedEvent && (
@@ -216,6 +303,6 @@ export default function Dates({ user, events }: DatesProps) {
           }}
         />
       )}
-    </div>
+    </section>
   );
 }

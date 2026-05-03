@@ -36,7 +36,7 @@ export function formatDaysLabel(days: number): string {
   if (days <= 7) return `Em ${days} dias`;
   if (days < 30) {
     const weeks = Math.floor(days / 7);
-    return `${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+    return `Em ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
   }
   const months = Math.round(days / 30);
   return `Em ${months} ${months === 1 ? 'mês' : 'meses'}`;

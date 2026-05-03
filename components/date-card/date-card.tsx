@@ -1,9 +1,19 @@
-import { Cake, Calendar, Gift, Heart, PartyPopper, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import {
+  Cake,
+  Calendar,
+  Gift,
+  Heart,
+  MoreVertical,
+  PartyPopper,
+  Users,
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { EVENT_TYPES } from '@/lib/constants';
 import { formatDaysLabel } from '@/lib/date-utils';
 import type { EventType } from '@/lib/types';
+import { cn } from '@/lib/utils';
+
+type AccentTone = 'pink' | 'orange' | 'violet';
 
 interface DateCardProps {
   title: string;
@@ -12,8 +22,43 @@ interface DateCardProps {
   date: string;
   daysUntil: number;
   groupName?: string;
+  variant?: 'default' | 'featured';
+  accent?: AccentTone;
   onClick?: () => void;
 }
+
+const ACCENT_RING: Record<AccentTone, string> = {
+  pink: 'ring-1 ring-primary',
+  orange: '',
+  violet: '',
+};
+
+const AVATAR_TONE: Record<AccentTone, string> = {
+  pink: 'bg-primary/10 text-primary',
+  orange: 'bg-accent/10 text-accent',
+  violet: 'bg-secondary/10 text-secondary',
+};
+
+const BADGE_TONE: Record<AccentTone, string> = {
+  pink: 'bg-primary/15 text-primary',
+  orange: 'bg-accent/15 text-accent',
+  violet: 'bg-secondary/15 text-secondary',
+};
+
+const getIcon = (type: EventType, size: 'sm' | 'lg') => {
+  const className = size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
+  switch (type) {
+    case 'birthday':
+      return <Cake className={className} />;
+    case 'dating_anniversary':
+    case 'wedding_anniversary':
+      return <Heart className={className} />;
+    case 'celebration':
+      return <PartyPopper className={className} />;
+    default:
+      return <Gift className={className} />;
+  }
+};
 
 export const DateCard = ({
   title,
@@ -22,108 +67,120 @@ export const DateCard = ({
   date,
   daysUntil,
   groupName,
+  variant = 'default',
+  accent = 'pink',
   onClick,
 }: DateCardProps) => {
-  const getIcon = () => {
-    switch (type) {
-      case 'birthday':
-        return <Cake className="w-5 h-5" />;
-      case 'dating_anniversary':
-      case 'wedding_anniversary':
-        return <Heart className="w-5 h-5" />;
-      case 'celebration':
-        return <PartyPopper className="w-5 h-5" />;
-      default:
-        return <Gift className="w-5 h-5" />;
-    }
-  };
-
-  const getGradient = () => {
-    if (daysUntil <= 7) return 'gradient-warm';
-    if (daysUntil <= 30) return 'gradient-sunset';
-    return 'bg-card';
-  };
-
-  const getTypeLabel = () =>
+  const typeLabel =
     type === 'custom' && customType
       ? customType
       : (EVENT_TYPES.find((t) => t.value === type)?.label ?? type);
 
-  const getDaysText = () => formatDaysLabel(daysUntil);
+  const daysLabel = formatDaysLabel(daysUntil);
+  const isFeatured = variant === 'featured';
+  const isUrgent = daysUntil <= 2;
 
-  const isUrgent = daysUntil <= 7;
+  const handleKebabClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onClick?.();
+  };
 
   return (
     <Card
-      className={`rounded-3xl border-border/50 overflow-hidden transition-smooth hover:scale-[1.02] hover:shadow-glow cursor-pointer animate-fade-in ${
-        isUrgent ? 'ring-2 ring-primary/20' : ''
-      }`}
       onClick={onClick}
+      className={cn(
+        'rounded-2xl overflow-hidden transition-smooth animate-fade-in cursor-pointer',
+        isUrgent
+          ? 'gradient-warm border-transparent text-white shadow-warm'
+          : cn(
+              'border-border/40 bg-card hover:shadow-soft',
+              ACCENT_RING[accent],
+              isFeatured ? 'shadow-soft' : '',
+            ),
+      )}
     >
-      <div className={`p-6 ${isUrgent ? getGradient() : 'bg-card'}`}>
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                isUrgent
-                  ? 'bg-white/20 text-white'
-                  : 'bg-primary/10 text-primary'
-              }`}
-            >
-              {getIcon()}
-            </div>
-            <div>
-              <h3
-                className={`font-heading font-semibold text-lg ${
-                  isUrgent ? 'text-white' : 'text-foreground'
-                }`}
-              >
-                {title}
-              </h3>
-              <p
-                className={`text-sm ${
-                  isUrgent ? 'text-white/80' : 'text-muted-foreground'
-                }`}
-              >
-                {getTypeLabel()}
-              </p>
-            </div>
-          </div>
-          <Badge
-            variant={isUrgent ? 'default' : 'secondary'}
-            className={`rounded-full px-3 py-1 font-semibold ${
-              isUrgent
-                ? 'bg-white/20 text-white hover:bg-white/30'
-                : 'bg-muted text-muted-foreground'
-            }`}
+      <div className={cn('flex flex-col gap-3', isFeatured ? 'p-5' : 'p-4')}>
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              'shrink-0 rounded-2xl flex items-center justify-center',
+              isUrgent ? 'bg-white/20 text-white' : AVATAR_TONE[accent],
+              isFeatured ? 'w-14 h-14' : 'w-11 h-11',
+            )}
           >
-            {getDaysText()}
-          </Badge>
+            {getIcon(type, isFeatured ? 'lg' : 'sm')}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3
+              className={cn(
+                'font-heading font-semibold leading-tight truncate',
+                isUrgent ? 'text-white' : 'text-foreground',
+                isFeatured ? 'text-lg' : 'text-base',
+              )}
+            >
+              {title}
+            </h3>
+            <p
+              className={cn(
+                'text-sm leading-tight',
+                isUrgent ? 'text-white/85' : 'text-muted-foreground',
+              )}
+            >
+              {typeLabel}
+            </p>
+          </div>
+
+          {onClick && (
+            <button
+              type="button"
+              onClick={handleKebabClick}
+              aria-label="Editar evento"
+              className={cn(
+                'shrink-0 -mr-1 rounded-full p-1 transition-smooth',
+                isUrgent
+                  ? 'text-white/80 hover:text-white hover:bg-white/15'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+              )}
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <Calendar
-              className={`w-4 h-4 ${isUrgent ? 'text-white/70' : 'text-muted-foreground'}`}
-            />
-            <span
-              className={`text-sm font-medium ${
-                isUrgent ? 'text-white/90' : 'text-muted-foreground'
-              }`}
-            >
-              {date}
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {groupName && (
-            <div
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${
-                isUrgent ? 'bg-white/20 text-white' : 'bg-violet/10 text-violet'
-              }`}
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5',
+                isUrgent
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted/60 text-foreground/90',
+              )}
             >
               <Users className="w-3 h-3" />
               <span className="text-xs font-medium">{groupName}</span>
-            </div>
+            </span>
           )}
+
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 text-xs font-medium',
+              isUrgent ? 'text-white/90' : 'text-muted-foreground',
+            )}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            {date}
+          </span>
+
+          <span
+            className={cn(
+              'ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold',
+              isUrgent ? 'bg-white/25 text-white' : BADGE_TONE[accent],
+            )}
+          >
+            {daysLabel}
+          </span>
         </div>
       </div>
     </Card>
