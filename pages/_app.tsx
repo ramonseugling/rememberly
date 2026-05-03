@@ -14,10 +14,13 @@ const PAGES_WITH_OWN_HEADER = [
   '/reset-password',
 ];
 
+const APP_ROUTES = ['/dates', '/groups'];
+
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const is404 = router.pathname === '/404';
   const hasOwnHeader = PAGES_WITH_OWN_HEADER.includes(router.pathname);
+  const variant = APP_ROUTES.includes(router.pathname) ? 'app' : 'landing';
 
   return (
     <div className={quicksand.className}>
@@ -45,7 +48,11 @@ export default function App({ Component, pageProps }: AppProps) {
           font-family: ${fredoka.style.fontFamily};
         }
       `}</style>
-      <Layout user={pageProps.user} hideHeader={is404 || hasOwnHeader}>
+      <Layout
+        user={pageProps.user}
+        hideHeader={is404 || hasOwnHeader}
+        variant={variant}
+      >
         <Component {...pageProps} />
       </Layout>
       <Analytics />

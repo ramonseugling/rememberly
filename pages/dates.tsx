@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
-import { Plus } from 'lucide-react';
 import { AddEventModal } from '@/components/add-event-modal/add-event-modal';
 import { DateCard } from '@/components/date-card/date-card';
 import { EmptyState } from '@/components/empty-state/empty-state';
@@ -206,16 +205,6 @@ export default function Dates({ user, events }: DatesProps) {
           <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
         )}
       </section>
-
-      {/* FAB mobile */}
-      <button
-        onClick={() => setIsAddModalOpen(true)}
-        style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 50 }}
-        className="md:hidden w-14 h-14 gradient-warm text-white rounded-full shadow-float animate-float flex items-center justify-center hover:opacity-90 transition-smooth"
-        aria-label="Adicionar data"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
 
       <AddEventModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
       {selectedEvent && (
