@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { GetServerSideProps } from 'next';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { CreateGroupModal } from '@/components/create-group-modal/create-group-modal';
 import { GroupCard } from '@/components/group-card/group-card';
-import { GroupDetailModal } from '@/components/group-detail-modal/group-detail-modal';
 import { GroupEmptyState } from '@/components/group-empty-state/group-empty-state';
+import { CreateGroupCta } from '@/components/groups-page/create-group-cta';
+import { GroupsPageHeader } from '@/components/groups-page/groups-page-header';
+import { GroupsStats } from '@/components/groups-page/groups-stats';
+import { NextGroupDateBanner } from '@/components/groups-page/next-group-date-banner';
+import { MONTHS } from '@/lib/constants';
 import type { BirthdayMember, GroupInfo } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import group from 'models/group';
@@ -23,6 +25,8 @@ interface User {
 interface GroupsProps {
   user: User;
   groups: GroupInfo[];
+  membersCount: number;
+  upcomingDatesCount: number;
 }
 
 export const getServerSideProps: GetServerSideProps = withAuth(
@@ -83,66 +87,88 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       }),
     );
 
-    return { props: { user, groups } };
+    const membersCount = groups.reduce(
+      (sum, g) => sum + Math.max(0, g.member_count - 1),
+      0,
+    );
+
+    const upcomingDatesCount = Object.values(birthdaysByGroup).reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
+
+    return { props: { user, groups, membersCount, upcomingDatesCount } };
   },
 );
 
-export default function Groups({ user, groups }: GroupsProps) {
+export default function Groups({
+  user: _user,
+  groups,
+  membersCount,
+  upcomingDatesCount,
+}: GroupsProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
+
+  const nextDate = useMemo(() => {
+    let best: {
+      groupId: string;
+      groupName: string;
+      member: BirthdayMember;
+    } | null = null;
+    for (const g of groups) {
+      const first = g.upcoming_birthdays[0];
+      if (!first) continue;
+      if (!best || first.days_until < best.member.days_until) {
+        best = { groupId: g.id, groupName: g.name, member: first };
+      }
+    }
+    return best;
+  }, [groups]);
+
+  if (groups.length === 0) {
+    return (
+      <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
+        <GroupEmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
+        <CreateGroupModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+        />
+      </section>
+    );
+  }
 
   return (
-    <div>
-      <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
-        {groups.length > 0 && (
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-heading font-bold text-foreground">
-              Meus grupos
-            </h2>
-            <Button
-              className="gradient-violet text-white hover:opacity-90 rounded-2xl gap-2"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              <Plus className="w-4 h-4" />
-              Criar grupo
-            </Button>
-          </div>
-        )}
+    <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
+      <GroupsPageHeader onCreateClick={() => setIsCreateModalOpen(true)} />
 
-        {groups.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groups.map((g, index) => (
-              <div key={g.id} style={{ animationDelay: `${index * 0.1}s` }}>
-                <GroupCard
-                  name={g.name}
-                  role={g.role}
-                  memberCount={g.member_count}
-                  upcomingBirthdays={g.upcoming_birthdays}
-                  onClick={() => setSelectedGroup(g)}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <GroupEmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
-        )}
-      </section>
+      <GroupsStats
+        groupsCount={groups.length}
+        membersCount={membersCount}
+        upcomingDatesCount={upcomingDatesCount}
+      />
+
+      {nextDate && (
+        <NextGroupDateBanner
+          daysUntil={nextDate.member.days_until}
+          memberName={nextDate.member.name}
+          date={`${nextDate.member.birth_day} de ${MONTHS[nextDate.member.birth_month - 1]}`}
+          groupName={nextDate.groupName}
+          groupId={nextDate.groupId}
+        />
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        {groups.map((g) => (
+          <GroupCard key={g.id} group={g} />
+        ))}
+      </div>
+
+      <CreateGroupCta onClick={() => setIsCreateModalOpen(true)} />
 
       <CreateGroupModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
       />
-
-      {selectedGroup && (
-        <GroupDetailModal
-          group={selectedGroup}
-          currentUserId={user.id}
-          open={!!selectedGroup}
-          onOpenChange={(open) => {
-            if (!open) setSelectedGroup(null);
-          }}
-        />
-      )}
-    </div>
+    </section>
   );
 }
