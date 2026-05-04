@@ -45,7 +45,7 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                 className="relative aspect-square w-full max-w-sm"
               >
                 <Image
-                  src="/inverted-new-3d-logo.png"
+                  src="/images/brand/inverted-new-3d-logo.png"
                   alt="Calendário 3D"
                   fill
                   priority
@@ -65,7 +65,12 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                 aria-hidden="true"
                 className="absolute -top-6 -left-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-soft"
               >
-                <Image src="/bell.png" alt="Bell" width={36} height={36} />
+                <Image
+                  src="/images/icons/bell.png"
+                  alt="Bell"
+                  width={36}
+                  height={36}
+                />
               </motion.span>
 
               <motion.span
@@ -79,7 +84,12 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
                 aria-hidden="true"
                 className="absolute top-8 -right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-soft"
               >
-                <Image src="/group.png" alt="Grupos" width={36} height={36} />
+                <Image
+                  src="/images/icons/group.png"
+                  alt="Grupos"
+                  width={36}
+                  height={36}
+                />
               </motion.span>
             </div>
 

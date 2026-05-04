@@ -128,7 +128,7 @@ export const HeroSection = () => {
               className="relative aspect-square w-full"
             >
               <Image
-                src="/new-3d-logo.png"
+                src="/images/brand/new-3d-logo.png"
                 alt="Calendário 3D com símbolo de infinito"
                 fill
                 priority

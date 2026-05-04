@@ -54,7 +54,12 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
           <Link href="/" className="flex items-center gap-2 lg:hidden">
-            <Image src="/logo.svg" alt="Rememberly" width={32} height={32} />
+            <Image
+              src="/images/brand/logo.svg"
+              alt="Rememberly"
+              width={32}
+              height={32}
+            />
             <span className="text-xl font-heading font-bold text-brand-gradient inline-block">
               rememberly
             </span>
@@ -63,23 +68,33 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
           <div className="hidden lg:block" />
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label="Buscar"
-              disabled
-              className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+            <div className="group relative hidden lg:block">
+              <button
+                type="button"
+                aria-label="Buscar"
+                disabled
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-xs font-medium text-background opacity-0 transition-opacity group-hover:opacity-100">
+                Em breve
+              </span>
+            </div>
 
-            <button
-              type="button"
-              aria-label="Notificações"
-              disabled
-              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
+            <div className="group relative">
+              <button
+                type="button"
+                aria-label="Notificações"
+                disabled
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
+              >
+                <Bell className="h-5 w-5" />
+              </button>
+              <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-xs font-medium text-background opacity-0 transition-opacity group-hover:opacity-100">
+                Em breve
+              </span>
+            </div>
 
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>

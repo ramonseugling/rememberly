@@ -4,7 +4,7 @@ import { Bell, Heart, Link2, Users } from 'lucide-react';
 
 const ORBIT_AVATARS = [
   {
-    image: '/pink-avatar.png',
+    image: '/images/avatars/pink-avatar.png',
     alt: 'Avatar Ana',
     bg: 'from-rose-200 to-rose-300',
     badge: { day: '07', month: 'ABR' },
@@ -12,7 +12,7 @@ const ORBIT_AVATARS = [
     fit: 'object-contain',
   },
   {
-    image: '/yellow-avatar.png',
+    image: '/images/avatars/yellow-avatar.png',
     alt: 'Avatar João',
     bg: 'from-amber-200 to-orange-300',
     badge: { day: '18', month: 'MAI' },
@@ -20,7 +20,7 @@ const ORBIT_AVATARS = [
     fit: 'object-cover',
   },
   {
-    image: '/green-avatar.png',
+    image: '/images/avatars/green-avatar.png',
     alt: 'Avatar Pedro',
     bg: 'from-emerald-200 to-emerald-300',
     badge: { day: '26', month: 'JUN' },
@@ -28,7 +28,7 @@ const ORBIT_AVATARS = [
     fit: 'object-cover',
   },
   {
-    image: '/purple-avatar.png',
+    image: '/images/avatars/purple-avatar.png',
     alt: 'Avatar Marina',
     bg: 'from-violet-200 to-purple-300',
     badge: { day: '10', month: 'AGO' },
@@ -121,7 +121,7 @@ export const GroupsSection = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="relative h-32 w-32 rounded-full bg-card shadow-soft flex items-center justify-center">
                   <Image
-                    src="/logo.svg"
+                    src="/images/brand/logo.svg"
                     alt=""
                     width={72}
                     height={72}

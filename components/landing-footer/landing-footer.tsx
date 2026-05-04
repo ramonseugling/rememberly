@@ -7,7 +7,12 @@ export const LandingFooter = () => {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <Image src="/logo.svg" alt="Rememberly" width={28} height={28} />
+            <Image
+              src="/images/brand/logo.svg"
+              alt="Rememberly"
+              width={28}
+              height={28}
+            />
             <span className="font-heading font-bold text-xl text-brand-gradient">
               Rememberly
             </span>

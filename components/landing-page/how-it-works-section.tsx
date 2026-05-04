@@ -5,7 +5,7 @@ import { Sparkles } from 'lucide-react';
 const STEPS = [
   {
     number: 1,
-    icon: '/calendar.png',
+    icon: '/images/icons/calendar.png',
     alt: 'Calendário',
     title: 'Registre aniversários',
     description:
@@ -13,7 +13,7 @@ const STEPS = [
   },
   {
     number: 2,
-    icon: '/bell.png',
+    icon: '/images/icons/bell.png',
     alt: 'Sino de notificação',
     title: 'Lembretes no dia',
     description:
@@ -21,7 +21,7 @@ const STEPS = [
   },
   {
     number: 3,
-    icon: '/group.png',
+    icon: '/images/icons/group.png',
     alt: 'Grupo de pessoas',
     title: 'Grupos com amigos',
     description:

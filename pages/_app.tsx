@@ -14,7 +14,7 @@ const PAGES_WITH_OWN_HEADER = [
   '/reset-password',
 ];
 
-const APP_ROUTES = ['/dates', '/groups', '/profile'];
+const APP_ROUTES = ['/dates', '/groups', '/profile', '/help'];
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();

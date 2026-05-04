@@ -39,7 +39,7 @@ export const MockupSection = () => {
                   </div>
                 </div>
                 <Image
-                  src="/mockups/mockup-desktop.jpeg"
+                  src="/mockups/mockup-desktop.png"
                   alt="App no desktop"
                   width={1280}
                   height={720}
@@ -56,7 +56,7 @@ export const MockupSection = () => {
                   <div className="w-20 h-4 rounded-full bg-foreground/10" />
                 </div>
                 <Image
-                  src="/mockups/mockup-ios.jpeg"
+                  src="/mockups/mockup-native.png"
                   alt="App no iPhone"
                   width={430}
                   height={932}

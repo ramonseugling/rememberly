@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.svg" alt="Rememberly" width="64" height="64" />
+  <img src="public/images/brand/logo.svg" alt="Rememberly" width="64" height="64" />
   <h1>Rememberly</h1>
   <p>Nunca mais esqueça o aniversário de seus amigos.</p>
   <p>Never forget the dates that matter most — birthdays, anniversaries and every special occasion.</p>
@@ -17,9 +17,9 @@
 ## 📸 Preview
 
 <div align="center">
-  <img src="public/mockups/mockup-desktop.jpeg" alt="Rememberly — Desktop" width="80%" />
+  <img src="public/mockups/mockup-desktop.png" alt="Rememberly — Desktop" width="80%" />
   <br/><br/>
-  <img src="public/mockups/mockup-ios.jpeg" alt="Rememberly — Mobile" width="40%" />
+  <img src="public/mockups/mockup-native.png" alt="Rememberly — Mobile" width="40%" />
 </div>
 
 ---

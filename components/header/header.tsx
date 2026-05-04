@@ -25,7 +25,12 @@ export const Header = ({ user }: HeaderProps) => {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/logo.svg" alt="Rememberly" width={40} height={40} />
+            <Image
+              src="/images/brand/logo.svg"
+              alt="Rememberly"
+              width={40}
+              height={40}
+            />
             <h1 className="text-2xl font-heading font-bold text-brand-gradient inline-block">
               Rememberly
             </h1>

@@ -3,21 +3,21 @@ import { Card } from '@/components/ui/card';
 
 const features = [
   {
-    icon: '/calendar.png',
+    icon: '/images/icons/calendar.png',
     alt: 'Calendário',
     title: 'Registre aniversários',
     description:
       'Adicione os aniversários dos seus amigos, família e quem mais você não quer esquecer',
   },
   {
-    icon: '/bell.png',
+    icon: '/images/icons/bell.png',
     alt: 'Sino de notificação',
     title: 'Lembretes no dia',
     description:
       'Receba um e-mail no dia do aniversário — simples, direto, sem desculpa para esquecer',
   },
   {
-    icon: '/group.png',
+    icon: '/images/icons/group.png',
     alt: 'Grupo de pessoas',
     title: 'Grupos com amigos',
     description:

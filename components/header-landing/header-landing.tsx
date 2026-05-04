@@ -23,7 +23,7 @@ export const HeaderLanding = ({ variant = 'landing' }: HeaderLandingProps) => {
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <Image
-              src="/logo.svg"
+              src="/images/brand/logo.svg"
               alt="Rememberly"
               width={40}
               height={40}
