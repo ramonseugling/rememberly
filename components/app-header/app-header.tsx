@@ -109,7 +109,7 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
                   </p>
                 </div>
                 <Link
-                  href="/perfil"
+                  href="/profile"
                   onClick={() => setPopoverOpen(false)}
                   className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition-smooth"
                 >

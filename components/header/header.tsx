@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Calendar, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ProfileModal } from '@/components/profile-modal/profile-modal';
 
 interface HeaderUser {
   id: string;
@@ -21,7 +19,6 @@ interface HeaderProps {
 
 export const Header = ({ user }: HeaderProps) => {
   const router = useRouter();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
@@ -36,64 +33,57 @@ export const Header = ({ user }: HeaderProps) => {
 
           <div className="flex items-center gap-2">
             {user ? (
-              <>
-                <nav className="flex items-center gap-2">
-                  <Link href="/dates">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className={`rounded-2xl gap-1.5 ${
-                        router.pathname === '/dates'
-                          ? 'text-primary'
-                          : 'text-muted-foreground hover:text-primary'
-                      }`}
-                    >
-                      <Calendar className="w-4 h-4" />
-                      <span className="hidden sm:inline font-[inherit]">
-                        Minhas Datas
-                      </span>
-                    </Button>
-                  </Link>
-                  <Link href="/groups">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className={`rounded-2xl gap-1.5 ${
-                        router.pathname === '/groups' ||
-                        router.pathname.startsWith('/groups/')
-                          ? 'text-violet'
-                          : 'text-muted-foreground hover:text-violet'
-                      }`}
-                    >
-                      <Users className="w-4 h-4" />
-                      <span className="hidden sm:inline font-[inherit]">
-                        Grupos
-                      </span>
-                    </Button>
-                  </Link>
+              <nav className="flex items-center gap-2">
+                <Link href="/dates">
                   <Button
                     variant="link"
                     size="sm"
                     className={`rounded-2xl gap-1.5 ${
-                      isProfileOpen
+                      router.pathname === '/dates'
+                        ? 'text-primary'
+                        : 'text-muted-foreground hover:text-primary'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span className="hidden sm:inline font-[inherit]">
+                      Minhas Datas
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/groups">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className={`rounded-2xl gap-1.5 ${
+                      router.pathname === '/groups' ||
+                      router.pathname.startsWith('/groups/')
+                        ? 'text-violet'
+                        : 'text-muted-foreground hover:text-violet'
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    <span className="hidden sm:inline font-[inherit]">
+                      Grupos
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className={`rounded-2xl gap-1.5 ${
+                      router.pathname === '/profile'
                         ? 'text-foreground'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
-                    onClick={() => setIsProfileOpen(true)}
                   >
                     <User className="w-4 h-4" />
                     <span className="hidden sm:inline font-[inherit]">
                       Perfil
                     </span>
                   </Button>
-                </nav>
-
-                <ProfileModal
-                  user={user}
-                  open={isProfileOpen}
-                  onOpenChange={setIsProfileOpen}
-                />
-              </>
+                </Link>
+              </nav>
             ) : (
               <Link href="/login">
                 <Button className="gradient-warm text-white rounded-2xl px-5 py-2 font-semibold hover:opacity-90 transition-smooth text-sm">

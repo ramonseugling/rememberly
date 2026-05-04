@@ -14,13 +14,17 @@ const PAGES_WITH_OWN_HEADER = [
   '/reset-password',
 ];
 
-const APP_ROUTES = ['/dates', '/groups'];
+const APP_ROUTES = ['/dates', '/groups', '/profile'];
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const is404 = router.pathname === '/404';
   const hasOwnHeader = PAGES_WITH_OWN_HEADER.includes(router.pathname);
-  const variant = APP_ROUTES.includes(router.pathname) ? 'app' : 'landing';
+  const variant = APP_ROUTES.some(
+    (r) => router.pathname === r || router.pathname.startsWith(`${r}/`),
+  )
+    ? 'app'
+    : 'landing';
 
   return (
     <div className={quicksand.className}>

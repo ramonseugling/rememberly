@@ -15,7 +15,9 @@ type AuthenticatedHandler<P extends Record<string, unknown>> = (
   context: GetServerSidePropsContext,
   user: User,
 ) => Promise<
-  { props: P } | { redirect: { destination: string; permanent: boolean } }
+  | { props: P }
+  | { redirect: { destination: string; permanent: boolean } }
+  | { notFound: true }
 >;
 
 function isValidNextUrl(url: string): boolean {

@@ -35,9 +35,9 @@ const primaryNav: PrimaryNavItem[] = [
   },
   {
     label: 'Perfil',
-    href: '/perfil',
+    href: '/profile',
     icon: User,
-    isActive: (pathname) => pathname === '/perfil',
+    isActive: (pathname) => pathname === '/profile',
   },
 ];
 

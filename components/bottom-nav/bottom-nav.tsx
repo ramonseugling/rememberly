@@ -48,8 +48,8 @@ const rightSlots: NavSlot[] = [
   {
     label: 'Perfil',
     icon: User,
-    href: '/perfil',
-    isActive: (pathname) => pathname === '/perfil',
+    href: '/profile',
+    isActive: (pathname) => pathname === '/profile',
   },
 ];
 
