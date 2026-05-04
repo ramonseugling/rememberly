@@ -66,7 +66,8 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
             <button
               type="button"
               aria-label="Buscar"
-              className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+              disabled
+              className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
             >
               <Search className="h-5 w-5" />
             </button>
@@ -74,14 +75,10 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
             <button
               type="button"
               aria-label="Notificações"
-              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
+              disabled
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
             >
               <Bell className="h-5 w-5" />
-              {NOTIFICATION_BADGE > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                  {NOTIFICATION_BADGE}
-                </span>
-              )}
             </button>
 
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>

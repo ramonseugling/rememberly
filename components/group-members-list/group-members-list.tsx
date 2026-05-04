@@ -73,7 +73,7 @@ export const GroupMembersList = ({
               className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 hover:bg-muted/60 transition-smooth"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet/10 text-violet shrink-0">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary shrink-0">
                   <span className="text-sm font-semibold">
                     {member.name.charAt(0).toUpperCase()}
                   </span>
@@ -87,7 +87,7 @@ export const GroupMembersList = ({
                       )}
                     </span>
                     {member.role === 'owner' && (
-                      <Badge className="gradient-violet text-white text-[10px] px-1.5 py-0 rounded-full">
+                      <Badge className="bg-primary/15 text-primary text-[10px] px-1.5 py-0 rounded-full">
                         Criador
                       </Badge>
                     )}
@@ -104,7 +104,7 @@ export const GroupMembersList = ({
                         ) : (
                           daysUntil !== null && (
                             <span
-                              className={`font-medium ${daysUntil === 0 ? 'text-violet' : ''}`}
+                              className={`font-medium ${daysUntil === 0 ? 'text-primary' : ''}`}
                             >
                               · {formatDaysLabel(daysUntil)}
                             </span>

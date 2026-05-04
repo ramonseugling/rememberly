@@ -16,7 +16,7 @@ const TABS: { id: GroupTab; label: string; icon: typeof Cake }[] = [
 
 export const GroupTabs = ({ active, onChange }: GroupTabsProps) => {
   return (
-    <div className="flex items-center gap-2 sm:gap-4 border-b border-border/40 mb-6 overflow-x-auto">
+    <div className="flex items-center gap-2 sm:gap-4 border-b border-border/40 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {TABS.map((tab) => {
         const Icon = tab.icon;
         const isActive = active === tab.id;

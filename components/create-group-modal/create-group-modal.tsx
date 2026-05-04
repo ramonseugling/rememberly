@@ -94,7 +94,7 @@ export const CreateGroupModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md violet-context">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-heading text-xl">
             {createdGroup ? 'Grupo criado!' : 'Criar grupo'}
@@ -103,8 +103,8 @@ export const CreateGroupModal = ({
 
         {createdGroup ? (
           <div className="flex flex-col gap-4 mt-2 min-w-0">
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-violet/5 min-w-0">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet/10 text-violet shrink-0">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-primary/5 min-w-0">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary shrink-0">
                 <Users className="w-4 h-4" />
               </div>
               <span className="font-medium text-sm truncate">
@@ -112,8 +112,8 @@ export const CreateGroupModal = ({
               </span>
             </div>
 
-            <div className="bg-violet/5 rounded-2xl p-4 overflow-hidden">
-              <p className="text-sm font-medium text-violet mb-2">
+            <div className="bg-primary/5 rounded-2xl p-4 overflow-hidden">
+              <p className="text-sm font-medium text-primary mb-2">
                 Convide pessoas para o grupo
               </p>
               <div className="flex gap-2 mb-3">
@@ -123,7 +123,7 @@ export const CreateGroupModal = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl border-violet/30 text-violet hover:bg-violet/10 gap-1.5 shrink-0"
+                  className="rounded-xl border-primary/30 text-primary hover:bg-primary/10 gap-1.5 shrink-0"
                   onClick={handleCopyLink}
                 >
                   {copied ? (
@@ -147,7 +147,7 @@ export const CreateGroupModal = ({
 
             <Button
               variant="outline"
-              className="w-full rounded-xl border-violet/30 text-violet hover:bg-violet/10 hover:text-violet"
+              className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
               onClick={() => handleOpenChange(false)}
             >
               Fechar
@@ -180,7 +180,7 @@ export const CreateGroupModal = ({
             )}
 
             <Button
-              className="w-full mt-2 cursor-pointer gradient-violet text-white hover:opacity-90 transition-smooth"
+              className="w-full mt-2 cursor-pointer gradient-warm text-white hover:opacity-90 transition-smooth"
               onClick={handleSubmit}
               disabled={isLoading}
             >

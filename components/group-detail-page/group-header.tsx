@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  Check,
-  Copy,
-  MessageCircle,
-  MoreVertical,
-  Settings,
-  Share2,
-  Users,
-} from 'lucide-react';
+import { Check, Copy, MessageCircle, Share2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -27,14 +19,12 @@ interface GroupHeaderProps {
   };
   creatorName: string | null;
   isOwner: boolean;
-  onConfigClick: () => void;
 }
 
 export const GroupHeader = ({
   group,
   creatorName,
   isOwner,
-  onConfigClick,
 }: GroupHeaderProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -87,10 +77,7 @@ export const GroupHeader = ({
         <div className="flex items-center gap-2 sm:self-start">
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="rounded-2xl border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
-              >
+              <Button className="rounded-2xl gradient-warm text-white hover:opacity-90 gap-1.5 shadow-warm transition-smooth">
                 <Share2 className="w-4 h-4" />
                 Convidar
               </Button>
@@ -129,23 +116,6 @@ export const GroupHeader = ({
               </a>
             </PopoverContent>
           </Popover>
-
-          <Button
-            variant="outline"
-            className="rounded-2xl border-border/60 gap-1.5"
-            onClick={onConfigClick}
-          >
-            <Settings className="w-4 h-4" />
-            Configurações
-          </Button>
-
-          <button
-            type="button"
-            aria-label="Mais opções"
-            className="shrink-0 rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
-          >
-            <MoreVertical className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </div>

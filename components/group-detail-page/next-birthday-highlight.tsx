@@ -1,4 +1,4 @@
-import { Cake, ChevronRight } from 'lucide-react';
+import { Cake } from 'lucide-react';
 import { formatDaysLabel } from '@/lib/date-utils';
 
 interface NextBirthdayHighlightProps {
@@ -32,7 +32,6 @@ export const NextBirthdayHighlight = ({
         <span className="shrink-0 rounded-full bg-primary/20 text-primary px-3 py-1 text-xs font-semibold">
           {formatDaysLabel(daysUntil)}
         </span>
-        <ChevronRight className="shrink-0 w-4 h-4 text-primary/70" />
       </div>
     </div>
   );

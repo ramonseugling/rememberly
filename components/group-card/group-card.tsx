@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Copy,
   MessageCircle,
-  MoreVertical,
   Plus,
   Users,
 } from 'lucide-react';
@@ -45,29 +44,25 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   )}`;
 
   return (
-    <Card className="rounded-3xl border-border/40 bg-card overflow-hidden p-5 flex flex-col gap-4 animate-fade-in hover:shadow-soft transition-smooth">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-            <Users className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-heading font-semibold text-base text-foreground leading-tight truncate">
-              {group.name}
-            </h3>
-            <p className="text-sm text-muted-foreground leading-tight">
-              {group.member_count}{' '}
-              {group.member_count === 1 ? 'membro' : 'membros'}
-            </p>
-          </div>
+    <Card className="relative rounded-3xl border-border/40 bg-card overflow-hidden p-5 flex flex-col gap-4 animate-fade-in cursor-pointer hover:-translate-y-1 hover:shadow-warm transition-smooth">
+      <Link
+        href={`/groups/${group.id}`}
+        className="absolute inset-0 z-0 rounded-3xl"
+        aria-label={`Ver grupo ${group.name}`}
+      />
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+          <Users className="w-5 h-5" />
         </div>
-        <button
-          type="button"
-          aria-label="Mais opções"
-          className="shrink-0 -mr-1 rounded-full p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-smooth"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
+        <div className="min-w-0">
+          <h3 className="font-heading font-semibold text-base text-foreground leading-tight truncate">
+            {group.name}
+          </h3>
+          <p className="text-sm text-muted-foreground leading-tight">
+            {group.member_count}{' '}
+            {group.member_count === 1 ? 'membro' : 'membros'}
+          </p>
+        </div>
       </div>
 
       <div>
@@ -125,7 +120,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
         </div>
       </div>
 
-      <div className="flex gap-2 mt-auto">
+      <div className="flex gap-2 mt-auto relative z-10">
         <Link
           href={`/groups/${group.id}`}
           className="flex-1 inline-flex items-center justify-center gap-1 rounded-2xl border border-border/60 px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-smooth"

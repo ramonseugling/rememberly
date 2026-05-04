@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cake, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import { Cake, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDaysLabel } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 
@@ -81,7 +81,6 @@ export const BirthdaysList = ({ entries }: BirthdaysListProps) => {
               >
                 {formatDaysLabel(entry.daysUntil)}
               </span>
-              <ChevronRight className="shrink-0 w-4 h-4 text-muted-foreground" />
             </li>
           );
         })}

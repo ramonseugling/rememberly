@@ -122,8 +122,7 @@ export const ConfigurationsTab = ({
               Deletar o grupo remove todos os membros permanentemente.
             </p>
             <Button
-              variant="outline"
-              className="border-destructive text-destructive hover:bg-destructive/10 rounded-2xl gap-1.5"
+              className="bg-destructive text-white hover:bg-destructive/90 rounded-2xl gap-1.5"
               onClick={handleDelete}
               disabled={isDeleting}
             >

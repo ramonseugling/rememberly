@@ -109,12 +109,7 @@ export default function GroupDetailPage({
         Voltar para grupos
       </Link>
 
-      <GroupHeader
-        group={group}
-        creatorName={creatorName}
-        isOwner={isOwner}
-        onConfigClick={() => setActiveTab('configurations')}
-      />
+      <GroupHeader group={group} creatorName={creatorName} isOwner={isOwner} />
 
       <GroupTabs active={activeTab} onChange={setActiveTab} />
 
