@@ -11,43 +11,60 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 **User**
 
 - `name` — nome
-- `email` — e-mail (único)
-- `password` — senha (hash bcrypt)
+- `email` — e-mail (único, case-insensitive)
+- `password` — hash bcrypt (nullable — usuários que entram via Google podem não ter senha)
+- `birthday` — data de aniversário do próprio usuário (opcional)
+- `is_admin` — flag de admin
 - `id`, `created_at`, `updated_at`
 
 **Event**
 
 - `title` — nome livre (ex: "Pedro", "Aniversário de namoro com Ana")
-- `type` — enum: `birthday`, `dating_anniversary`, `wedding_anniversary`, `celebration`
-- `date` — data do evento (dia + mês, sem ano obrigatório — eventos repetem anualmente)
+- `type` — enum: `birthday`, `dating_anniversary`, `wedding_anniversary`, `celebration`, `custom`
+- `custom_type` — texto livre quando `type = 'custom'`
+- `date` — dia + mês (sem ano obrigatório — eventos repetem anualmente)
+- `reminder_days_before` — antecedência do reminder em dias. Valores válidos: `0, 1, 3, 7, 15, 30` (`0` = só no dia)
 - `user_id` — FK para o usuário dono do evento
 - `id`, `created_at`, `updated_at`
 
+**Group / GroupMember**
+
+- Grupos para compartilhar eventos entre múltiplos usuários (ex: família, time)
+- `group_members` liga `user_id` a `group_id` com papel
+
+**Session, OtpToken, PasswordResetToken** — tabelas de apoio para auth.
+
 ### Regras de negócio
 
-- Cada usuário vê e gerencia apenas seus próprios eventos
-- Eventos são sempre anuais — repetem todo ano na mesma data
-- No dia do evento, o usuário recebe um e-mail com o título do evento
-- Notificação enviada apenas no dia — sem antecedência
-- Um cron job diário verifica os eventos do dia e dispara os e-mails
+- Cada usuário vê e gerencia apenas seus próprios eventos (e os de grupos que participa)
+- Eventos repetem anualmente na mesma data
+- No dia do evento o usuário recebe um e-mail; se `reminder_days_before > 0`, recebe também um e-mail de antecedência
+- Um cron job diário (Vercel Cron) verifica os eventos do dia e dispara os e-mails
 
 ### Fluxo principal
 
-1. Usuário cria conta (name, email, senha) e faz login
-2. Cadastra eventos com título, tipo e data
-3. Todo dia de manhã recebe e-mails para cada evento que cai naquele dia
+1. Cadastro com OTP por e-mail OU login com Google
+2. Usuário cadastra eventos (título, tipo, data, antecedência do reminder)
+3. Todo dia de manhã recebe e-mails para os eventos que caem hoje + reminders de eventos próximos
 
 ### Acesso
 
-- Cadastro aberto — qualquer pessoa pode criar uma conta
+- Cadastro aberto — via e-mail (com OTP) ou Google OAuth
 
 ## Decisões técnicas
 
 ### Notificações
 
-- **Cron job**: Vercel Cron Jobs — executa diariamente de manhã chamando um endpoint interno
-- **E-mail**: Nodemailer + SMTP
-- Localmente: MailCatcher para interceptar e-mails sem envio real
+- **Cron job**: Vercel Cron Jobs — executa diariamente de manhã chamando um endpoint interno (autorizado via `CRON_SECRET`)
+- **E-mail**: Resend (via SDK `resend`) — domínio remetente `myforeverdates.com.br`
+- Localmente: usa o sandbox do Resend (`onboarding@resend.dev`), que só entrega na conta dona da API key
+
+### Auth
+
+- Sessão própria em DB (cookie `session_token` HttpOnly, validade de 30 dias)
+- Cadastro com OTP por e-mail (tabela `otp_tokens`)
+- Reset de senha com token (tabela `password_reset_tokens`)
+- Login com Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
 
 ### UI
 
@@ -56,10 +73,15 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 - **Fontes Google**: Fredoka (heading) + Quicksand (body) via `next/font/google`
 - Design system definido em `styles/globals.css`
 
+### Observabilidade
+
+- Logging via `next-axiom` — datasets em Axiom (`AXIOM_DATASET`, `AXIOM_TOKEN`)
+- Eventos importantes (envio de e-mail, erros internos) são logados com `log.info` / `log.error`
+
 ### Deploy
 
-- A definir — Vercel Cron Jobs exige hospedagem na Vercel
-- Banco de dados: a definir (Railway ou Supabase)
+- Hospedagem: **Vercel** (necessário para Vercel Cron Jobs)
+- Banco de dados: **Neon** (Postgres serverless, SSL obrigatório em produção)
 
 ## Stack
 
@@ -129,7 +151,7 @@ lib/
   fonts.ts           → instâncias next/font/google centralizadas
   utils.ts           → cn() (clsx + tailwind-merge)
 mocks/               → dados mock para desenvolvimento
-models/              → lógica de negócio (user.ts, event.ts, session.ts)
+models/              → lógica de negócio (user, event, session, otp, password-reset, google-auth, group, group-member, notification, email, admin, ...)
 infra/
   database.ts        → pool de conexão PostgreSQL
   errors.ts          → classes de erro customizadas
@@ -146,9 +168,11 @@ tests/
 
 ## API
 
-- Versionar endpoints em `/api/v1/`
-- Usar `next-connect` para roteamento por método HTTP
-- Respostas: 201 para criação, 200 para sucesso, 4xx/5xx para erros
+- Todos os endpoints sob `/api/v1/`
+- Roteamento por método HTTP via wrappers próprios em `infra/controller.ts`:
+  - `controller({ GET, POST, ... })` — rotas públicas
+  - `authenticatedController({ GET, POST, ... })` — rotas protegidas (valida cookie `session_token` ou header `Authorization: Bearer`); o handler recebe `AuthenticatedRequest` com `req.user.{ id, name, email }`
+- Respostas: 201 para criação, 200 para sucesso, 204 para vazio, 4xx/5xx para erros
 - Erros sempre retornam JSON com: `name`, `message`, `action`, `status_code`
 
 ## Erros customizados (`infra/errors.ts`)
@@ -156,11 +180,12 @@ tests/
 Criar hierarquia de erros com classes tipadas:
 
 - `ValidationError` → 400
-- `NotFoundError` → 404
 - `UnauthorizedError` → 401
+- `NotFoundError` → 404
 - `MethodNotAllowedError` → 405
+- `TooManyRequestsError` → 429
 - `ServiceError` → 503
-- `InternalServerError` → 500
+- `InternalServerError` → 500 (fallback automático para exceções não-tipadas — nunca lance explicitamente)
 
 Cada erro implementa `toJSON()` para resposta consistente na API.
 
