@@ -85,7 +85,7 @@ export const GroupsSection = () => {
                 <Heart className="w-4 h-4 text-primary" aria-hidden="true" />
               </span>
               <span className="font-medium">
-                Perfeito para amigos, família e times
+                Perfeito para amigos, família e colegas
               </span>
             </div>
           </motion.div>

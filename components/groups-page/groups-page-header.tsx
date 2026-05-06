@@ -13,7 +13,7 @@ export const GroupsPageHeader = ({ onCreateClick }: GroupsPageHeaderProps) => {
           Meus grupos
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Organize aniversários compartilhados com amigos, família e times.
+          Organize aniversários compartilhados com amigos, família e colegas.
         </p>
       </div>
       <Button

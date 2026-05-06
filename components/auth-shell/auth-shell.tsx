@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Bell, ShieldCheck, Users } from 'lucide-react';
 
 const TRUST_SIGNALS = [
-  { icon: Users, label: 'Feito para grupos', sub: 'Amigos, família e times' },
+  { icon: Users, label: 'Feito para grupos', sub: 'Amigos, família e colegas' },
   {
     icon: Bell,
     label: 'Lembretes no dia certo',

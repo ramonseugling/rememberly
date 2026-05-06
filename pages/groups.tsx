@@ -5,7 +5,6 @@ import { GroupCard } from '@/components/group-card/group-card';
 import { GroupEmptyState } from '@/components/group-empty-state/group-empty-state';
 import { CreateGroupCta } from '@/components/groups-page/create-group-cta';
 import { GroupsPageHeader } from '@/components/groups-page/groups-page-header';
-import { GroupsStats } from '@/components/groups-page/groups-stats';
 import { NextGroupDateBanner } from '@/components/groups-page/next-group-date-banner';
 import { MONTHS } from '@/lib/constants';
 import type { BirthdayMember, GroupInfo } from '@/lib/types';
@@ -25,8 +24,6 @@ interface User {
 interface GroupsProps {
   user: User;
   groups: GroupInfo[];
-  membersCount: number;
-  upcomingDatesCount: number;
 }
 
 export const getServerSideProps: GetServerSideProps = withAuth(
@@ -87,26 +84,11 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       }),
     );
 
-    const membersCount = groups.reduce(
-      (sum, g) => sum + Math.max(0, g.member_count - 1),
-      0,
-    );
-
-    const upcomingDatesCount = Object.values(birthdaysByGroup).reduce(
-      (sum, arr) => sum + arr.length,
-      0,
-    );
-
-    return { props: { user, groups, membersCount, upcomingDatesCount } };
+    return { props: { user, groups } };
   },
 );
 
-export default function Groups({
-  user: _user,
-  groups,
-  membersCount,
-  upcomingDatesCount,
-}: GroupsProps) {
+export default function Groups({ user: _user, groups }: GroupsProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const nextDate = useMemo(() => {
@@ -140,12 +122,6 @@ export default function Groups({
   return (
     <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
       <GroupsPageHeader onCreateClick={() => setIsCreateModalOpen(true)} />
-
-      <GroupsStats
-        groupsCount={groups.length}
-        membersCount={membersCount}
-        upcomingDatesCount={upcomingDatesCount}
-      />
 
       {nextDate && (
         <NextGroupDateBanner
