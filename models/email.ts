@@ -2,8 +2,7 @@ import { log } from 'next-axiom';
 import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/sanitize';
 
-const FROM =
-  process.env.EMAIL_FROM ?? 'Rememberly <noreply@myforeverdates.com.br>';
+const FROM = process.env.EMAIL_FROM ?? 'Rememberly <noreply@rememberly.com.br>';
 
 const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";

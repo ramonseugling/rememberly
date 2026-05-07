@@ -2,7 +2,7 @@
   <img src="public/images/brand/logo.svg" alt="Rememberly" width="72" height="72" />
   <h1>Rememberly</h1>
   <p><strong>Never forget the dates that matter most</strong> — birthdays, anniversaries and every special occasion, with a daily email reminder.</p>
-  <p><a href="https://myforeverdates.com.br"><strong>myforeverdates.com.br ↗</strong></a></p>
+  <p><a href="https://rememberly.com.br"><strong>rememberly.com.br ↗</strong></a></p>
 </div>
 
 ---
@@ -157,8 +157,8 @@ HTTP Request
 
 ```bash
 # Clone the repository
-git clone https://github.com/ramonseugling/my-forever-dates.git
-cd my-forever-dates
+git clone https://github.com/ramonseugling/rememberly.git
+cd rememberly
 
 # Install dependencies
 npm install
@@ -214,16 +214,16 @@ node --env-file=.env.development ./node_modules/.bin/jest --runInBand tests/inte
 
 ## Environment Variables
 
-| Variable           | Description                                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`     | PostgreSQL connection string. Local: `postgres://local_user:local_password@localhost:5432/my_forever_dates` |
-| `MIGRATIONS_TOKEN` | Secret token to authorize `POST /api/v1/migrations` (generate with `openssl rand -hex 32`)                  |
-| `RESEND_API_KEY`   | Resend API key for sending emails ([get one here](https://resend.com/api-keys))                             |
-| `EMAIL_FROM`       | Sender address — must be from a verified domain in Resend                                                   |
-| `CRON_SECRET`      | Secret token to authorize the daily notification cron endpoint                                              |
-| `APP_URL`          | Base URL of the app, used to build links in notification emails                                             |
-| `AXIOM_DATASET`    | Axiom dataset name for structured logging                                                                   |
-| `AXIOM_TOKEN`      | Axiom API token                                                                                             |
+| Variable           | Description                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`     | PostgreSQL connection string. Local: `postgres://local_user:local_password@localhost:5432/rememberly` |
+| `MIGRATIONS_TOKEN` | Secret token to authorize `POST /api/v1/migrations` (generate with `openssl rand -hex 32`)            |
+| `RESEND_API_KEY`   | Resend API key for sending emails ([get one here](https://resend.com/api-keys))                       |
+| `EMAIL_FROM`       | Sender address — must be from a verified domain in Resend                                             |
+| `CRON_SECRET`      | Secret token to authorize the daily notification cron endpoint                                        |
+| `APP_URL`          | Base URL of the app, used to build links in notification emails                                       |
+| `AXIOM_DATASET`    | Axiom dataset name for structured logging                                                             |
+| `AXIOM_TOKEN`      | Axiom API token                                                                                       |
 
 ---
 

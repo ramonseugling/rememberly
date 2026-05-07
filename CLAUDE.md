@@ -56,7 +56,7 @@ Aplicação multi-usuário para registrar datas importantes de pessoas e receber
 ### Notificações
 
 - **Cron job**: Vercel Cron Jobs — executa diariamente de manhã chamando um endpoint interno (autorizado via `CRON_SECRET`)
-- **E-mail**: Resend (via SDK `resend`) — domínio remetente `myforeverdates.com.br`
+- **E-mail**: Resend (via SDK `resend`) — domínio remetente `rememberly.com.br`
 - Localmente: usa o sandbox do Resend (`onboarding@resend.dev`), que só entrega na conta dona da API key
 
 ### Auth

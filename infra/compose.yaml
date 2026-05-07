@@ -4,6 +4,6 @@ services:
     environment:
       POSTGRES_USER: local_user
       POSTGRES_PASSWORD: local_password
-      POSTGRES_DB: my_forever_dates
+      POSTGRES_DB: rememberly
     ports:
       - '5432:5432'
