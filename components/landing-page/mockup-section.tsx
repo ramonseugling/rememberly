@@ -2,9 +2,9 @@ import Image from 'next/image';
 
 export const MockupSection = () => {
   return (
-    <section className="pt-24 pb-16 sm:pt-32 sm:pb-24 bg-landing overflow-hidden border-t border-border/40">
+    <section className="pt-12 pb-16 sm:pt-16 sm:pb-24 bg-landing overflow-hidden border-t border-border/40">
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
+        <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
           {/* Left column — text */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left animate-fade-in">
             <h2 className="font-heading font-bold tracking-tight leading-[1.2] text-4xl sm:text-5xl lg:text-6xl mb-4 pb-2">
@@ -49,7 +49,7 @@ export const MockupSection = () => {
             </div>
 
             {/* Mobile mockup */}
-            <div className="w-64 sm:w-72 lg:w-44 lg:shrink-0 animate-fade-in lg:absolute lg:-right-10 lg:-bottom-10">
+            <div className="w-72 sm:w-80 lg:w-56 lg:shrink-0 animate-fade-in lg:absolute lg:-right-10 lg:-bottom-10">
               <div className="rounded-[2.5rem] overflow-hidden shadow-float border-[5px] border-border/50 bg-white">
                 {/* Dynamic island */}
                 <div className="h-7 bg-muted/50 flex items-center justify-center">

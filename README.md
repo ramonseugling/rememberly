@@ -1,44 +1,55 @@
 <div align="center">
-  <img src="public/images/brand/logo.svg" alt="Rememberly" width="64" height="64" />
+  <img src="public/images/brand/logo.svg" alt="Rememberly" width="72" height="72" />
   <h1>Rememberly</h1>
-  <p>Nunca mais esqueça o aniversário de seus amigos.</p>
-  <p>Never forget the dates that matter most — birthdays, anniversaries and every special occasion.</p>
-
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-myforeverdates.com.br-ff6b9d?style=for-the-badge&logo=vercel)](https://myforeverdates.com.br)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-
+  <p><strong>Never forget the dates that matter most</strong> — birthdays, anniversaries and every special occasion, with a daily email reminder.</p>
+  <p><a href="https://myforeverdates.com.br"><strong>myforeverdates.com.br ↗</strong></a></p>
 </div>
 
 ---
 
-## 📸 Preview
+## Table of Contents
 
-<div align="center">
-  <img src="public/mockups/mockup-desktop.png" alt="Rememberly — Desktop" width="80%" />
-  <br/><br/>
-  <img src="public/mockups/mockup-native.png" alt="Rememberly — Mobile" width="40%" />
-</div>
+- [About](#about)
+- [Preview](#preview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Running Tests](#running-tests)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 📖 About
+## About
 
-**Rememberly** is a multi-user web app that lets you register important annual dates and receive email reminders right when they happen.
-
-**The problem it solves:** we easily forget recurring dates — a friend's birthday, a wedding anniversary, the day a relationship started. This app keeps all of that in one place and sends you an email on the morning of each event, so you're always prepared to celebrate the people you care about.
+Rememberly is a multi-user web app for tracking recurring dates — birthdays, anniversaries, custom celebrations — and delivering email reminders the morning of each event. Users register events with a title, type and date (day + month, repeating yearly); a Vercel Cron job runs every morning, queries the day's matches across all users, and dispatches one email per event via Resend.
 
 **Core flow:**
 
-1. Create an account and sign in
-2. Register events with a title, type and date (day + month, repeating every year)
-3. Receive an email notification on the morning of each event
+1. Sign up via email (OTP) or Google OAuth
+2. Register events with title, type, date and optional advance reminder
+3. Receive an email on the morning of each event (and earlier, if a reminder is configured)
 
 ---
 
-## ✨ Features
+## Preview
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src="public/mockups/mockup-desktop.png" alt="Rememberly — Desktop" /></td>
+      <td align="center" width="220"><img src="public/mockups/mockup-native.png" alt="Rememberly — Mobile" /></td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Features
 
 - **Multiple event types** — `Birthday`, `Dating Anniversary`, `Wedding Anniversary`, `Celebration` and a fully custom type
 - **Daily email notifications** — automated cron job fires every morning and sends one email per matching event via [Resend](https://resend.com)
@@ -51,7 +62,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer       | Technology                                                                                                                                                     |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -69,7 +80,7 @@
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The project follows a simple **MVC** pattern with clear layer separation:
 
@@ -93,7 +104,7 @@ HTTP Request
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── pages/
@@ -135,7 +146,7 @@ HTTP Request
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -177,7 +188,7 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 > The test suite requires the **dev server to be running** at `localhost:3000` before executing.
 
@@ -201,7 +212,7 @@ node --env-file=.env.development ./node_modules/.bin/jest --runInBand tests/inte
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
 | Variable           | Description                                                                                                 |
 | ------------------ | ----------------------------------------------------------------------------------------------------------- |
@@ -216,7 +227,7 @@ node --env-file=.env.development ./node_modules/.bin/jest --runInBand tests/inte
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 The project is deployed on **[Vercel](https://vercel.com)** with **[Neon](https://neon.tech)** as the managed PostgreSQL database.
 
@@ -237,7 +248,7 @@ Migrations are applied automatically on every deploy before the new code goes li
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This project follows [Conventional Commits](https://www.conventionalcommits.org), enforced by [commitlint](https://commitlint.js.org) and [husky](https://typicode.github.io/husky).
 
@@ -259,6 +270,6 @@ git commit -m "feat: add reminder days before event"
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE) — feel free to use, modify and distribute it, as long as the original copyright notice is preserved.
