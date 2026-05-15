@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from 'infra/errors';
 import session from 'models/session';
+import systemLog from 'models/system-log';
 
 export interface AuthenticatedRequest extends NextApiRequest {
   user: {
@@ -34,7 +35,7 @@ function onNoMatch(_req: NextApiRequest, res: NextApiResponse) {
   res.status(error.status_code).json(error.toJSON());
 }
 
-function onError(error: unknown, _req: NextApiRequest, res: NextApiResponse) {
+function onError(error: unknown, req: NextApiRequest, res: NextApiResponse) {
   if (
     error instanceof ValidationError ||
     error instanceof NotFoundError ||
@@ -48,6 +49,15 @@ function onError(error: unknown, _req: NextApiRequest, res: NextApiResponse) {
 
   const internalError = new InternalServerError({ cause: error });
   log.error('internal_server_error', { error: String(error) });
+
+  const maybeAuthUser = (req as AuthenticatedRequest).user;
+  void systemLog.recordError({
+    error,
+    request_method: req.method ?? null,
+    request_path: req.url ?? null,
+    user_id: maybeAuthUser?.id ?? null,
+  });
+
   return res.status(internalError.status_code).json(internalError.toJSON());
 }
 

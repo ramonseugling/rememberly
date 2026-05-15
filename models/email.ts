@@ -278,11 +278,158 @@ function buildOtpHtml(code: string) {
   });
 }
 
+export interface DigestData {
+  dateLabel: string;
+  signups: { total: number; viaGoogle: number; viaPassword: number };
+  logins: number;
+  eventsCreated: { total: number; byType: { type: string; count: number }[] };
+  totals: { users: number; events: number; groups: number };
+  cronRuns: {
+    job_name: string;
+    status: string;
+    metrics: Record<string, unknown>;
+    duration_ms: number;
+  }[];
+  errors: { total: number; topByName: { error_name: string; count: number }[] };
+}
+
+interface SendDailyDigestEmailInput {
+  to: string[];
+  data: DigestData;
+}
+
+async function sendDailyDigestEmail(input: SendDailyDigestEmailInput) {
+  if (input.to.length === 0) return;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  await resend.emails.send({
+    from: FROM,
+    to: input.to,
+    subject: `Rememberly • Resumo de ${input.data.dateLabel}`,
+    html: buildDigestHtml(input.data),
+  });
+
+  log.info('daily_digest_email_sent', {
+    recipients: input.to.length,
+    dateLabel: input.data.dateLabel,
+  });
+}
+
+function buildDigestHtml(data: DigestData) {
+  const eventTypeLabel = (t: string) =>
+    EVENT_TYPE_LABELS[t] ?? (t === 'custom' ? '✨ Personalizado' : t);
+
+  const hasActivity =
+    data.signups.total > 0 ||
+    data.logins > 0 ||
+    data.eventsCreated.total > 0 ||
+    data.errors.total > 0;
+
+  const sectionTitleStyle = `color: ${COLOR.text}; font-size: 14px; font-weight: 700; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.04em;`;
+  const cardStyle = `background: #fff7f2; border: 1px solid ${COLOR.border}; border-radius: 16px; padding: 16px 20px; margin-bottom: 16px;`;
+  const metricRowStyle = `display: flex; justify-content: space-between; padding: 6px 0; color: ${COLOR.text}; font-size: 14px;`;
+
+  const engagementBlock = `
+    <div style="${cardStyle}">
+      <p style="${sectionTitleStyle}">Engajamento (ontem)</p>
+      <div style="${metricRowStyle}"><span>Cadastros</span><strong>${data.signups.total}</strong></div>
+      <div style="color: ${COLOR.textMuted}; font-size: 12px; margin: 0 0 8px 0;">
+        Google: ${data.signups.viaGoogle} · Senha: ${data.signups.viaPassword}
+      </div>
+      <div style="${metricRowStyle}"><span>Logins (novas sessões)</span><strong>${data.logins}</strong></div>
+      <div style="${metricRowStyle}"><span>Eventos criados</span><strong>${data.eventsCreated.total}</strong></div>
+      ${
+        data.eventsCreated.byType.length > 0
+          ? `<div style="color: ${COLOR.textMuted}; font-size: 12px; margin-top: 4px;">${data.eventsCreated.byType
+              .map((r) => `${escapeHtml(eventTypeLabel(r.type))}: ${r.count}`)
+              .join(' · ')}</div>`
+          : ''
+      }
+    </div>
+  `;
+
+  const totalsBlock = `
+    <div style="${cardStyle}">
+      <p style="${sectionTitleStyle}">Snapshot atual</p>
+      <div style="${metricRowStyle}"><span>Usuários</span><strong>${data.totals.users}</strong></div>
+      <div style="${metricRowStyle}"><span>Eventos</span><strong>${data.totals.events}</strong></div>
+      <div style="${metricRowStyle}"><span>Grupos</span><strong>${data.totals.groups}</strong></div>
+    </div>
+  `;
+
+  const cronBlock = `
+    <div style="${cardStyle}">
+      <p style="${sectionTitleStyle}">Cron de notificações (ontem)</p>
+      ${
+        data.cronRuns.length === 0
+          ? `<p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 0;">Nenhuma execução registrada.</p>`
+          : data.cronRuns
+              .map((run) => {
+                const statusColor =
+                  run.status === 'success'
+                    ? '#3fa66a'
+                    : run.status === 'partial'
+                      ? '#d9893a'
+                      : '#c84343';
+                return `
+                  <div style="padding: 8px 0; border-bottom: 1px dashed ${COLOR.border};">
+                    <div style="${metricRowStyle}">
+                      <span style="font-weight: 600;">${escapeHtml(run.job_name)}</span>
+                      <span style="color: ${statusColor}; font-weight: 600; font-size: 12px; text-transform: uppercase;">${escapeHtml(run.status)}</span>
+                    </div>
+                    <div style="color: ${COLOR.textMuted}; font-size: 12px;">
+                      ${escapeHtml(JSON.stringify(run.metrics))} · ${run.duration_ms}ms
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')
+      }
+    </div>
+  `;
+
+  const errorsBlock = `
+    <div style="${cardStyle}">
+      <p style="${sectionTitleStyle}">Erros (ontem)</p>
+      <div style="${metricRowStyle}"><span>Total</span><strong>${data.errors.total}</strong></div>
+      ${
+        data.errors.topByName.length > 0
+          ? `<div style="margin-top: 8px;">${data.errors.topByName
+              .map(
+                (e) =>
+                  `<div style="${metricRowStyle}"><span style="color: ${COLOR.textMuted};">${escapeHtml(e.error_name)}</span><strong>${e.count}</strong></div>`,
+              )
+              .join('')}</div>`
+          : ''
+      }
+    </div>
+  `;
+
+  const summary = hasActivity
+    ? `Aqui está o resumo do que aconteceu em ${data.dateLabel}.`
+    : `Nenhuma atividade registrada em ${data.dateLabel} — o cron está vivo.`;
+
+  return buildEmailLayout({
+    greeting: `Resumo diário · <strong>${data.dateLabel}</strong>`,
+    content: `
+      <p style="color: ${COLOR.text}; font-size: 15px; margin: 0 0 20px 0; line-height: 1.5;">
+        ${summary}
+      </p>
+      ${engagementBlock}
+      ${totalsBlock}
+      ${cronBlock}
+      ${errorsBlock}
+    `,
+    footerNote: 'Métricas agregadas, sem dados pessoais.',
+  });
+}
+
 const email = {
   sendEventNotification,
   sendReminderNotification,
   sendPasswordResetEmail,
   sendOtpEmail,
+  sendDailyDigestEmail,
 };
 
 export default email;

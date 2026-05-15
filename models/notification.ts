@@ -1,6 +1,7 @@
 import { log } from 'next-axiom';
 import database from 'infra/database';
 import email from 'models/email';
+import systemLog from 'models/system-log';
 
 interface TodayEvent {
   event_title: string;
@@ -22,6 +23,7 @@ interface ReminderEvent {
 const REMINDER_INTERVALS = [1, 3, 7, 15, 30];
 
 async function sendTodayNotifications() {
+  const start_time = Date.now();
   const today = new Date();
   const day = today.getUTCDate();
   const month = today.getUTCMonth() + 1;
@@ -74,6 +76,7 @@ async function sendTodayNotifications() {
   });
 
   let sent = 0;
+  let failed = 0;
 
   for (const event of allEvents) {
     try {
@@ -88,6 +91,7 @@ async function sendTodayNotifications() {
       });
       sent++;
     } catch (err) {
+      failed++;
       log.error('cron_notification_failed', {
         to: event.user_email,
         eventTitle: event.event_title,
@@ -98,10 +102,26 @@ async function sendTodayNotifications() {
 
   log.info('cron_notifications_done', { sent });
 
+  await systemLog.recordCronRun({
+    job_name: 'notifications_send',
+    status: failed === 0 ? 'success' : sent === 0 ? 'failed' : 'partial',
+    metrics: {
+      day,
+      month,
+      personal: personalEvents.length,
+      group_birthdays: groupBirthdays.length,
+      total: allEvents.length,
+      sent,
+      failed,
+    },
+    duration_ms: Date.now() - start_time,
+  });
+
   return { sent };
 }
 
 async function sendReminderNotifications() {
+  const start_time = Date.now();
   const today = new Date();
 
   const futureDates = REMINDER_INTERVALS.map((days) => {
@@ -143,6 +163,7 @@ async function sendReminderNotifications() {
   log.info('cron_reminders_start', { total: events.length });
 
   let sent = 0;
+  let failed = 0;
 
   for (const event of events) {
     try {
@@ -156,6 +177,7 @@ async function sendReminderNotifications() {
       });
       sent++;
     } catch (err) {
+      failed++;
       log.error('cron_reminder_failed', {
         to: event.user_email,
         eventTitle: event.event_title,
@@ -166,6 +188,17 @@ async function sendReminderNotifications() {
   }
 
   log.info('cron_reminders_done', { sent });
+
+  await systemLog.recordCronRun({
+    job_name: 'notifications_reminders',
+    status: failed === 0 ? 'success' : sent === 0 ? 'failed' : 'partial',
+    metrics: {
+      total: events.length,
+      sent,
+      failed,
+    },
+    duration_ms: Date.now() - start_time,
+  });
 
   return { sent };
 }
