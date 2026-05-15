@@ -25,9 +25,9 @@ interface AuthShellProps {
 
 export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
   return (
-    <div className="min-h-screen flex flex-col bg-landing">
-      <main className="flex-1 flex items-center justify-center px-4 py-10 sm:py-14">
-        <div className="w-full max-w-6xl grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div className="min-h-svh flex flex-col bg-landing">
+      <main className="flex-1 flex items-center justify-center px-4 py-6 sm:py-10">
+        <div className="w-full max-w-6xl grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -127,8 +127,8 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="w-full max-w-md mx-auto lg:max-w-none"
           >
-            <div className="rounded-3xl border border-border/60 bg-card shadow-soft p-6 sm:p-10">
-              <div className="text-center mb-6">
+            <div className="rounded-3xl border border-border/60 bg-card shadow-soft p-6 sm:p-8">
+              <div className="text-center mb-5">
                 <h1 className="font-heading font-bold text-3xl sm:text-4xl text-foreground mb-2">
                   {title}
                 </h1>

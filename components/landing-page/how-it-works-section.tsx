@@ -5,11 +5,11 @@ import { Sparkles } from 'lucide-react';
 const STEPS = [
   {
     number: 1,
-    icon: '/images/icons/calendar.png',
-    alt: 'Calendário',
-    title: 'Registre aniversários',
+    icon: '/images/icons/group.png',
+    alt: 'Grupo de pessoas',
+    title: 'Grupos com amigos',
     description:
-      'Adicione os aniversários dos seus amigos, família e quem mais você não quer esquecer.',
+      'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém.',
   },
   {
     number: 2,
@@ -21,11 +21,11 @@ const STEPS = [
   },
   {
     number: 3,
-    icon: '/images/icons/group.png',
-    alt: 'Grupo de pessoas',
-    title: 'Grupos com amigos',
+    icon: '/images/icons/calendar.png',
+    alt: 'Calendário',
+    title: 'Fortaleça conexões',
     description:
-      'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém.',
+      'Pequenos gestos criam grandes laços. Esteja presente nas datas que importam.',
   },
 ];
 
@@ -33,19 +33,19 @@ export const HowItWorksSection = () => {
   return (
     <section
       id="how-it-works"
-      className="relative bg-landing py-20 lg:py-28 overflow-hidden"
+      className="section-screen relative bg-landing flex flex-col justify-center overflow-hidden"
     >
       <div
         aria-hidden="true"
         className="absolute top-20 right-8 hidden h-32 w-32 bg-dots-pattern opacity-60 lg:block"
       />
 
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-        <div className="text-center mb-14 lg:mb-16">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-10 lg:py-14">
+        <div className="text-center mb-10 lg:mb-12">
           <span className="pill-brand mb-5">
             <span className="pill-brand-text">Como funciona</span>
           </span>
-          <h2 className="font-heading font-bold tracking-tight leading-[1.2] text-4xl sm:text-5xl lg:text-6xl mb-4 pb-2">
+          <h2 className="text-section-title font-heading font-bold tracking-tight mb-4 pb-2">
             <span className="block text-foreground">
               Simples, direto e feito
             </span>

@@ -232,7 +232,7 @@ export default function Signup() {
             </Button>
           </a>
 
-          <div className="relative my-6">
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
@@ -241,7 +241,7 @@ export default function Signup() {
             </div>
           </div>
 
-          <form onSubmit={handleSendOtp} className="space-y-5">
+          <form onSubmit={handleSendOtp} className="space-y-4">
             <div className="space-y-2">
               <label
                 className="text-sm font-medium text-foreground"
@@ -398,7 +398,7 @@ export default function Signup() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-5">
             Já tem conta?{' '}
             <Link
               href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}

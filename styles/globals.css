@@ -123,6 +123,10 @@ button,
   cursor: pointer;
 }
 
+html {
+  scroll-padding-top: 72px;
+}
+
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -262,4 +266,24 @@ h6 {
     hsl(340, 60%, 98%) 0%,
     hsl(25, 80%, 98%) 100%
   );
+}
+
+.text-hero {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.2;
+}
+
+.text-section-title {
+  font-size: clamp(1.75rem, 3.5vw, 3rem);
+  line-height: 1.2;
+}
+
+.section-screen {
+  min-height: calc(100svh - 72px);
+}
+
+@media (max-width: 767px) {
+  .section-screen {
+    min-height: auto;
+  }
 }

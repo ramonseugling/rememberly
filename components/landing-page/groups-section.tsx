@@ -55,28 +55,28 @@ export const GroupsSection = () => {
   return (
     <section
       id="groups"
-      className="relative bg-landing py-20 lg:py-28 overflow-hidden"
+      className="section-screen relative bg-landing flex flex-col justify-center overflow-hidden"
     >
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-10 lg:py-14">
+        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 lg:gap-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5 }}
-            className="text-center lg:text-left"
+            className="text-center md:text-left"
           >
             <span className="pill-brand mb-5">
               <Users className="w-4 h-4 text-primary" aria-hidden="true" />
               <span className="pill-brand-text">Grupos</span>
             </span>
-            <h2 className="font-heading font-bold tracking-tight leading-[1.05] text-4xl sm:text-5xl lg:text-6xl mb-5">
+            <h2 className="text-section-title font-heading font-bold tracking-tight mb-5">
               <span className="block text-foreground">Todo mundo</span>
               <span className="block text-brand-gradient">
                 lembra de todo mundo
               </span>
             </h2>
-            <p className="max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-muted-foreground mb-6 leading-relaxed">
+            <p className="max-w-xl mx-auto md:mx-0 text-base sm:text-lg text-muted-foreground mb-6 leading-relaxed">
               Crie um grupo, compartilhe o link e cada pessoa adiciona o próprio
               aniversário. Simples assim.
             </p>
@@ -95,7 +95,7 @@ export const GroupsSection = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="relative mx-auto w-full max-w-lg"
+            className="relative mx-auto w-full max-w-md lg:max-w-lg"
           >
             <div className="relative aspect-square w-full">
               <svg
