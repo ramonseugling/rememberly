@@ -192,7 +192,7 @@ export default function Signup() {
       title={step === 'form' ? 'Crie sua conta' : 'Verifique seu e-mail'}
       subtitle={
         step === 'form'
-          ? 'É grátis e leva menos de um minuto.'
+          ? 'Leva menos de um minuto.'
           : `Enviamos um código de 6 dígitos para ${email}`
       }
     >

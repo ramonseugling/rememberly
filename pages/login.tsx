@@ -182,7 +182,7 @@ export default function Login() {
           href={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'}
           className="text-brand-gradient font-bold hover:underline"
         >
-          Criar conta grátis
+          Criar conta
         </Link>
       </p>
     </AuthShell>

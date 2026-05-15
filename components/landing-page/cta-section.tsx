@@ -14,7 +14,7 @@ const BENEFITS = [
   {
     icon: Users,
     iconBg: 'bg-primary/10 text-primary',
-    title: 'Grátis para começar',
+    title: 'Simples de começar',
     description: 'Crie seus grupos e adicione aniversários sem pagar nada.',
   },
   {
@@ -99,7 +99,7 @@ export const CtaSection = () => {
                   size="lg"
                   className="w-full gradient-brand text-white shadow-warm text-base px-6 py-6 rounded-full transition-smooth hover:scale-[1.02] hover:opacity-95"
                 >
-                  Começar agora, é grátis!
+                  Começar agora
                   <ChevronRight className="ml-1.5 h-5 w-5" />
                 </Button>
               </Link>

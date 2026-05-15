@@ -67,7 +67,7 @@ export const HeroSection = () => {
                 size="lg"
                 className="gradient-brand text-white shadow-warm text-base px-8 py-6 rounded-full transition-smooth hover:scale-105 hover:opacity-95"
               >
-                Criar meu grupo grátis
+                Criar meu grupo
                 <ChevronRight className="ml-1.5 h-5 w-5" />
               </Button>
             </Link>
