@@ -46,7 +46,7 @@ export const DatesTab = ({ members, currentUserId }: DatesTabProps) => {
           id: m.id,
           name: m.name,
           date: `${day} de ${MONTHS[month - 1]}`,
-          weekday: WEEKDAYS[targetDate.getDay()].slice(0, 3),
+          weekday: WEEKDAYS[targetDate.getDay()],
           daysUntil: daysUntil ?? 0,
           isOwner: m.role === 'owner',
           isYou: m.id === currentUserId,

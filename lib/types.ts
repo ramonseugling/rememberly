@@ -24,6 +24,11 @@ export interface GroupInfo {
   upcoming_birthdays: BirthdayMember[];
 }
 
+export interface UpcomingHighlight {
+  member: BirthdayMember;
+  groups: { id: string; name: string }[];
+}
+
 export interface GroupMemberInfo {
   id: string;
   name: string;

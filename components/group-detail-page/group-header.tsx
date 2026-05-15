@@ -6,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { MONTHS } from '@/lib/constants';
 
 interface GroupHeaderProps {
   group: {
@@ -40,13 +39,12 @@ export const GroupHeader = ({
   };
 
   const created = new Date(group.created_at);
-  const createdLabel = `Criado em ${created.getDate()} de ${MONTHS[created.getMonth()]} de ${created.getFullYear()}`;
-
+  const createdDate = `${String(created.getDate()).padStart(2, '0')}/${String(created.getMonth() + 1).padStart(2, '0')}/${created.getFullYear()}`;
   const creatorLabel = isOwner
-    ? 'Criado por você'
+    ? `Criado por você em ${createdDate}`
     : creatorName
-      ? `Criado por ${creatorName}`
-      : '';
+      ? `Criado por ${creatorName} em ${createdDate}`
+      : `Criado em ${createdDate}`;
 
   return (
     <div className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 mb-6 animate-fade-in">
@@ -69,9 +67,6 @@ export const GroupHeader = ({
               </>
             )}
           </p>
-          <span className="inline-flex items-center mt-3 rounded-full bg-muted/60 text-foreground/80 px-3 py-1 text-xs font-medium">
-            {createdLabel}
-          </span>
         </div>
 
         <div className="flex items-center gap-2 sm:self-start">

@@ -5,9 +5,8 @@ import { GroupCard } from '@/components/group-card/group-card';
 import { GroupEmptyState } from '@/components/group-empty-state/group-empty-state';
 import { CreateGroupCta } from '@/components/groups-page/create-group-cta';
 import { GroupsPageHeader } from '@/components/groups-page/groups-page-header';
-import { NextGroupDateBanner } from '@/components/groups-page/next-group-date-banner';
-import { MONTHS } from '@/lib/constants';
-import type { BirthdayMember, GroupInfo } from '@/lib/types';
+import { NextGroupDatesCarousel } from '@/components/groups-page/next-group-dates-carousel';
+import type { BirthdayMember, GroupInfo, UpcomingHighlight } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import group from 'models/group';
 import groupMember from 'models/group-member';
@@ -91,20 +90,26 @@ export const getServerSideProps: GetServerSideProps = withAuth(
 export default function Groups({ user: _user, groups }: GroupsProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const nextDate = useMemo(() => {
-    let best: {
-      groupId: string;
-      groupName: string;
-      member: BirthdayMember;
-    } | null = null;
+  const highlights = useMemo<UpcomingHighlight[]>(() => {
+    const byKey = new Map<string, UpcomingHighlight>();
     for (const g of groups) {
-      const first = g.upcoming_birthdays[0];
-      if (!first) continue;
-      if (!best || first.days_until < best.member.days_until) {
-        best = { groupId: g.id, groupName: g.name, member: first };
+      for (const m of g.upcoming_birthdays) {
+        if (m.days_until > 15) continue;
+        const key = `${m.name}-${m.birth_day}-${m.birth_month}`;
+        const existing = byKey.get(key);
+        if (existing) {
+          existing.groups.push({ id: g.id, name: g.name });
+        } else {
+          byKey.set(key, {
+            member: m,
+            groups: [{ id: g.id, name: g.name }],
+          });
+        }
       }
     }
-    return best;
+    return Array.from(byKey.values()).sort(
+      (a, b) => a.member.days_until - b.member.days_until,
+    );
   }, [groups]);
 
   if (groups.length === 0) {
@@ -123,14 +128,8 @@ export default function Groups({ user: _user, groups }: GroupsProps) {
     <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8">
       <GroupsPageHeader onCreateClick={() => setIsCreateModalOpen(true)} />
 
-      {nextDate && (
-        <NextGroupDateBanner
-          daysUntil={nextDate.member.days_until}
-          memberName={nextDate.member.name}
-          date={`${nextDate.member.birth_day} de ${MONTHS[nextDate.member.birth_month - 1]}`}
-          groupName={nextDate.groupName}
-          groupId={nextDate.groupId}
-        />
+      {highlights.length > 0 && (
+        <NextGroupDatesCarousel highlights={highlights} />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">

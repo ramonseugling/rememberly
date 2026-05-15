@@ -7,7 +7,6 @@ import {
   Copy,
   MessageCircle,
   Plus,
-  Users,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
@@ -27,6 +26,7 @@ interface GroupCardProps {
 export const GroupCard = ({ group }: GroupCardProps) => {
   const next = group.upcoming_birthdays[0];
   const [copied, setCopied] = useState(false);
+  const initial = group.name.charAt(0).toUpperCase();
 
   const inviteLink =
     typeof window !== 'undefined'
@@ -51,8 +51,11 @@ export const GroupCard = ({ group }: GroupCardProps) => {
         aria-label={`Ver grupo ${group.name}`}
       />
       <div className="flex items-center gap-3 min-w-0">
-        <div className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-          <Users className="w-5 h-5" />
+        <div
+          aria-hidden
+          className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-heading font-bold text-xl leading-none"
+        >
+          {initial}
         </div>
         <div className="min-w-0">
           <h3 className="font-heading font-semibold text-base text-foreground leading-tight truncate">
@@ -63,19 +66,6 @@ export const GroupCard = ({ group }: GroupCardProps) => {
             {group.member_count === 1 ? 'membro' : 'membros'}
           </p>
         </div>
-      </div>
-
-      <div>
-        <span
-          className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-            group.role === 'owner'
-              ? 'bg-primary/15 text-primary'
-              : 'bg-muted text-muted-foreground',
-          )}
-        >
-          {group.role === 'owner' ? 'Criador' : 'Membro'}
-        </span>
       </div>
 
       <div className="flex flex-col gap-2">

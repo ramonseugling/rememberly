@@ -15,6 +15,9 @@ import database from 'infra/database';
 const DEV_EMAIL = 'dev@dev.com';
 const DEV_PASSWORD = 'senha123';
 
+// Troque para 1, 2 ou 3 e rode `npm run seed` para validar o carrossel de destaques
+const HIGHLIGHTS_COUNT = 3;
+
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -128,7 +131,7 @@ async function seed() {
     name: 'Maria Silva',
     email: 'maria@exemplo.com',
     password: 'senha123',
-    ...addDays(2),
+    ...addDays(HIGHLIGHTS_COUNT >= 2 ? 2 : 35),
     birth_year: 1990,
   });
 
@@ -136,7 +139,7 @@ async function seed() {
     name: 'João Pedro',
     email: 'joao@exemplo.com',
     password: 'senha123',
-    ...addDays(5),
+    ...addDays(HIGHLIGHTS_COUNT >= 3 ? 5 : 40),
     birth_year: 1988,
   });
 
@@ -144,7 +147,7 @@ async function seed() {
     name: 'Ana Costa',
     email: 'ana@exemplo.com',
     password: 'senha123',
-    ...addDays(12),
+    ...addDays(22),
     birth_year: 1993,
   });
 
@@ -152,7 +155,7 @@ async function seed() {
     name: 'Pedro Oliveira',
     email: 'pedro@exemplo.com',
     password: 'senha123',
-    ...addDays(20),
+    ...addDays(28),
     birth_year: 1991,
   });
 
@@ -160,7 +163,7 @@ async function seed() {
     name: 'Carla Souza',
     email: 'carla@exemplo.com',
     password: 'senha123',
-    ...addDays(7),
+    ...addDays(20),
     birth_year: 1996,
   });
 
@@ -198,6 +201,12 @@ async function seed() {
   const amigos = await createGroup('Amigos', dev.id);
   await addMember(amigos.id, maria.id);
   await addMember(amigos.id, lucas.id);
+
+  // Grupo criado por outra pessoa — dev é apenas membro
+  const devBoys = await createGroup('Dev Boys', lucas.id);
+  await addMember(devBoys.id, dev.id);
+  await addMember(devBoys.id, joao.id);
+  await addMember(devBoys.id, pedro.id);
 
   console.log('✓ Grupos criados');
 
@@ -238,6 +247,16 @@ async function seed() {
 
   // --- Resumo ---
 
+  const highlightLines = [
+    '║  • Lucas    — hoje (destaque 1)      ║',
+    HIGHLIGHTS_COUNT >= 2
+      ? '║  • Maria    — em 2 dias (destaque 2) ║'
+      : '║  • Maria    — em 35 dias             ║',
+    HIGHLIGHTS_COUNT >= 3
+      ? '║  • João     — em 5 dias (destaque 3) ║'
+      : '║  • João     — em 40 dias             ║',
+  ].join('\n');
+
   console.log(`
 ╔══════════════════════════════════════╗
 ║         Seed concluído! ✅            ║
@@ -247,16 +266,13 @@ async function seed() {
 ║  senha:  ${DEV_PASSWORD.padEnd(27)}║
 ╠══════════════════════════════════════╣
 ║  Grupos criados:                     ║
-║  • Família  (5 membros)              ║
-║  • Trabalho (4 membros)              ║
-║  • Amigos   (3 membros)              ║
+║  • Família  (5 membros) — seu        ║
+║  • Trabalho (4 membros) — seu        ║
+║  • Amigos   (3 membros) — seu        ║
+║  • Dev Boys (4 membros) — membro     ║
 ╠══════════════════════════════════════╣
-║  Próximos aniversários (30 dias):    ║
-║  • Lucas    — hoje                   ║
-║  • Maria    — em 2 dias              ║
-║  • João     — em 5 dias              ║
-║  • Carla    — em 7 dias              ║
-║  (Ana, Pedro, Julia — > 30 dias)     ║
+║  Destaques ativos: ${String(HIGHLIGHTS_COUNT).padEnd(18)}║
+${highlightLines}
 ╚══════════════════════════════════════╝
   `);
 
