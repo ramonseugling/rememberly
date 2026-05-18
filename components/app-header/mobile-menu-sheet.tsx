@@ -4,10 +4,9 @@ import { useRouter } from 'next/router';
 import {
   Calendar,
   ChevronRight,
-  Gift,
   HelpCircle,
   type LucideIcon,
-  Settings,
+  MessageCircle,
   User,
   Users,
   X,
@@ -45,9 +44,8 @@ const primaryNav: {
   },
 ];
 
-const secondaryNav: { label: string; icon: LucideIcon }[] = [
-  { label: 'Configurações', icon: Settings },
-  { label: 'Ajuda', icon: HelpCircle },
+const secondaryNav: { label: string; icon: LucideIcon; href: string }[] = [
+  { label: 'Ajuda', icon: HelpCircle, href: '/help' },
 ];
 
 export const MobileMenuSheet = ({ open, onClose }: MobileMenuSheetProps) => {
@@ -120,32 +118,38 @@ export const MobileMenuSheet = ({ open, onClose }: MobileMenuSheetProps) => {
         <div className="mx-5 my-2 border-t border-border/50" />
 
         <nav className="flex flex-col gap-1 px-3">
-          {secondaryNav.map(({ label, icon: Icon }) => (
-            <div
+          {secondaryNav.map(({ label, icon: Icon, href }) => (
+            <Link
               key={label}
-              className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-foreground/80 cursor-default opacity-60"
+              href={href}
+              onClick={onClose}
+              className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground transition-smooth"
             >
               <Icon className="h-5 w-5" />
               <span>{label}</span>
-            </div>
+            </Link>
           ))}
         </nav>
 
         <div className="mt-auto p-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-muted/40 px-3 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
-              <Gift className="h-4 w-4" />
+          <Link
+            href="/groups"
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-2xl border border-[#25D366]/20 bg-[#25D366]/10 px-3 py-3 hover:bg-[#25D366]/15 transition-smooth"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#25D366] text-white">
+              <MessageCircle className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground leading-tight">
                 Convide amigos
               </p>
               <p className="text-xs text-muted-foreground leading-tight mt-0.5">
-                Para usar o Rememberly e ganhe benefícios
+                e nunca mais esqueçam um aniversário!
               </p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          </div>
+          </Link>
         </div>
       </aside>
     </div>

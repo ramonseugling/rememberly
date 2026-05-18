@@ -1,13 +1,12 @@
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
   Calendar,
   ChevronRight,
-  Gift,
   HelpCircle,
   type LucideIcon,
+  MessageCircle,
   User,
   Users,
 } from 'lucide-react';
@@ -57,13 +56,6 @@ const secondaryNav: {
 
 export const AppSidebar = () => {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(window.location.origin);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <aside className="hidden lg:flex flex-col w-64 sticky top-0 h-screen border-r border-border/50 bg-card/50 backdrop-blur-sm">
@@ -138,26 +130,23 @@ export const AppSidebar = () => {
       </nav>
 
       <div className="mt-auto p-4">
-        <button
-          type="button"
-          onClick={handleCopyLink}
-          className="w-full flex items-center gap-3 rounded-2xl border border-border/50 bg-muted/40 px-3 py-3 hover:bg-muted/70 transition-smooth text-left"
+        <Link
+          href="/groups"
+          className="w-full flex items-center gap-3 rounded-2xl border border-[#25D366]/20 bg-[#25D366]/10 px-3 py-3 hover:bg-[#25D366]/15 transition-smooth text-left"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
-            <Gift className="w-4 h-4" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#25D366] text-white">
+            <MessageCircle className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground leading-tight">
               Convide amigos
             </p>
             <p className="text-xs text-muted-foreground leading-tight mt-0.5">
-              {copied
-                ? 'Link copiado!'
-                : 'Para nunca esquecerem os aniversários de vocês'}
+              e nunca mais esqueçam um aniversário!
             </p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-        </button>
+        </Link>
       </div>
     </aside>
   );
