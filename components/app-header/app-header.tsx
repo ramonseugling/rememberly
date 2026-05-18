@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Bell, ChevronDown, LogOut, Menu, Search, User } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Search, User } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -19,8 +19,6 @@ interface AppHeaderUser {
 interface AppHeaderProps {
   user: AppHeaderUser;
 }
-
-const NOTIFICATION_BADGE = 2;
 
 const getInitials = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -60,8 +58,8 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
               width={32}
               height={32}
             />
-            <span className="text-xl font-heading font-bold text-brand-gradient inline-block">
-              rememberly
+            <span className="text-2xl font-heading font-bold text-brand-gradient inline-block">
+              Rememberly
             </span>
           </Link>
 
@@ -76,20 +74,6 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
               >
                 <Search className="h-5 w-5" />
-              </button>
-              <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-xs font-medium text-background opacity-0 transition-opacity group-hover:opacity-100">
-                Em breve
-              </span>
-            </div>
-
-            <div className="group relative">
-              <button
-                type="button"
-                aria-label="Notificações"
-                disabled
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground/40 cursor-not-allowed"
-              >
-                <Bell className="h-5 w-5" />
               </button>
               <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-xs font-medium text-background opacity-0 transition-opacity group-hover:opacity-100">
                 Em breve

@@ -1,13 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import {
-  Bell,
-  Calendar,
-  type LucideIcon,
-  Plus,
-  User,
-  Users,
-} from 'lucide-react';
+import { Calendar, type LucideIcon, Plus, User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BottomNavProps {
@@ -40,12 +33,6 @@ const leftSlots: NavSlot[] = [
 
 const rightSlots: NavSlot[] = [
   {
-    label: 'Lembretes',
-    icon: Bell,
-    isActive: () => false,
-    inactive: true,
-  },
-  {
     label: 'Perfil',
     icon: User,
     href: '/profile',
@@ -71,7 +58,7 @@ export const BottomNav = ({
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-border/50 bg-card/90 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
-      <div className="grid grid-cols-5 items-end px-2 pt-2 pb-2">
+      <div className="grid grid-cols-4 items-end px-2 pt-2 pb-2">
         {leftSlots.map((slot) => (
           <NavLink key={slot.label} slot={slot} pathname={router.pathname} />
         ))}

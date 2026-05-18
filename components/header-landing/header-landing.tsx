@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderLandingProps {
@@ -14,7 +12,6 @@ const NAV_LINKS = [
 ];
 
 export const HeaderLanding = ({ variant = 'landing' }: HeaderLandingProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const showNav = variant === 'landing';
 
   return (
@@ -65,45 +62,8 @@ export const HeaderLanding = ({ variant = 'landing' }: HeaderLandingProps) => {
                 Começar agora
               </Button>
             </Link>
-
-            {showNav && (
-              <button
-                type="button"
-                aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
-                onClick={() => setIsMenuOpen((open) => !open)}
-                className="md:hidden p-2 rounded-lg text-foreground/80 hover:text-primary transition-smooth"
-              >
-                {isMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            )}
           </div>
         </div>
-
-        {showNav && isMenuOpen && (
-          <nav className="md:hidden mt-4 pt-4 border-t border-border/50 flex flex-col gap-1 animate-fade-in">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="px-3 py-2.5 rounded-lg text-sm font-medium text-foreground/80 hover:text-primary hover:bg-muted/40 transition-smooth"
-              >
-                {link.label}
-              </a>
-            ))}
-            <Link
-              href="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="px-3 py-2.5 rounded-lg text-sm font-medium text-foreground/80 hover:text-primary hover:bg-muted/40 transition-smooth"
-            >
-              Entrar
-            </Link>
-          </nav>
-        )}
       </div>
     </header>
   );

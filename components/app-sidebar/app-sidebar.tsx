@@ -75,8 +75,8 @@ export const AppSidebar = () => {
             width={32}
             height={32}
           />
-          <span className="text-xl font-heading font-bold text-brand-gradient inline-block">
-            rememberly
+          <span className="text-2xl font-heading font-bold text-brand-gradient inline-block">
+            Rememberly
           </span>
         </Link>
       </div>
