@@ -21,7 +21,7 @@ const STEPS = [
   },
   {
     number: 3,
-    icon: '/images/icons/calendar.png',
+    icon: '/images/icons/handshake.png',
     alt: 'Calendário',
     title: 'Fortaleça conexões',
     description:
