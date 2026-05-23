@@ -48,12 +48,12 @@ export const HeroSection = () => {
               </span>
             </span>
 
-            <h1 className="text-hero font-heading font-bold tracking-tight mb-5">
+            <h1 className="text-hero font-heading font-bold tracking-tight mb-5 text-balance">
               <span className="block text-foreground">
-                Nunca mais esqueça o
+                Nunca mais esqueça{' '}o
               </span>
               <span className="block text-brand-gradient pb-2">
-                aniversário de seus amigos
+                aniversário de seus{' '}amigos
               </span>
             </h1>
 
