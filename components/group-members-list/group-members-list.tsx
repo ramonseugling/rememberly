@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MONTHS } from '@/lib/constants';
-import { formatDaysLabel, getBirthdayInfo } from '@/lib/date-utils';
+import { formatDaysLabel } from '@/lib/date-utils';
 import type { GroupMemberInfo } from '@/lib/types';
 
 interface GroupMembersListProps {
@@ -35,12 +35,10 @@ export const GroupMembersList = ({
   );
 
   const sortedMembers = [...members].sort((a, b) => {
-    const { daysUntil: daysA } = getBirthdayInfo(a.birth_day, a.birth_month);
-    const { daysUntil: daysB } = getBirthdayInfo(b.birth_day, b.birth_month);
-    if (daysA === null && daysB === null) return 0;
-    if (daysA === null) return 1;
-    if (daysB === null) return -1;
-    return daysA - daysB;
+    if (a.daysUntil === null && b.daysUntil === null) return 0;
+    if (a.daysUntil === null) return 1;
+    if (b.daysUntil === null) return -1;
+    return a.daysUntil - b.daysUntil;
   });
 
   const handleRemove = async () => {
@@ -63,10 +61,7 @@ export const GroupMembersList = ({
     <>
       <div className="flex flex-col gap-2">
         {sortedMembers.map((member) => {
-          const { daysUntil, isNextYear } = getBirthdayInfo(
-            member.birth_day,
-            member.birth_month,
-          );
+          const { daysUntil, isNextYear } = member;
           return (
             <div
               key={member.id}

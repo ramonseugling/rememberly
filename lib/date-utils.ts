@@ -1,10 +1,47 @@
+const WEEKDAYS = [
+  'domingo',
+  'segunda-feira',
+  'terça-feira',
+  'quarta-feira',
+  'quinta-feira',
+  'sexta-feira',
+  'sábado',
+];
+
+export function getToday(): Date {
+  const override = process.env.DEMO_TODAY;
+  if (!override) return new Date();
+  const [year, month, day] = override.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export interface BirthdayDateInfo {
+  daysUntil: number | null;
+  isNextYear: boolean;
+  weekday: string;
+}
+
+export function getBirthdayDateInfo(
+  birth_day: number | null,
+  birth_month: number | null,
+): BirthdayDateInfo {
+  const { daysUntil, isNextYear } = getBirthdayInfo(birth_day, birth_month);
+  if (daysUntil === null) return { daysUntil: null, isNextYear, weekday: '' };
+
+  const target = getToday();
+  target.setHours(0, 0, 0, 0);
+  target.setDate(target.getDate() + daysUntil);
+
+  return { daysUntil, isNextYear, weekday: WEEKDAYS[target.getDay()] };
+}
+
 export function getBirthdayInfo(
   birth_day: number | null,
   birth_month: number | null,
 ): { daysUntil: number | null; isNextYear: boolean } {
   if (!birth_day || !birth_month) return { daysUntil: null, isNextYear: false };
 
-  const today = new Date();
+  const today = getToday();
   today.setHours(0, 0, 0, 0);
 
   const thisYear = today.getFullYear();

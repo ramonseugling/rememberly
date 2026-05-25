@@ -33,4 +33,7 @@ export interface GroupMemberInfo {
   birth_year: number | null;
   role: GroupRole;
   joined_at: string;
+  daysUntil: number | null;
+  isNextYear: boolean;
+  weekday: string;
 }

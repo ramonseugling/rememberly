@@ -10,6 +10,7 @@ import {
   GroupTabs,
 } from '@/components/group-detail-page/group-tabs';
 import { MembersTab } from '@/components/group-detail-page/members-tab';
+import { getBirthdayDateInfo, getToday } from '@/lib/date-utils';
 import type { GroupMemberInfo, GroupRole } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import groupModel from 'models/group';
@@ -37,6 +38,7 @@ interface GroupDetailProps {
   user: User;
   group: GroupSummary;
   members: GroupMemberInfo[];
+  currentMonth: number;
 }
 
 export const getServerSideProps: GetServerSideProps = withAuth(
@@ -81,8 +83,10 @@ export const getServerSideProps: GetServerSideProps = withAuth(
             birth_year: m.birth_year,
             role: m.role as GroupRole,
             joined_at: String(m.joined_at),
+            ...getBirthdayDateInfo(m.birth_day, m.birth_month),
           }),
         ),
+        currentMonth: getToday().getMonth() + 1,
       },
     };
   },
@@ -92,6 +96,7 @@ export default function GroupDetailPage({
   user,
   group,
   members,
+  currentMonth,
 }: GroupDetailProps) {
   const [activeTab, setActiveTab] = useState<GroupTab>('dates');
 
@@ -114,7 +119,11 @@ export default function GroupDetailPage({
       <GroupTabs active={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'dates' && (
-        <DatesTab members={members} currentUserId={user.id} />
+        <DatesTab
+          members={members}
+          currentUserId={user.id}
+          currentMonth={currentMonth}
+        />
       )}
 
       {activeTab === 'members' && (

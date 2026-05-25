@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/empty-state/empty-state';
 import { NextYearDateCard } from '@/components/next-year-date-card/next-year-date-card';
 import { UpdateEventModal } from '@/components/update-event-modal/update-event-modal';
 import { MONTHS } from '@/lib/constants';
+import { getToday } from '@/lib/date-utils';
 import type { EventType } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import event from 'models/event';
@@ -76,7 +77,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       groupMember.findAllBirthdaysForUser(user.id),
     ]);
 
-    const today = new Date();
+    const today = getToday();
     const todayMidnight = new Date(
       today.getFullYear(),
       today.getMonth(),

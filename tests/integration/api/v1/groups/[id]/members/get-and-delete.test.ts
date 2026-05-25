@@ -40,6 +40,14 @@ describe('GET /api/v1/groups/[id]/members', () => {
     expect(data[1].role).toBe('member');
     expect(data[1].birth_day).toBe(20);
     expect(data[1].birth_month).toBe(7);
+
+    // Date info computed server-side for each member
+    for (const member of data) {
+      expect(typeof member.daysUntil).toBe('number');
+      expect(typeof member.isNextYear).toBe('boolean');
+      expect(typeof member.weekday).toBe('string');
+      expect(member.weekday.length).toBeGreaterThan(0);
+    }
   });
 
   it('deve retornar 404 para não-membro', async () => {

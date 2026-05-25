@@ -5,6 +5,7 @@ import { GroupCard } from '@/components/group-card/group-card';
 import { GroupEmptyState } from '@/components/group-empty-state/group-empty-state';
 import { CreateGroupCta } from '@/components/groups-page/create-group-cta';
 import { GroupsPageHeader } from '@/components/groups-page/groups-page-header';
+import { getToday } from '@/lib/date-utils';
 import type { BirthdayMember, GroupInfo } from '@/lib/types';
 import { withAuth } from 'infra/page-guard';
 import group from 'models/group';
@@ -31,7 +32,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
       groupMember.findAllBirthdaysByUserId(user.id),
     ]);
 
-    const today = new Date();
+    const today = getToday();
     today.setHours(0, 0, 0, 0);
 
     function computeDaysUntil(birth_day: number, birth_month: number): number {
