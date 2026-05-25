@@ -10,8 +10,20 @@ const WEEKDAYS = [
 
 export function getToday(): Date {
   const override = process.env.DEMO_TODAY;
-  if (!override) return new Date();
-  const [year, month, day] = override.split('-').map(Number);
+  if (override) {
+    const [year, month, day] = override.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  const [year, month, day] = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+    .format(new Date())
+    .split('-')
+    .map(Number);
   return new Date(year, month - 1, day);
 }
 
