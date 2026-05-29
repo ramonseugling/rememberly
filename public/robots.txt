@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /dates
+Disallow: /groups
+Disallow: /profile
+Disallow: /help
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /status
+Disallow: /join-group
+
+Sitemap: https://rememberly.com.br/sitemap.xml

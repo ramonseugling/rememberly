@@ -26,6 +26,8 @@ export default function App({ Component, pageProps }: AppProps) {
     ? 'app'
     : 'landing';
 
+  const canonicalUrl = `https://rememberly.com.br${router.asPath === '/' ? '' : router.asPath.split('?')[0]}`;
+
   return (
     <div className={quicksand.className}>
       <Head>
@@ -36,6 +38,7 @@ export default function App({ Component, pageProps }: AppProps) {
           name="description"
           content="Crie grupos com amigos e família. Cada pessoa cadastra o próprio aniversário e todo mundo recebe lembretes no dia certo."
         />
+        <link rel="canonical" href={canonicalUrl} />
         <meta
           property="og:title"
           content="Rememberly — Nunca mais esqueça o aniversário de seus amigos"
@@ -45,7 +48,18 @@ export default function App({ Component, pageProps }: AppProps) {
           content="Crie grupos com amigos e família. Cada pessoa cadastra o próprio aniversário e todo mundo recebe lembretes no dia certo."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="Rememberly" />
+        <meta property="og:locale" content="pt_BR" />
+        <meta
+          property="og:image"
+          content="https://rememberly.com.br/images/brand/new-3d-logo.png"
+        />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:image"
+          content="https://rememberly.com.br/images/brand/new-3d-logo.png"
+        />
       </Head>
       <style>{`
         h1, h2, h3, h4, h5, h6, .font-heading {

@@ -15,9 +15,21 @@ describe('getToday', () => {
     delete process.env.DEMO_TODAY;
   });
 
-  it('retorna a data real quando DEMO_TODAY não está definido', () => {
+  it('retorna a data corrente no fuso do Brasil quando DEMO_TODAY não está definido', () => {
     delete process.env.DEMO_TODAY;
-    expect(Math.abs(getToday().getTime() - Date.now())).toBeLessThan(1000);
+    const [year, month, day] = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+      .format(new Date())
+      .split('-')
+      .map(Number);
+    const today = getToday();
+    expect(today.getFullYear()).toBe(year);
+    expect(today.getMonth()).toBe(month - 1);
+    expect(today.getDate()).toBe(day);
   });
 
   it('respeita DEMO_TODAY como data local (sem deslocamento de fuso)', () => {
