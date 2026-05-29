@@ -1,4 +1,5 @@
 import { log } from 'next-axiom';
+import { getToday } from '@/lib/date-utils';
 import database from 'infra/database';
 import email from 'models/email';
 import systemLog from 'models/system-log';
@@ -24,9 +25,9 @@ const REMINDER_INTERVALS = [1, 3, 7, 15, 30];
 
 async function sendTodayNotifications() {
   const start_time = Date.now();
-  const today = new Date();
-  const day = today.getUTCDate();
-  const month = today.getUTCMonth() + 1;
+  const today = getToday();
+  const day = today.getDate();
+  const month = today.getMonth() + 1;
 
   // 1. Personal events
   const personalResult = await database.query(
@@ -88,6 +89,7 @@ async function sendTodayNotifications() {
         eventTitle,
         eventType: event.event_type,
         customType: event.event_custom_type,
+        month,
       });
       sent++;
     } catch (err) {
@@ -122,15 +124,15 @@ async function sendTodayNotifications() {
 
 async function sendReminderNotifications() {
   const start_time = Date.now();
-  const today = new Date();
+  const today = getToday();
 
   const futureDates = REMINDER_INTERVALS.map((days) => {
     const future = new Date(today);
-    future.setUTCDate(future.getUTCDate() + days);
+    future.setDate(future.getDate() + days);
     return {
       days,
-      day: future.getUTCDate(),
-      month: future.getUTCMonth() + 1,
+      day: future.getDate(),
+      month: future.getMonth() + 1,
     };
   });
 
