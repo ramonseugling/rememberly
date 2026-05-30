@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('DELETE /api/v1/sessions', () => {
-  it('deve encerrar a sessão e limpar o cookie', async () => {
+  it('ends the session and clears the cookie', async () => {
     const body = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
@@ -49,7 +49,7 @@ describe('DELETE /api/v1/sessions', () => {
     expect(checkRes.status).toBe(401);
   });
 
-  it('deve retornar 204 mesmo sem session_token', async () => {
+  it('returns 204 even without a session_token', async () => {
     const response = await fetch('http://localhost:3000/api/v1/sessions', {
       method: 'DELETE',
     });

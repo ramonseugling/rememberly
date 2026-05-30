@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /', () => {
-  it('deve exibir a landing page para usuário não autenticado', async () => {
+  it('shows the landing page to an unauthenticated user', async () => {
     const response = await fetch('http://localhost:3000/', {
       redirect: 'manual',
     });
@@ -14,7 +14,7 @@ describe('GET /', () => {
     expect(response.status).toBe(200);
   });
 
-  it('deve redirecionar para /dates quando usuário está autenticado', async () => {
+  it('redirects to /dates when the user is authenticated', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/', {

@@ -63,7 +63,7 @@ async function createEvent(
 }
 
 describe('GET /api/v1/notifications/send-reminders', () => {
-  it('deve retornar 401 sem CRON_SECRET', async () => {
+  it('returns 401 without CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send-reminders',
       { method: 'GET' },
@@ -75,7 +75,7 @@ describe('GET /api/v1/notifications/send-reminders', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar 401 com CRON_SECRET inválido', async () => {
+  it('returns 401 with an invalid CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send-reminders',
       {
@@ -87,10 +87,10 @@ describe('GET /api/v1/notifications/send-reminders', () => {
     expect(response.status).toBe(401);
   });
 
-  it('deve retornar 200 com CRON_SECRET válido', async () => {
+  it('returns 200 with a valid CRON_SECRET', async () => {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret) {
-      console.warn('CRON_SECRET não definido — pulando teste.');
+      console.warn('CRON_SECRET not set — skipping test.');
       return;
     }
 
@@ -109,10 +109,10 @@ describe('GET /api/v1/notifications/send-reminders', () => {
     expect(typeof data.sent).toBe('number');
   });
 
-  it('deve retornar sent: 0 quando não há eventos com reminder para hoje', async () => {
+  it('returns sent: 0 when there are no events with a reminder for today', async () => {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret) {
-      console.warn('CRON_SECRET não definido — pulando teste.');
+      console.warn('CRON_SECRET not set — skipping test.');
       return;
     }
 
@@ -139,10 +139,10 @@ describe('GET /api/v1/notifications/send-reminders', () => {
     expect(data.sent).toBe(0);
   });
 
-  it('deve encontrar evento com reminder que bate com a data futura', async () => {
+  it('finds an event with a reminder matching the future date', async () => {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret) {
-      console.warn('CRON_SECRET não definido — pulando teste.');
+      console.warn('CRON_SECRET not set — skipping test.');
       return;
     }
 
@@ -173,10 +173,10 @@ describe('GET /api/v1/notifications/send-reminders', () => {
     expect(data.sent).toBeGreaterThanOrEqual(1);
   });
 
-  it('não deve enviar reminder quando reminder_days_before não bate com a data', async () => {
+  it('does not send a reminder when reminder_days_before does not match the date', async () => {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret) {
-      console.warn('CRON_SECRET não definido — pulando teste.');
+      console.warn('CRON_SECRET not set — skipping test.');
       return;
     }
 

@@ -62,7 +62,7 @@ async function createEvent(
 }
 
 describe('PATCH /api/v1/events/[id]', () => {
-  it('deve atualizar o título do evento', async () => {
+  it('updates the event title', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { title: 'Título original' });
 
@@ -85,7 +85,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.id).toBe(created.id);
   });
 
-  it('deve atualizar o tipo do evento', async () => {
+  it('updates the event type', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { type: 'birthday' });
 
@@ -107,7 +107,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.type).toBe('celebration');
   });
 
-  it('deve atualizar dia e mês do evento', async () => {
+  it('updates the event day and month', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { event_day: 1, event_month: 1 });
 
@@ -130,7 +130,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.event_month).toBe(12);
   });
 
-  it('deve retornar 400 ao tentar atualizar com type inválido', async () => {
+  it('returns 400 when updating with an invalid type', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token);
 
@@ -152,7 +152,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 ao tentar atualizar sem campos', async () => {
+  it('returns 400 when updating without fields', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token);
 
@@ -174,7 +174,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 404 ao tentar atualizar evento de outro usuário', async () => {
+  it('returns 404 when updating another user event', async () => {
     const { token: tokenA } = await createUserAndSession();
     const { token: tokenB } = await createUserAndSession();
 
@@ -198,7 +198,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.name).toBe('NotFoundError');
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/events/qualquer-id',
       {
@@ -211,7 +211,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(response.status).toBe(401);
   });
 
-  it('deve atualizar evento para tipo custom com custom_type', async () => {
+  it('updates an event to the custom type with custom_type', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { type: 'birthday' });
 
@@ -234,7 +234,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.custom_type).toBe('Formatura');
   });
 
-  it('deve limpar custom_type ao mudar de custom para tipo fixo', async () => {
+  it('clears custom_type when changing from custom to a fixed type', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, {
       type: 'custom',
@@ -260,7 +260,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.custom_type).toBeNull();
   });
 
-  it('deve retornar 400 ao mudar para custom sem custom_type', async () => {
+  it('returns 400 when changing to custom without custom_type', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { type: 'birthday' });
 
@@ -282,7 +282,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve atualizar reminder_days_before', async () => {
+  it('updates reminder_days_before', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, { reminder_days_before: 0 });
 
@@ -304,7 +304,7 @@ describe('PATCH /api/v1/events/[id]', () => {
     expect(data.reminder_days_before).toBe(7);
   });
 
-  it('deve retornar 400 ao atualizar reminder_days_before com valor inválido', async () => {
+  it('returns 400 when updating reminder_days_before with an invalid value', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token);
 
@@ -328,7 +328,7 @@ describe('PATCH /api/v1/events/[id]', () => {
 });
 
 describe('DELETE /api/v1/events/[id]', () => {
-  it('deve deletar um evento existente', async () => {
+  it('deletes an existing event', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token);
 
@@ -352,7 +352,7 @@ describe('DELETE /api/v1/events/[id]', () => {
     expect(getResponse.status).toBe(404);
   });
 
-  it('deve retornar 404 ao tentar deletar evento de outro usuário', async () => {
+  it('returns 404 when deleting another user event', async () => {
     const { token: tokenA } = await createUserAndSession();
     const { token: tokenB } = await createUserAndSession();
 
@@ -369,7 +369,7 @@ describe('DELETE /api/v1/events/[id]', () => {
     expect(response.status).toBe(404);
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/events/qualquer-id',
       { method: 'DELETE' },

@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /signup', () => {
-  it('deve exibir a página de cadastro para usuário não autenticado', async () => {
+  it('shows the signup page to an unauthenticated user', async () => {
     const response = await fetch('http://localhost:3000/signup', {
       redirect: 'manual',
     });
@@ -14,7 +14,7 @@ describe('GET /signup', () => {
     expect(response.status).toBe(200);
   });
 
-  it('deve redirecionar para /dates quando usuário está autenticado', async () => {
+  it('redirects to /dates when the user is authenticated', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/signup', {
@@ -26,7 +26,7 @@ describe('GET /signup', () => {
     expect(response.headers.get('location')).toBe('/dates');
   });
 
-  it('deve redirecionar para next quando usuário autenticado e next é válido', async () => {
+  it('redirects to next when the user is authenticated and next is valid', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch(
@@ -41,7 +41,7 @@ describe('GET /signup', () => {
     expect(response.headers.get('location')).toBe('/join-group?code=abc');
   });
 
-  it('deve redirecionar para /dates quando next começa com /api/', async () => {
+  it('redirects to /dates when next starts with /api/', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch(

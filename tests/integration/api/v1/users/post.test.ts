@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/users', () => {
-  it('deve criar um usuário com OTP válido', async () => {
+  it('creates a user with a valid OTP', async () => {
     const email = faker.internet.email();
     const otpRecord = await orchestrator.createValidOtp(email);
 
@@ -38,7 +38,7 @@ describe('POST /api/v1/users', () => {
     expect(data.birth_year).toBe(1990);
   });
 
-  it('deve retornar 400 ao tentar criar usuário com e-mail duplicado', async () => {
+  it('returns 400 when creating a user with a duplicate email', async () => {
     const email = faker.internet.email();
     const otpRecord = await orchestrator.createValidOtp(email);
 
@@ -78,7 +78,7 @@ describe('POST /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando otp_code não é enviado', async () => {
+  it('returns 400 when otp_code is not sent', async () => {
     const response = await fetch('http://localhost:3000/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -98,7 +98,7 @@ describe('POST /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando código OTP está incorreto', async () => {
+  it('returns 400 when the OTP code is incorrect', async () => {
     const email = faker.internet.email();
     await orchestrator.createValidOtp(email);
 
@@ -123,7 +123,7 @@ describe('POST /api/v1/users', () => {
     expect(data.message).toBe('Código de verificação incorreto.');
   });
 
-  it('deve retornar 400 quando OTP já foi utilizado', async () => {
+  it('returns 400 when the OTP was already used', async () => {
     const email = faker.internet.email();
     const otpRecord = await orchestrator.createValidOtp(email);
 
@@ -161,7 +161,7 @@ describe('POST /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando campos de nascimento não são enviados', async () => {
+  it('returns 400 when birth fields are not sent', async () => {
     const email = faker.internet.email();
     const otpRecord = await orchestrator.createValidOtp(email);
 
@@ -182,7 +182,7 @@ describe('POST /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando dia de nascimento é inválido', async () => {
+  it('returns 400 when the birth day is invalid', async () => {
     const email = faker.internet.email();
     const otpRecord = await orchestrator.createValidOtp(email);
 

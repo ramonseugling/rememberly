@@ -22,8 +22,8 @@ async function listPendingMigrations() {
     });
   } catch {
     throw new ServiceError({
-      message: 'Erro ao listar migrations pendentes.',
-      action: 'Verifique a conexão com o banco de dados.',
+      message: 'Failed to list pending migrations.',
+      action: 'Check the database connection.',
     });
   } finally {
     await dbClient?.end();
@@ -46,8 +46,8 @@ async function runPendingMigrations() {
     });
   } catch {
     throw new ServiceError({
-      message: 'Erro ao executar migrations.',
-      action: 'Verifique a conexão com o banco de dados.',
+      message: 'Failed to run migrations.',
+      action: 'Check the database connection.',
     });
   } finally {
     await dbClient?.end();

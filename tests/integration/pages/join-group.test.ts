@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /join-group', () => {
-  it('deve redirecionar para /signup com next quando usuário não está autenticado', async () => {
+  it('redirects to /signup with next when the user is not authenticated', async () => {
     const response = await fetch('http://localhost:3000/join-group?code=abc', {
       redirect: 'manual',
     });
@@ -17,7 +17,7 @@ describe('GET /join-group', () => {
     );
   });
 
-  it('deve redirecionar para /signup sem next quando não tem código', async () => {
+  it('redirects to /signup without next when there is no code', async () => {
     const response = await fetch('http://localhost:3000/join-group', {
       redirect: 'manual',
     });
@@ -26,7 +26,7 @@ describe('GET /join-group', () => {
     expect(response.headers.get('location')).toBe('/signup');
   });
 
-  it('deve redirecionar para /groups quando não tem código de convite e está autenticado', async () => {
+  it('redirects to /groups when there is no invite code and the user is authenticated', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/join-group', {
@@ -38,7 +38,7 @@ describe('GET /join-group', () => {
     expect(response.headers.get('location')).toBe('/groups');
   });
 
-  it('deve exibir a página de convite quando tem código e auth', async () => {
+  it('shows the invite page when there is a code and the user is authenticated', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Família');
 

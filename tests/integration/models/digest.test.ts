@@ -1,7 +1,7 @@
 import digest from 'models/digest';
 
 describe('digest.yesterdayBrtWindow', () => {
-  test('às 12:00 UTC de 14/05 retorna janela [13/05 03:00 UTC, 14/05 03:00 UTC)', () => {
+  test('at 12:00 UTC on 05/14 returns window [05/13 03:00 UTC, 05/14 03:00 UTC)', () => {
     const now = new Date(Date.UTC(2026, 4, 14, 12, 0, 0));
     const { start, end } = digest.yesterdayBrtWindow(now);
 
@@ -9,7 +9,7 @@ describe('digest.yesterdayBrtWindow', () => {
     expect(end.toISOString()).toBe('2026-05-14T03:00:00.000Z');
   });
 
-  test('às 02:00 UTC (ainda dia anterior em BRT) retorna a janela correta', () => {
+  test('at 02:00 UTC (still the previous day in BRT) returns the correct window', () => {
     const now = new Date(Date.UTC(2026, 4, 14, 2, 0, 0));
     const { start, end } = digest.yesterdayBrtWindow(now);
 
@@ -17,7 +17,7 @@ describe('digest.yesterdayBrtWindow', () => {
     expect(end.toISOString()).toBe('2026-05-13T03:00:00.000Z');
   });
 
-  test('às 03:00 UTC (virada do dia BRT) começa a contar o dia novo', () => {
+  test('at 03:00 UTC (BRT day rollover) starts counting the new day', () => {
     const now = new Date(Date.UTC(2026, 4, 14, 3, 0, 0));
     const { start, end } = digest.yesterdayBrtWindow(now);
 
@@ -25,13 +25,13 @@ describe('digest.yesterdayBrtWindow', () => {
     expect(end.toISOString()).toBe('2026-05-14T03:00:00.000Z');
   });
 
-  test('formatBrtDateLabel devolve dd/mm/yyyy do dia BRT', () => {
+  test('formatBrtDateLabel returns dd/mm/yyyy of the BRT day', () => {
     const now = new Date(Date.UTC(2026, 4, 14, 12, 0, 0));
     const window = digest.yesterdayBrtWindow(now);
     expect(digest.formatBrtDateLabel(window)).toBe('13/05/2026');
   });
 
-  test('virada de mês: 01/06 12:00 UTC retorna 31/05 como dateLabel', () => {
+  test('month rollover: 06/01 12:00 UTC returns 05/31 as dateLabel', () => {
     const now = new Date(Date.UTC(2026, 5, 1, 12, 0, 0));
     const window = digest.yesterdayBrtWindow(now);
     expect(digest.formatBrtDateLabel(window)).toBe('31/05/2026');

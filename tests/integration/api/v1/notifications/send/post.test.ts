@@ -60,7 +60,7 @@ async function createEventForToday(token: string) {
 }
 
 describe('GET /api/v1/notifications/send', () => {
-  it('deve retornar 401 sem CRON_SECRET', async () => {
+  it('returns 401 without CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
     );
@@ -71,7 +71,7 @@ describe('GET /api/v1/notifications/send', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar 401 com CRON_SECRET inválido', async () => {
+  it('returns 401 with an invalid CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
@@ -87,7 +87,7 @@ describe('GET /api/v1/notifications/send', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar 200 com sent: 0 quando não há eventos do dia', async () => {
+  it('returns 200 with sent: 0 when there are no events today', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
@@ -103,7 +103,7 @@ describe('GET /api/v1/notifications/send', () => {
     expect(data.sent).toBe(0);
   });
 
-  it('deve enviar notificação para evento do dia', async () => {
+  it('sends a notification for an event today', async () => {
     const { token } = await createUserAndSession();
     await createEventForToday(token);
 
@@ -122,7 +122,7 @@ describe('GET /api/v1/notifications/send', () => {
     expect(data.sent).toBeGreaterThanOrEqual(1);
   });
 
-  it('deve retornar 405 para métodos não permitidos', async () => {
+  it('returns 405 for disallowed methods', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {

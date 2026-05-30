@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/otp', () => {
-  it('deve enviar OTP para e-mail válido e não registrado', async () => {
+  it('sends an OTP to a valid and unregistered email', async () => {
     const body = { email: faker.internet.email() };
 
     const response = await fetch('http://localhost:3000/api/v1/otp', {
@@ -22,7 +22,7 @@ describe('POST /api/v1/otp', () => {
     expect(data.message).toBe('Código enviado com sucesso.');
   });
 
-  it('deve retornar 400 quando e-mail já está em uso', async () => {
+  it('returns 400 when the email is already in use', async () => {
     const email = faker.internet.email();
 
     const otpRecord = await orchestrator.createValidOtp(email);
@@ -54,7 +54,7 @@ describe('POST /api/v1/otp', () => {
     expect(data.message).toBe('Este e-mail já está em uso.');
   });
 
-  it('deve retornar 400 quando e-mail é inválido', async () => {
+  it('returns 400 when the email is invalid', async () => {
     const response = await fetch('http://localhost:3000/api/v1/otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ describe('POST /api/v1/otp', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando body está vazio', async () => {
+  it('returns 400 when the body is empty', async () => {
     const response = await fetch('http://localhost:3000/api/v1/otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

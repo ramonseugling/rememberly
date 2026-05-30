@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/auth/google', () => {
-  it('deve redirecionar para o Google com state cookie', async () => {
+  it('redirects to Google with a state cookie', async () => {
     const response = await fetch('http://localhost:3000/api/v1/auth/google', {
       redirect: 'manual',
     });

@@ -8,7 +8,7 @@ beforeAll(async () => {
 });
 
 describe('groupMember.findAllBirthdaysForUser()', () => {
-  it('deve retornar lista vazia quando user não tem grupos', async () => {
+  it('returns an empty list when the user has no groups', async () => {
     const cookie = await orchestrator.createAuthCookie();
     const token = orchestrator.extractToken(cookie);
 
@@ -23,7 +23,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(birthdays).toEqual([]);
   });
 
-  it('deve retornar aniversários dos outros membros do grupo', async () => {
+  it('returns the birthdays of the other group members', async () => {
     const ownerCookie = await orchestrator.createAuthCookie({
       name: 'Maria',
       birth_day: 15,
@@ -59,7 +59,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(joaoBirthday.user_id).toBeDefined();
   });
 
-  it('não deve retornar o próprio aniversário do user', async () => {
+  it('does not return the birthday of the user themselves', async () => {
     const ownerCookie = await orchestrator.createAuthCookie({
       name: 'Carlos',
       birth_day: 10,
@@ -81,7 +81,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(ownBirthday).toBeUndefined();
   });
 
-  it('deve retornar aniversários de múltiplos grupos', async () => {
+  it('returns birthdays from multiple groups', async () => {
     const userCookie = await orchestrator.createAuthCookie({
       name: 'Ana',
       birth_day: 1,
@@ -125,7 +125,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(groups).toContain('Amigos');
   });
 
-  it('não deve duplicar aniversário de membro em múltiplos grupos', async () => {
+  it('does not duplicate a member birthday across multiple groups', async () => {
     const ownerCookie = await orchestrator.createAuthCookie({
       name: 'Dono Dedup',
       birth_day: 3,
@@ -160,7 +160,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(matches[0].event_month).toBe(9);
   });
 
-  it('não deve retornar membros sem data de aniversário', async () => {
+  it('does not return members without a birthday date', async () => {
     const ownerCookie = await orchestrator.createAuthCookie({
       name: 'Dono',
       birth_day: 5,
@@ -170,7 +170,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
 
     const group = await orchestrator.createGroup(ownerToken, 'Misto');
 
-    // Membro sem aniversário cadastrado
+    // Member without a registered birthday
     const memberCookie = await orchestrator.createAuthCookie({
       name: 'SemData',
     });
@@ -199,7 +199,7 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(semData).toBeUndefined();
   });
 
-  it('deve ordenar por mês e dia', async () => {
+  it('orders by month and day', async () => {
     const ownerCookie = await orchestrator.createAuthCookie({
       name: 'Ordenador',
       birth_day: 1,

@@ -40,7 +40,7 @@ async function createUserAndSession() {
 }
 
 describe('POST /api/v1/events', () => {
-  it('deve criar um evento com dados válidos', async () => {
+  it('creates an event with valid data', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -69,7 +69,7 @@ describe('POST /api/v1/events', () => {
     expect(data.created_at).toBeDefined();
   });
 
-  it('deve criar evento com todos os tipos válidos', async () => {
+  it('creates an event with all valid types', async () => {
     const { token } = await createUserAndSession();
     const types = [
       'birthday',
@@ -114,7 +114,7 @@ describe('POST /api/v1/events', () => {
     expect(customResponse.status).toBe(201);
   });
 
-  it('deve retornar 400 quando título está ausente', async () => {
+  it('returns 400 when the title is missing', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -136,7 +136,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando type é inválido', async () => {
+  it('returns 400 when the type is invalid', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -159,7 +159,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando event_day é inválido', async () => {
+  it('returns 400 when event_day is invalid', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -182,7 +182,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando event_month é inválido', async () => {
+  it('returns 400 when event_month is invalid', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -205,7 +205,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch('http://localhost:3000/api/v1/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -223,7 +223,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve criar evento com tipo custom e custom_type', async () => {
+  it('creates an event with the custom type and custom_type', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -248,7 +248,7 @@ describe('POST /api/v1/events', () => {
     expect(data.custom_type).toBe('Formatura');
   });
 
-  it('deve retornar 400 quando type é custom sem custom_type', async () => {
+  it('returns 400 when type is custom without custom_type', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -271,7 +271,7 @@ describe('POST /api/v1/events', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve ignorar custom_type quando type não é custom', async () => {
+  it('ignores custom_type when type is not custom', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -296,7 +296,7 @@ describe('POST /api/v1/events', () => {
     expect(data.custom_type).toBeNull();
   });
 
-  it('deve criar evento com reminder_days_before', async () => {
+  it('creates an event with reminder_days_before', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -320,7 +320,7 @@ describe('POST /api/v1/events', () => {
     expect(data.reminder_days_before).toBe(7);
   });
 
-  it('deve usar reminder_days_before padrão 0 quando não informado', async () => {
+  it('uses the default reminder_days_before of 0 when not provided', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -343,7 +343,7 @@ describe('POST /api/v1/events', () => {
     expect(data.reminder_days_before).toBe(0);
   });
 
-  it('deve retornar 400 quando reminder_days_before é inválido', async () => {
+  it('returns 400 when reminder_days_before is invalid', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {

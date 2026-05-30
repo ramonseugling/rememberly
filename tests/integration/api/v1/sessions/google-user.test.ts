@@ -8,11 +8,11 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/sessions (Google-only user)', () => {
-  it('deve retornar erro ao tentar login com senha em conta Google', async () => {
+  it('returns an error when trying to log in with a password on a Google account', async () => {
     const email = faker.internet.email().toLowerCase();
     const name = faker.person.fullName();
 
-    // Cria usuário sem senha (como se fosse via Google)
+    // Create a user without a password (as if via Google)
     await database.query(`INSERT INTO users (name, email) VALUES ($1, $2)`, [
       name,
       email,

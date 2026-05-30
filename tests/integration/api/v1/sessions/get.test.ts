@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/sessions', () => {
-  it('deve retornar o usuário autenticado com session_token válido', async () => {
+  it('returns the authenticated user with a valid session_token', async () => {
     const body = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
@@ -44,7 +44,7 @@ describe('GET /api/v1/sessions', () => {
     expect(data.user.email).toBe(body.email.toLowerCase());
   });
 
-  it('deve retornar 401 sem session_token', async () => {
+  it('returns 401 without a session_token', async () => {
     const response = await fetch('http://localhost:3000/api/v1/sessions', {
       method: 'GET',
     });

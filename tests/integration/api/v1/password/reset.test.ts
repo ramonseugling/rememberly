@@ -43,7 +43,7 @@ async function createUserAndToken() {
 }
 
 describe('POST /api/v1/password/reset', () => {
-  it('deve redefinir a senha com token válido', async () => {
+  it('resets the password with a valid token', async () => {
     const { userBody, token } = await createUserAndToken();
     const newPassword = 'novaSenha456';
 
@@ -67,7 +67,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(loginResponse.status).toBe(201);
   });
 
-  it('não deve aceitar login com senha antiga após redefinição', async () => {
+  it('does not accept login with the old password after reset', async () => {
     const { userBody, token } = await createUserAndToken();
 
     await fetch('http://localhost:3000/api/v1/password/reset', {
@@ -88,7 +88,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(loginResponse.status).toBe(401);
   });
 
-  it('deve retornar 400 para token inválido', async () => {
+  it('returns 400 for an invalid token', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/password/reset',
       {
@@ -107,7 +107,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 para token já utilizado', async () => {
+  it('returns 400 for an already used token', async () => {
     const { token } = await createUserAndToken();
 
     await fetch('http://localhost:3000/api/v1/password/reset', {
@@ -131,7 +131,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 para token expirado', async () => {
+  it('returns 400 for an expired token', async () => {
     const userBody = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
@@ -181,7 +181,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando token ou senha não são informados', async () => {
+  it('returns 400 when token or password are not provided', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/password/reset',
       {
@@ -194,7 +194,7 @@ describe('POST /api/v1/password/reset', () => {
     expect(response.status).toBe(400);
   });
 
-  it('deve retornar 405 para método GET', async () => {
+  it('returns 405 for the GET method', async () => {
     const response = await fetch('http://localhost:3000/api/v1/password/reset');
 
     expect(response.status).toBe(405);

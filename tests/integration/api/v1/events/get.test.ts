@@ -62,7 +62,7 @@ async function createEvent(
 }
 
 describe('GET /api/v1/events', () => {
-  it('deve retornar lista vazia quando usuário não tem eventos', async () => {
+  it('returns an empty list when the user has no events', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch('http://localhost:3000/api/v1/events', {
@@ -75,7 +75,7 @@ describe('GET /api/v1/events', () => {
     expect(data.events).toEqual([]);
   });
 
-  it('deve retornar os eventos do usuário', async () => {
+  it('returns the user events', async () => {
     const { token } = await createUserAndSession();
 
     await createEvent(token, { title: 'Evento 1', event_month: 3 });
@@ -93,7 +93,7 @@ describe('GET /api/v1/events', () => {
     expect(data.events[1].title).toBe('Evento 2');
   });
 
-  it('deve retornar apenas os eventos do próprio usuário', async () => {
+  it('returns only the events of the user themselves', async () => {
     const { token: tokenA } = await createUserAndSession();
     const { token: tokenB } = await createUserAndSession();
 
@@ -117,7 +117,7 @@ describe('GET /api/v1/events', () => {
     ).toBe(false);
   });
 
-  it('deve retornar todos os eventos criados', async () => {
+  it('returns all created events', async () => {
     const { token } = await createUserAndSession();
 
     await createEvent(token, {
@@ -148,7 +148,7 @@ describe('GET /api/v1/events', () => {
     expect(titles).toContain('Janeiro cedo');
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch('http://localhost:3000/api/v1/events');
 
     expect(response.status).toBe(401);
@@ -157,7 +157,7 @@ describe('GET /api/v1/events', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar custom_type para eventos com tipo custom', async () => {
+  it('returns custom_type for events with the custom type', async () => {
     const { token } = await createUserAndSession();
 
     await createEvent(token, {

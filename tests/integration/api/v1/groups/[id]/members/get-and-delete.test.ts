@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/groups/[id]/members', () => {
-  it('deve listar membros com informações de aniversário', async () => {
+  it('lists members with birthday information', async () => {
     const ownerToken = await orchestrator.createUserAndToken({
       birth_day: 15,
       birth_month: 3,
@@ -50,7 +50,7 @@ describe('GET /api/v1/groups/[id]/members', () => {
     }
   });
 
-  it('deve retornar 404 para não-membro', async () => {
+  it('returns 404 for a non-member', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const otherToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Privado');
@@ -67,7 +67,7 @@ describe('GET /api/v1/groups/[id]/members', () => {
 });
 
 describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
-  it('deve permitir owner remover membro', async () => {
+  it('allows the owner to remove a member', async () => {
     const ownerToken = await orchestrator.createUserAndToken({
       name: 'Dono',
       birth_day: 1,
@@ -111,7 +111,7 @@ describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
     expect(afterMembers.length).toBe(1);
   });
 
-  it('deve permitir membro sair do grupo', async () => {
+  it('allows a member to leave the group', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const memberToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');
@@ -139,7 +139,7 @@ describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
     expect(response.status).toBe(204);
   });
 
-  it('deve retornar 400 quando owner tenta sair', async () => {
+  it('returns 400 when the owner tries to leave', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');
 
@@ -165,7 +165,7 @@ describe('DELETE /api/v1/groups/[id]/members/[userId]', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 401 quando membro tenta remover outro', async () => {
+  it('returns 401 when a member tries to remove another member', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const member1Token = await orchestrator.createUserAndToken();
     const member2Token = await orchestrator.createUserAndToken();

@@ -13,18 +13,18 @@ async function waitForPostgres() {
       await client.connect();
       await client.query('SELECT 1');
       await client.end();
-      console.log('PostgreSQL pronto.');
+      console.log('PostgreSQL is ready.');
       process.exit(0);
     } catch {
       retries++;
       console.log(
-        `PostgreSQL ainda não está pronto. Tentativa ${retries}/${maxRetries}...`,
+        `PostgreSQL not ready yet. Attempt ${retries}/${maxRetries}...`,
       );
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
-  console.error('PostgreSQL não ficou pronto a tempo.');
+  console.error('PostgreSQL did not become ready in time.');
   process.exit(1);
 }
 

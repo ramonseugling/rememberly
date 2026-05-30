@@ -8,7 +8,7 @@ beforeAll(async () => {
 });
 
 describe('systemLog.recordError', () => {
-  test('insere row em error_logs com campos corretos', async () => {
+  test('inserts a row in error_logs with the correct fields', async () => {
     const before = await database.query(
       'SELECT COUNT(*)::int AS count FROM error_logs',
     );
@@ -40,7 +40,7 @@ describe('systemLog.recordError', () => {
     expect(countAfter.rows[0].count).toBe(before.rows[0].count + 1);
   });
 
-  test('lida com erro como string', async () => {
+  test('handles an error passed as a string', async () => {
     await systemLog.recordError({ error: 'algo deu errado' });
 
     const result = await database.query(
@@ -55,7 +55,7 @@ describe('systemLog.recordError', () => {
 });
 
 describe('systemLog.recordCronRun', () => {
-  test('insere row em cron_runs com metrics serializadas', async () => {
+  test('inserts a row in cron_runs with serialized metrics', async () => {
     await systemLog.recordCronRun({
       job_name: 'test_job',
       status: 'success',
@@ -77,8 +77,8 @@ describe('systemLog.recordCronRun', () => {
   });
 });
 
-describe('systemLog queries de janela', () => {
-  test('countSignupsBetween soma cadastros e separa Google vs senha', async () => {
+describe('systemLog window queries', () => {
+  test('countSignupsBetween sums signups and splits Google vs password', async () => {
     await orchestrator.clearDatabase();
     await orchestrator.runPendingMigrations();
 
@@ -101,7 +101,7 @@ describe('systemLog queries de janela', () => {
     expect(result.viaPassword).toBe(2);
   });
 
-  test('countEventsCreatedBetween retorna total + breakdown por tipo', async () => {
+  test('countEventsCreatedBetween returns total + breakdown by type', async () => {
     await orchestrator.clearDatabase();
     await orchestrator.runPendingMigrations();
 
@@ -122,7 +122,7 @@ describe('systemLog queries de janela', () => {
     expect(types['wedding_anniversary']).toBe(1);
   });
 
-  test('countErrorsBetween retorna total e top 5 por error_name', async () => {
+  test('countErrorsBetween returns total and top 5 by error_name', async () => {
     await orchestrator.clearDatabase();
     await orchestrator.runPendingMigrations();
 
@@ -142,7 +142,7 @@ describe('systemLog queries de janela', () => {
     expect(counts['RangeError']).toBe(1);
   });
 
-  test('getCurrentTotals retorna contagens atuais', async () => {
+  test('getCurrentTotals returns current counts', async () => {
     await orchestrator.clearDatabase();
     await orchestrator.runPendingMigrations();
 

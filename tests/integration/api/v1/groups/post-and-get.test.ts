@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/groups', () => {
-  it('deve criar um grupo com nome válido', async () => {
+  it('creates a group with a valid name', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups', {
@@ -31,7 +31,7 @@ describe('POST /api/v1/groups', () => {
     expect(data.created_at).toBeDefined();
   });
 
-  it('deve retornar 400 quando nome está vazio', async () => {
+  it('returns 400 when the name is empty', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups', {
@@ -49,7 +49,7 @@ describe('POST /api/v1/groups', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando nome excede 100 caracteres', async () => {
+  it('returns 400 when the name exceeds 100 characters', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups', {
@@ -67,7 +67,7 @@ describe('POST /api/v1/groups', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch('http://localhost:3000/api/v1/groups', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,7 +82,7 @@ describe('POST /api/v1/groups', () => {
 });
 
 describe('GET /api/v1/groups', () => {
-  it('deve listar grupos do usuário', async () => {
+  it('lists the user groups', async () => {
     const token = await orchestrator.createUserAndToken();
 
     await orchestrator.createGroup(token, 'Grupo A');
@@ -100,7 +100,7 @@ describe('GET /api/v1/groups', () => {
     expect(data[0].member_count).toBeDefined();
   });
 
-  it('deve retornar array vazio quando não tem grupos', async () => {
+  it('returns an empty array when the user has no groups', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups', {
@@ -113,7 +113,7 @@ describe('GET /api/v1/groups', () => {
     expect(data).toEqual([]);
   });
 
-  it('não deve listar grupos de outro usuário', async () => {
+  it('does not list groups from another user', async () => {
     const token1 = await orchestrator.createUserAndToken();
     const token2 = await orchestrator.createUserAndToken();
 

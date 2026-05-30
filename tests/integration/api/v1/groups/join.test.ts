@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/groups/join', () => {
-  it('deve entrar no grupo com código válido', async () => {
+  it('joins a group with a valid code', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const memberToken = await orchestrator.createUserAndToken();
 
@@ -30,7 +30,7 @@ describe('POST /api/v1/groups/join', () => {
     expect(data.member_count).toBe(2);
   });
 
-  it('deve retornar 404 com código inválido', async () => {
+  it('returns 404 with an invalid code', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups/join', {
@@ -48,7 +48,7 @@ describe('POST /api/v1/groups/join', () => {
     expect(data.name).toBe('NotFoundError');
   });
 
-  it('deve retornar 400 quando já é membro', async () => {
+  it('returns 400 when the user is already a member', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');
 
@@ -67,7 +67,7 @@ describe('POST /api/v1/groups/join', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando código está vazio', async () => {
+  it('returns 400 when the code is empty', async () => {
     const token = await orchestrator.createUserAndToken();
 
     const response = await fetch('http://localhost:3000/api/v1/groups/join', {
@@ -85,7 +85,7 @@ describe('POST /api/v1/groups/join', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch('http://localhost:3000/api/v1/groups/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

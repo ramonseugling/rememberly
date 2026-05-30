@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /dates', () => {
-  it('deve redirecionar para / quando usuário não está autenticado', async () => {
+  it('redirects to / when the user is not authenticated', async () => {
     const response = await fetch('http://localhost:3000/dates', {
       redirect: 'manual',
     });
@@ -15,7 +15,7 @@ describe('GET /dates', () => {
     expect(response.headers.get('location')).toBe('/');
   });
 
-  it('deve exibir a página de datas quando usuário está autenticado', async () => {
+  it('shows the dates page when the user is authenticated', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/dates', {
@@ -26,7 +26,7 @@ describe('GET /dates', () => {
     expect(response.status).toBe(200);
   });
 
-  it('deve exibir a página de datas quando usuário tem eventos de grupo', async () => {
+  it('shows the dates page when the user has group events', async () => {
     const cookie = await orchestrator.createAuthCookie({
       birth_day: 15,
       birth_month: 6,

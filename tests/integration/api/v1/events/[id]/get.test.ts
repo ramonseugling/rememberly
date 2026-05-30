@@ -62,7 +62,7 @@ async function createEvent(
 }
 
 describe('GET /api/v1/events/[id]', () => {
-  it('deve retornar um evento pelo id', async () => {
+  it('returns an event by id', async () => {
     const { token } = await createUserAndSession();
     const created = await createEvent(token, {
       title: 'Aniversário do João',
@@ -86,7 +86,7 @@ describe('GET /api/v1/events/[id]', () => {
     expect(data.event_month).toBe(3);
   });
 
-  it('deve retornar 404 ao buscar evento de outro usuário', async () => {
+  it('returns 404 when fetching another user event', async () => {
     const { token: tokenA } = await createUserAndSession();
     const { token: tokenB } = await createUserAndSession();
 
@@ -103,7 +103,7 @@ describe('GET /api/v1/events/[id]', () => {
     expect(data.name).toBe('NotFoundError');
   });
 
-  it('deve retornar 404 para id inexistente', async () => {
+  it('returns 404 for a nonexistent id', async () => {
     const { token } = await createUserAndSession();
 
     const response = await fetch(
@@ -114,7 +114,7 @@ describe('GET /api/v1/events/[id]', () => {
     expect(response.status).toBe(404);
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/events/qualquer-id',
     );

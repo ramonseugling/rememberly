@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/groups/[id]', () => {
-  it('deve retornar detalhes do grupo para membro', async () => {
+  it('returns group details for a member', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Família');
 
@@ -29,7 +29,7 @@ describe('GET /api/v1/groups/[id]', () => {
     expect(data.members.length).toBe(1);
   });
 
-  it('deve retornar 404 para não-membro', async () => {
+  it('returns 404 for a non-member', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const otherToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Privado');
@@ -49,7 +49,7 @@ describe('GET /api/v1/groups/[id]', () => {
 });
 
 describe('PATCH /api/v1/groups/[id]', () => {
-  it('deve atualizar nome quando owner', async () => {
+  it('updates the name when the user is owner', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Nome Antigo');
 
@@ -71,7 +71,7 @@ describe('PATCH /api/v1/groups/[id]', () => {
     expect(data.name).toBe('Nome Novo');
   });
 
-  it('deve retornar 401 quando membro tenta atualizar', async () => {
+  it('returns 401 when a member tries to update', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const memberToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');
@@ -96,7 +96,7 @@ describe('PATCH /api/v1/groups/[id]', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar 404 quando não-membro tenta atualizar', async () => {
+  it('returns 404 when a non-member tries to update', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const otherToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');
@@ -118,7 +118,7 @@ describe('PATCH /api/v1/groups/[id]', () => {
 });
 
 describe('DELETE /api/v1/groups/[id]', () => {
-  it('deve deletar grupo quando owner', async () => {
+  it('deletes the group when the user is owner', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Deletar');
 
@@ -142,7 +142,7 @@ describe('DELETE /api/v1/groups/[id]', () => {
     expect(getResponse.status).toBe(404);
   });
 
-  it('deve retornar 401 quando membro tenta deletar', async () => {
+  it('returns 401 when a member tries to delete', async () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const memberToken = await orchestrator.createUserAndToken();
     const group = await orchestrator.createGroup(ownerToken, 'Grupo');

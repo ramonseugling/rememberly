@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/auth/google/callback', () => {
-  it('deve retornar erro com state inválido', async () => {
+  it('returns an error with an invalid state', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/auth/google/callback?code=fake&state=invalid',
       { redirect: 'manual' },
@@ -19,7 +19,7 @@ describe('GET /api/v1/auth/google/callback', () => {
     expect(data.message).toBe('Estado de autenticação inválido.');
   });
 
-  it('deve retornar erro sem code', async () => {
+  it('returns an error without a code', async () => {
     // First get a valid state from the auth endpoint
     const authResponse = await fetch(
       'http://localhost:3000/api/v1/auth/google',

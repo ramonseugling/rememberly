@@ -1,183 +1,183 @@
 # Rememberly
 
-## Visão do produto
+## Product vision
 
-Aplicação multi-usuário para registrar datas importantes de pessoas e receber notificações por e-mail no dia do evento.
+A multi-user application to record important dates for people and receive email notifications on the day of the event.
 
-**Problema que resolve**: lembrar de datas anuais como aniversários, casamentos e início de relacionamentos das pessoas importantes da sua vida.
+**Problem it solves**: remembering annual dates like birthdays, weddings, and relationship anniversaries of the important people in your life.
 
-### Entidades
+### Entities
 
 **User**
 
-- `name` — nome
-- `email` — e-mail (único, case-insensitive)
-- `password` — hash bcrypt (nullable — usuários que entram via Google podem não ter senha)
-- `birthday` — data de aniversário do próprio usuário (opcional)
-- `is_admin` — flag de admin
+- `name` — full name
+- `email` — email address (unique, case-insensitive)
+- `password` — bcrypt hash (nullable — users who sign up via Google may not have a password)
+- `birthday` — the user's own birthday (optional)
+- `is_admin` — admin flag
 - `id`, `created_at`, `updated_at`
 
 **Event**
 
-- `title` — nome livre (ex: "Pedro", "Aniversário de namoro com Ana")
+- `title` — free text (e.g. "Pedro", "Dating anniversary with Ana")
 - `type` — enum: `birthday`, `dating_anniversary`, `wedding_anniversary`, `celebration`, `custom`
-- `custom_type` — texto livre quando `type = 'custom'`
-- `date` — dia + mês (sem ano obrigatório — eventos repetem anualmente)
-- `reminder_days_before` — antecedência do reminder em dias. Valores válidos: `0, 1, 3, 7, 15, 30` (`0` = só no dia)
-- `user_id` — FK para o usuário dono do evento
+- `custom_type` — free text when `type = 'custom'`
+- `date` — day + month (year optional — events repeat annually)
+- `reminder_days_before` — how many days in advance to send a reminder. Valid values: `0, 1, 3, 7, 15, 30` (`0` = only on the day)
+- `user_id` — FK to the owner user
 - `id`, `created_at`, `updated_at`
 
 **Group / GroupMember**
 
-- Grupos para compartilhar eventos entre múltiplos usuários (ex: família, time)
-- `group_members` liga `user_id` a `group_id` com papel
+- Groups for sharing events across multiple users (e.g. family, team)
+- `group_members` links `user_id` to `group_id` with a role
 
-**Session, OtpToken, PasswordResetToken** — tabelas de apoio para auth.
+**Session, OtpToken, PasswordResetToken** — supporting tables for auth.
 
-### Regras de negócio
+### Business rules
 
-- Cada usuário vê e gerencia apenas seus próprios eventos (e os de grupos que participa)
-- Eventos repetem anualmente na mesma data
-- No dia do evento o usuário recebe um e-mail; se `reminder_days_before > 0`, recebe também um e-mail de antecedência
-- Um cron job diário (Vercel Cron) verifica os eventos do dia e dispara os e-mails
+- Each user sees and manages only their own events (and those of groups they belong to)
+- Events repeat annually on the same date
+- On the event day the user receives an email; if `reminder_days_before > 0`, they also receive an advance reminder email
+- A daily cron job (Vercel Cron) checks the day's events and sends the emails
 
-### Fluxo principal
+### Main flow
 
-1. Cadastro com OTP por e-mail OU login com Google
-2. Usuário cadastra eventos (título, tipo, data, antecedência do reminder)
-3. Todo dia de manhã recebe e-mails para os eventos que caem hoje + reminders de eventos próximos
+1. Sign up with email OTP OR sign in with Google
+2. User creates events (title, type, date, reminder advance)
+3. Every morning they receive emails for events that fall today + reminders for upcoming events
 
-### Acesso
+### Access
 
-- Cadastro aberto — via e-mail (com OTP) ou Google OAuth
+- Open registration — via email (with OTP) or Google OAuth
 
-## Decisões técnicas
+## Technical decisions
 
-### Notificações
+### Notifications
 
-- **Cron job**: Vercel Cron Jobs — executa diariamente de manhã chamando um endpoint interno (autorizado via `CRON_SECRET`)
-- **E-mail**: Resend (via SDK `resend`) — domínio remetente `rememberly.com.br`
-- Localmente: usa o sandbox do Resend (`onboarding@resend.dev`), que só entrega na conta dona da API key
+- **Cron job**: Vercel Cron Jobs — runs daily in the morning by calling an internal endpoint (authorized via `CRON_SECRET`)
+- **Email**: Resend (via `resend` SDK) — sender domain `rememberly.com.br`
+- Locally: uses the Resend sandbox (`onboarding@resend.dev`), which only delivers to the account that owns the API key
 
 ### Auth
 
-- Sessão própria em DB (cookie `session_token` HttpOnly, validade de 30 dias)
-- Cadastro com OTP por e-mail (tabela `otp_tokens`)
-- Reset de senha com token (tabela `password_reset_tokens`)
-- Login com Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
+- Custom DB-backed session (HttpOnly cookie `session_token`, 30-day expiry)
+- Sign up with email OTP (`otp_tokens` table)
+- Password reset with token (`password_reset_tokens` table)
+- Google OAuth login (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
 
 ### UI
 
-- **Tailwind CSS v4** com `@theme` (sem `tailwind.config.ts`)
-- **shadcn/ui** para componentes base (`components/ui/`)
-- **Fontes Google**: Fredoka (heading) + Quicksand (body) via `next/font/google`
-- Design system definido em `styles/globals.css`
+- **Tailwind CSS v4** with `@theme` (no `tailwind.config.ts`)
+- **shadcn/ui** for base components (`components/ui/`)
+- **Google Fonts**: Fredoka (headings) + Quicksand (body) via `next/font/google`
+- Design system defined in `styles/globals.css`
 
-### Observabilidade
+### Observability
 
-- Logging via `next-axiom` — datasets em Axiom (`AXIOM_DATASET`, `AXIOM_TOKEN`)
-- Eventos importantes (envio de e-mail, erros internos) são logados com `log.info` / `log.error`
+- Logging via `next-axiom` — datasets in Axiom (`AXIOM_DATASET`, `AXIOM_TOKEN`)
+- Important events (email sent, internal errors) are logged with `log.info` / `log.error`
 
 ### Deploy
 
-- Hospedagem: **Vercel** (necessário para Vercel Cron Jobs)
-- Banco de dados: **Neon** (Postgres serverless, SSL obrigatório em produção)
+- Hosting: **Vercel** (required for Vercel Cron Jobs)
+- Database: **Neon** (serverless Postgres, SSL required in production)
 
 ## Stack
 
 - Next.js 16, React 19, TypeScript (strict mode)
-- PostgreSQL (via `pg` — sem ORM, SQL puro com queries parametrizadas)
-- `node-pg-migrate` para migrations
+- PostgreSQL (via `pg` — no ORM, raw parameterized SQL queries)
+- `node-pg-migrate` for migrations
 - Prettier: single quotes, semi, tabWidth 2, trailingComma all
 
-## Arquitetura MVC
+## MVC Architecture
 
-Implementação simples com camadas bem definidas e responsabilidades separadas.
+Simple implementation with well-defined layers and separated responsibilities.
 
 ```
 HTTP Request
     ↓
-[Controller]  pages/api/v1/*       → recebe a requisição, chama model, devolve resposta
+[Controller]  pages/api/v1/*       → receives the request, calls model, returns response
     ↓
-[Middleware]  infra/controller.ts  → autenticação, autorização, tratamento de erros
+[Middleware]  infra/controller.ts  → authentication, authorization, error handling
     ↓
-[Model]       models/*             → regras de negócio e acesso a dados
+[Model]       models/*             → business logic and data access
     ↓
-[Infra]       infra/database.ts    → execução das queries PostgreSQL
+[Infra]       infra/database.ts    → PostgreSQL query execution
 ```
 
-### Camadas
+### Layers
 
 **Controller** (`pages/api/v1/`)
 
-- Recebe a requisição HTTP
-- Delega para o model correspondente
-- Devolve a resposta
+- Receives the HTTP request
+- Delegates to the corresponding model
+- Returns the response
 
 **Middleware** (`infra/controller.ts`)
 
-- **Autenticação**: valida se o usuário está logado (sessão válida)
-- **Autorização**: valida se o usuário tem permissão para acessar o recurso
-- **Erros**: captura exceções e formata a resposta de erro
+- **Authentication**: validates whether the user is logged in (valid session)
+- **Authorization**: validates whether the user has permission to access the resource
+- **Errors**: catches exceptions and formats the error response
 
 **Model** (`models/`)
 
-- Toda a lógica de negócio
-- Queries ao banco de dados
-- Validações de domínio
+- All business logic
+- Database queries
+- Domain validations
 
 **Infra** (`infra/`)
 
-- `database.ts` — pool de conexão e execução de queries
-- `errors.ts` — classes de erro customizadas
-- `migrations/` — schema do banco
+- `database.ts` — connection pool and query execution
+- `errors.ts` — custom error classes
+- `migrations/` — database schema
 
-## Estrutura de pastas
+## Folder structure
 
 ```
 pages/
   index.tsx
-  _app.tsx           → wrapper global com fontes aplicadas
-  _document.tsx      → HTML base
+  _app.tsx           → global wrapper with fonts applied
+  _document.tsx      → base HTML
   api/
-    v1/              → todos os endpoints aqui
+    v1/              → all endpoints here
 components/
-  ui/                → componentes shadcn/ui (Button, Card, Badge...)
+  ui/                → shadcn/ui components (Button, Card, Badge...)
   layout/            → layout.tsx
   header/            → header.tsx
   footer/            → footer.tsx
-  [feature]/         → cada componente em seu próprio diretório
+  [feature]/         → each component in its own directory
 lib/
-  fonts.ts           → instâncias next/font/google centralizadas
+  fonts.ts           → centralized next/font/google instances
   utils.ts           → cn() (clsx + tailwind-merge)
-mocks/               → dados mock para desenvolvimento
-models/              → lógica de negócio (user, event, session, otp, password-reset, google-auth, group, group-member, notification, email, admin, ...)
+mocks/               → mock data for development
+models/              → business logic (user, event, session, otp, password-reset, google-auth, group, group-member, notification, email, admin, ...)
 infra/
-  database.ts        → pool de conexão PostgreSQL
-  errors.ts          → classes de erro customizadas
-  controller.ts      → middleware: auth, autorização, erros
-  migrations/        → arquivos de migration
-  scripts/           → utilitários (ex: wait-for-postgres)
+  database.ts        → PostgreSQL connection pool
+  errors.ts          → custom error classes
+  controller.ts      → middleware: auth, authorization, errors
+  migrations/        → migration files
+  scripts/           → utilities (e.g. wait-for-postgres)
 styles/
-  globals.css        → design system (Tailwind v4 @theme, CSS vars, utilitários)
+  globals.css        → design system (Tailwind v4 @theme, CSS vars, utilities)
 tests/
-  orchestrator.ts    → setup/teardown dos testes
+  orchestrator.ts    → test setup/teardown
   integration/
-    api/v1/          → testes espelhando estrutura de endpoints
+    api/v1/          → tests mirroring endpoint structure
 ```
 
 ## API
 
-- Todos os endpoints sob `/api/v1/`
-- Roteamento por método HTTP via wrappers próprios em `infra/controller.ts`:
-  - `controller({ GET, POST, ... })` — rotas públicas
-  - `authenticatedController({ GET, POST, ... })` — rotas protegidas (valida cookie `session_token` ou header `Authorization: Bearer`); o handler recebe `AuthenticatedRequest` com `req.user.{ id, name, email }`
-- Respostas: 201 para criação, 200 para sucesso, 204 para vazio, 4xx/5xx para erros
-- Erros sempre retornam JSON com: `name`, `message`, `action`, `status_code`
+- All endpoints under `/api/v1/`
+- HTTP method routing via custom wrappers in `infra/controller.ts`:
+  - `controller({ GET, POST, ... })` — public routes
+  - `authenticatedController({ GET, POST, ... })` — protected routes (validates `session_token` cookie or `Authorization: Bearer` header); the handler receives `AuthenticatedRequest` with `req.user.{ id, name, email }`
+- Responses: 201 for creation, 200 for success, 204 for empty, 4xx/5xx for errors
+- Errors always return JSON with: `name`, `message`, `action`, `status_code`
 
-## Erros customizados (`infra/errors.ts`)
+## Custom errors (`infra/errors.ts`)
 
-Criar hierarquia de erros com classes tipadas:
+Error hierarchy with typed classes:
 
 - `ValidationError` → 400
 - `UnauthorizedError` → 401
@@ -185,76 +185,76 @@ Criar hierarquia de erros com classes tipadas:
 - `MethodNotAllowedError` → 405
 - `TooManyRequestsError` → 429
 - `ServiceError` → 503
-- `InternalServerError` → 500 (fallback automático para exceções não-tipadas — nunca lance explicitamente)
+- `InternalServerError` → 500 (automatic fallback for untyped exceptions — never throw explicitly)
 
-Cada erro implementa `toJSON()` para resposta consistente na API.
+Each error implements `toJSON()` for a consistent API response.
 
-## Banco de dados
+## Database
 
-- Queries com parâmetros (`$1, $2`) — nunca interpolação de string
-- `RETURNING *` nas operações de create/update
-- Verificações case-insensitive para campos únicos (username, email)
-- SSL automático em produção
+- Queries with parameters (`$1, $2`) — never string interpolation
+- `RETURNING *` on create/update operations
+- Case-insensitive checks for unique fields (username, email)
+- Automatic SSL in production
 
 ## Migrations
 
-- Usar `node-pg-migrate`
-- `exports.down = false` — sem rollback automático
-- Campos padrão em todas as tabelas:
+- Use `node-pg-migrate`
+- `exports.down = false` — no automatic rollback
+- Default fields in all tables:
   - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
   - `created_at TIMESTAMPTZ DEFAULT NOW()`
   - `updated_at TIMESTAMPTZ DEFAULT NOW()`
 
-## Testes
+## Tests
 
 - Framework: Jest
-- Filosofia: **sem mocks** — usar serviços reais (banco real, etc.)
-- Testes espelham estrutura de endpoints: `tests/integration/api/v1/...`
-- `orchestrator.ts` centraliza: `clearDatabase()`, `runPendingMigrations()`, factories
-- Usar `@faker-js/faker` para geração de dados de teste
-- Timeout padrão: 60 segundos
-- Rodar com `--runInBand` (sequencial) para evitar conflitos no banco
+- Philosophy: **no mocks** — use real services (real database, etc.)
+- Tests mirror endpoint structure: `tests/integration/api/v1/...`
+- `orchestrator.ts` centralizes: `clearDatabase()`, `runPendingMigrations()`, factories
+- Use `@faker-js/faker` for generating test data
+- Default timeout: 60 seconds
+- Run with `--runInBand` (sequential) to avoid database conflicts
 
-## Convenções de código
+## Code conventions
 
-### Componentes
+### Components
 
-- **Pages** (`pages/*.tsx`): `export default function NomeDaPagina()`
-- **Componentes** (`components/**/*.tsx`): `export const NomeDoComponente = () => {}`
-- Um componente por diretório, arquivo com nome explícito (não `index.tsx`)
-  - Ex: `components/date-card/date-card.tsx`
-- Props tipadas com `interface`:
+- **Pages** (`pages/*.tsx`): `export default function PageName()`
+- **Components** (`components/**/*.tsx`): `export const ComponentName = () => {}`
+- One component per directory, file with explicit name (not `index.tsx`)
+  - E.g. `components/date-card/date-card.tsx`
+- Props typed with `interface`:
   ```ts
   interface DateCardProps {
     name: string;
     type: 'birthday' | 'anniversary';
   }
   ```
-- Importações sempre com alias `@/`:
+- Imports always with `@/` alias:
   - `import { Button } from '@/components/ui/button'`
 
-### Geral
+### General
 
-- Sem `any`
-- Sem comentários óbvios
-- Mensagens de erro voltadas ao usuário em português
+- No `any`
+- No obvious comments
+- User-facing error messages in Portuguese (pt-BR)
 
-### Fontes (next/font/google)
+### Fonts (next/font/google)
 
-Instâncias centralizadas em `lib/fonts.ts`. Aplicadas em `pages/_app.tsx`:
+Centralized instances in `lib/fonts.ts`. Applied in `pages/_app.tsx`:
 
-- `quicksand.className` na div wrapper → fonte do corpo via herança CSS
-- `fredoka.style.fontFamily` via `<style>` tag → aplicada em `h1-h6` e `.font-heading`
+- `quicksand.className` on the wrapper div → body font via CSS inheritance
+- `fredoka.style.fontFamily` via `<style>` tag → applied to `h1-h6` and `.font-heading`
 
-Motivo: no Pages Router, variáveis CSS de fontes não ficam disponíveis em elementos pai (body/html) quando aplicadas em divs filhas. O `<style>` tag injeta o valor real da fonte gerado pelo next/font.
+Reason: in Pages Router, font CSS variables are not available on parent elements (body/html) when applied to child divs. The `<style>` tag injects the actual font value generated by next/font.
 
 ## Commits
 
-- Seguir Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
-- Validar com commitlint + husky
+- Follow Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- Validated with commitlint + husky
 
-## Infraestrutura local
+## Local infrastructure
 
-- Docker Compose em `infra/compose.yaml` para PostgreSQL local
-- Script `wait-for-postgres` antes de subir o servidor
-- `.env.development` para variáveis locais
+- Docker Compose in `infra/compose.yaml` for local PostgreSQL
+- `wait-for-postgres` script before starting the server
+- `.env.development` for local variables

@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('PATCH /api/v1/users', () => {
-  it('deve atualizar a data de nascimento com sucesso', async () => {
+  it('updates the birth date successfully', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -31,7 +31,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.password).toBeUndefined();
   });
 
-  it('deve retornar 401 quando não autenticado', async () => {
+  it('returns 401 when not authenticated', async () => {
     const response = await fetch('http://localhost:3000/api/v1/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -48,7 +48,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  it('deve retornar 400 quando dia é inválido', async () => {
+  it('returns 400 when the day is invalid', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -70,7 +70,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando mês é inválido', async () => {
+  it('returns 400 when the month is invalid', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -92,7 +92,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando ano é no futuro', async () => {
+  it('returns 400 when the year is in the future', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -114,7 +114,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando ano é anterior a 1900', async () => {
+  it('returns 400 when the year is before 1900', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -136,7 +136,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando campos obrigatórios não são enviados', async () => {
+  it('returns 400 when required fields are not sent', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -154,7 +154,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve retornar 400 quando dia é zero', async () => {
+  it('returns 400 when the day is zero', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -176,7 +176,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve atualizar o nome com sucesso', async () => {
+  it('updates the name successfully', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -195,7 +195,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.password).toBeUndefined();
   });
 
-  it('deve atualizar nome e data de nascimento juntos', async () => {
+  it('updates name and birth date together', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -221,7 +221,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.birth_year).toBe(1990);
   });
 
-  it('deve retornar 400 quando nome tem menos de 2 caracteres', async () => {
+  it('returns 400 when the name has fewer than 2 characters', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/api/v1/users', {
@@ -239,7 +239,7 @@ describe('PATCH /api/v1/users', () => {
     expect(data.name).toBe('ValidationError');
   });
 
-  it('deve manter campos não enviados inalterados ao atualizar apenas o nome', async () => {
+  it('keeps unsent fields unchanged when updating only the name', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     await fetch('http://localhost:3000/api/v1/users', {

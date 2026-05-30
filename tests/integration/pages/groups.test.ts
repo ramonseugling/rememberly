@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /groups', () => {
-  it('deve redirecionar para / quando usuário não está autenticado', async () => {
+  it('redirects to / when the user is not authenticated', async () => {
     const response = await fetch('http://localhost:3000/groups', {
       redirect: 'manual',
     });
@@ -15,7 +15,7 @@ describe('GET /groups', () => {
     expect(response.headers.get('location')).toBe('/');
   });
 
-  it('deve exibir a página de grupos quando usuário está autenticado', async () => {
+  it('shows the groups page when the user is authenticated', async () => {
     const cookie = await orchestrator.createAuthCookie();
 
     const response = await fetch('http://localhost:3000/groups', {
@@ -26,7 +26,7 @@ describe('GET /groups', () => {
     expect(response.status).toBe(200);
   });
 
-  it('deve exibir a página de grupos quando user tem grupos', async () => {
+  it('shows the groups page when the user has groups', async () => {
     const cookie = await orchestrator.createAuthCookie();
     const token = orchestrator.extractToken(cookie);
     await orchestrator.createGroup(token, 'Família');

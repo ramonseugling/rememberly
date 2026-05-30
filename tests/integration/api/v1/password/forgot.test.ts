@@ -28,7 +28,7 @@ async function createUserWithOtp() {
 }
 
 describe('POST /api/v1/password/forgot', () => {
-  it('deve retornar 200 mesmo quando e-mail não existe', async () => {
+  it('returns 200 even when the email does not exist', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/password/forgot',
       {
@@ -44,7 +44,7 @@ describe('POST /api/v1/password/forgot', () => {
     expect(data.message).toBeDefined();
   });
 
-  it('deve retornar 200 quando e-mail existe (sem vazar informação)', async () => {
+  it('returns 200 when the email exists (without leaking information)', async () => {
     const createdUser = await createUserWithOtp();
 
     const response = await fetch(
@@ -62,7 +62,7 @@ describe('POST /api/v1/password/forgot', () => {
     expect(data.message).toBeDefined();
   });
 
-  it('deve retornar 200 com google_only para conta Google (sem senha)', async () => {
+  it('returns 200 with google_only for a Google account (without password)', async () => {
     const googleEmail = faker.internet.email();
     await database.query(`INSERT INTO users (name, email) VALUES ($1, $2)`, [
       faker.person.fullName(),
@@ -93,7 +93,7 @@ describe('POST /api/v1/password/forgot', () => {
     expect(parseInt(tokenResult.rows[0].count, 10)).toBe(0);
   });
 
-  it('deve retornar 405 para método GET', async () => {
+  it('returns 405 for the GET method', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/password/forgot',
     );
@@ -110,7 +110,7 @@ describe('POST /api/v1/password/forgot', () => {
       });
     }
 
-    it('deve permitir até 2 requisições por hora', async () => {
+    it('allows up to 2 requests per hour', async () => {
       const createdUser = await createUserWithOtp();
 
       const first = await requestPasswordReset(createdUser.email);
@@ -120,7 +120,7 @@ describe('POST /api/v1/password/forgot', () => {
       expect(second.status).toBe(200);
     });
 
-    it('deve retornar 429 na 3ª requisição dentro de uma hora', async () => {
+    it('returns 429 on the 3rd request within an hour', async () => {
       const createdUser = await createUserWithOtp();
 
       await requestPasswordReset(createdUser.email);
@@ -133,7 +133,7 @@ describe('POST /api/v1/password/forgot', () => {
       expect(data.name).toBe('TooManyRequestsError');
     });
 
-    it('não deve contar tokens criados há mais de 1 hora', async () => {
+    it('does not count tokens created more than 1 hour ago', async () => {
       const createdUser = await createUserWithOtp();
 
       await database.query(

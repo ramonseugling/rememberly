@@ -18,3 +18,7 @@ out/
 ## markdown files
 todo.md
 features.md
+next-steps.md 
+
+# generated email preview (recreated by scripts/preview-email.ts)
+email-preview.html

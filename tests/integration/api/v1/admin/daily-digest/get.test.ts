@@ -6,7 +6,7 @@ beforeAll(async () => {
 });
 
 describe('GET /api/v1/admin/daily-digest', () => {
-  test('deve retornar 401 sem CRON_SECRET', async () => {
+  test('returns 401 without CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/admin/daily-digest',
     );
@@ -16,7 +16,7 @@ describe('GET /api/v1/admin/daily-digest', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  test('deve retornar 401 com CRON_SECRET inválido', async () => {
+  test('returns 401 with an invalid CRON_SECRET', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/admin/daily-digest',
       { headers: { Authorization: 'Bearer token-invalido' } },
@@ -27,7 +27,7 @@ describe('GET /api/v1/admin/daily-digest', () => {
     expect(data.name).toBe('UnauthorizedError');
   });
 
-  test('deve retornar 405 para métodos não permitidos', async () => {
+  test('returns 405 for disallowed methods', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/admin/daily-digest',
       { method: 'POST' },
@@ -36,7 +36,7 @@ describe('GET /api/v1/admin/daily-digest', () => {
     expect(response.status).toBe(405);
   });
 
-  test('deve retornar skipped: no_recipients quando DIGEST_RECIPIENTS não está configurada', async () => {
+  test('returns skipped: no_recipients when DIGEST_RECIPIENTS is not configured', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/admin/daily-digest',
       {

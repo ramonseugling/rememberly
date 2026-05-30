@@ -146,7 +146,7 @@ async function createGroup(token: string, name?: string) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ name: name ?? `Grupo ${faker.word.noun()}` }),
+    body: JSON.stringify({ name: name ?? `Group ${faker.word.noun()}` }),
   });
 
   return response.json();

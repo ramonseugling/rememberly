@@ -15,7 +15,7 @@ import database from 'infra/database';
 const DEV_EMAIL = 'dev@dev.com';
 const DEV_PASSWORD = 'senha123';
 
-// Troque para 1, 2 ou 3 e rode `npm run seed` para validar o carrossel de destaques
+// Set to 1, 2 or 3 and run `npm run seed` to validate the highlights carousel
 const HIGHLIGHTS_COUNT = 3;
 
 const today = new Date();
@@ -39,7 +39,7 @@ async function clearDatabase() {
       users
     RESTART IDENTITY CASCADE
   `);
-  console.log('✓ Banco limpo');
+  console.log('✓ Database cleared');
 }
 
 async function hashPassword(plain: string) {
@@ -113,11 +113,11 @@ async function createEvent(
 }
 
 async function seed() {
-  console.log('\n🌱 Iniciando seed...\n');
+  console.log('\n🌱 Starting seed...\n');
 
   await clearDatabase();
 
-  // --- Usuários ---
+  // --- Users ---
 
   const dev = await createUser({
     name: 'Você (Dev)',
@@ -183,9 +183,9 @@ async function seed() {
     birth_year: 1997,
   });
 
-  console.log('✓ Usuários criados');
+  console.log('✓ Users created');
 
-  // --- Grupos ---
+  // --- Groups ---
 
   const familia = await createGroup('Família', dev.id);
   await addMember(familia.id, maria.id);
@@ -202,15 +202,15 @@ async function seed() {
   await addMember(amigos.id, maria.id);
   await addMember(amigos.id, lucas.id);
 
-  // Grupo criado por outra pessoa — dev é apenas membro
+  // Group created by someone else — dev is just a member
   const devBoys = await createGroup('Dev Boys', lucas.id);
   await addMember(devBoys.id, dev.id);
   await addMember(devBoys.id, joao.id);
   await addMember(devBoys.id, pedro.id);
 
-  console.log('✓ Grupos criados');
+  console.log('✓ Groups created');
 
-  // --- Eventos do usuário dev ---
+  // --- Dev user events ---
 
   const eventMonth = addDays(3);
   const eventMonth2 = addDays(15);
@@ -243,35 +243,35 @@ async function seed() {
     event_month: addDays(28).birth_month,
   });
 
-  console.log('✓ Eventos criados');
+  console.log('✓ Events created');
 
-  // --- Resumo ---
+  // --- Summary ---
 
   const highlightLines = [
-    '║  • Lucas    — hoje (destaque 1)      ║',
+    '║  • Lucas    — today (highlight 1)    ║',
     HIGHLIGHTS_COUNT >= 2
-      ? '║  • Maria    — em 2 dias (destaque 2) ║'
-      : '║  • Maria    — em 35 dias             ║',
+      ? '║  • Maria    — in 2 days (highlight 2)║'
+      : '║  • Maria    — in 35 days             ║',
     HIGHLIGHTS_COUNT >= 3
-      ? '║  • João     — em 5 dias (destaque 3) ║'
-      : '║  • João     — em 40 dias             ║',
+      ? '║  • João     — in 5 days (highlight 3)║'
+      : '║  • João     — in 40 days             ║',
   ].join('\n');
 
   console.log(`
 ╔══════════════════════════════════════╗
-║         Seed concluído! ✅            ║
+║         Seed complete! ✅             ║
 ╠══════════════════════════════════════╣
-║  Login do usuário dev:               ║
-║  email:  ${DEV_EMAIL.padEnd(27)}║
-║  senha:  ${DEV_PASSWORD.padEnd(27)}║
+║  Dev user login:                     ║
+║  email:    ${DEV_EMAIL.padEnd(25)}║
+║  password: ${DEV_PASSWORD.padEnd(25)}║
 ╠══════════════════════════════════════╣
-║  Grupos criados:                     ║
-║  • Família  (5 membros) — seu        ║
-║  • Trabalho (4 membros) — seu        ║
-║  • Amigos   (3 membros) — seu        ║
-║  • Dev Boys (4 membros) — membro     ║
+║  Groups created:                     ║
+║  • Família  (5 members) — owner      ║
+║  • Trabalho (4 members) — owner      ║
+║  • Amigos   (3 members) — owner      ║
+║  • Dev Boys (4 members) — member     ║
 ╠══════════════════════════════════════╣
-║  Destaques ativos: ${String(HIGHLIGHTS_COUNT).padEnd(18)}║
+║  Active highlights: ${String(HIGHLIGHTS_COUNT).padEnd(17)}║
 ${highlightLines}
 ╚══════════════════════════════════════╝
   `);
@@ -280,6 +280,6 @@ ${highlightLines}
 }
 
 seed().catch((err) => {
-  console.error('Erro no seed:', err);
+  console.error('Seed error:', err);
   process.exit(1);
 });

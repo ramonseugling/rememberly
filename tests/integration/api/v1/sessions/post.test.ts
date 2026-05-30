@@ -7,7 +7,7 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/sessions', () => {
-  it('deve retornar token ao fazer login com credenciais válidas', async () => {
+  it('returns a token when logging in with valid credentials', async () => {
     const body = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
@@ -39,7 +39,7 @@ describe('POST /api/v1/sessions', () => {
     expect(response.headers.get('set-cookie')).toContain('session_token=');
   });
 
-  it('deve retornar 401 com credenciais inválidas', async () => {
+  it('returns 401 with invalid credentials', async () => {
     const response = await fetch('http://localhost:3000/api/v1/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
