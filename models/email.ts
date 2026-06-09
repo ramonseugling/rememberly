@@ -1,23 +1,10 @@
 import { log } from 'next-axiom';
 import { Resend } from 'resend';
-import { getToday } from '@/lib/date-utils';
 import { escapeHtml } from '@/lib/sanitize';
 
 const FROM = process.env.EMAIL_FROM ?? 'Rememberly <noreply@rememberly.com.br>';
 
 const APP_URL = process.env.APP_URL ?? 'https://www.rememberly.com.br';
-
-const GIF_TYPES = new Set([
-  'birthday',
-  'dating_anniversary',
-  'wedding_anniversary',
-]);
-
-export function eventGifUrl(eventType: string, month: number): string | null {
-  if (!GIF_TYPES.has(eventType)) return null;
-  const mm = String(month).padStart(2, '0');
-  return `${APP_URL}/images/email/gifs/${eventType}/${mm}.gif`;
-}
 
 const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
@@ -99,19 +86,9 @@ function buildEmailLayout({
   `;
 }
 
-function brandHeroCard(
-  label: string,
-  title: string,
-  extra?: string,
-  gifUrl?: string | null,
-) {
+function brandHeroCard(label: string, title: string, extra?: string) {
   return `
     <div style="${BRAND_GRADIENT_BG} padding: 24px; border-radius: 20px; margin-bottom: 8px;">
-      ${
-        gifUrl
-          ? `<img src="${gifUrl}" alt="${label}" width="100%" style="display: block; width: 100%; max-width: 432px; height: auto; border-radius: 12px; margin: 0 0 16px 0;" />`
-          : ''
-      }
       <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 8px 0; font-weight: 500;">
         ${label}
       </p>
@@ -133,7 +110,6 @@ interface SendEventNotificationInput {
   eventTitle: string;
   eventType: string;
   customType?: string | null;
-  month?: number;
 }
 
 async function sendEventNotification(input: SendEventNotificationInput) {
@@ -147,9 +123,6 @@ async function sendEventNotification(input: SendEventNotificationInput) {
   const safeEventTitle = escapeHtml(input.eventTitle);
   const safeTypeLabel = escapeHtml(typeLabel);
 
-  const month = input.month ?? getToday().getMonth() + 1;
-  const gifUrl = eventGifUrl(input.eventType, month);
-
   await resend.emails.send({
     from: FROM,
     to: input.to,
@@ -158,7 +131,6 @@ async function sendEventNotification(input: SendEventNotificationInput) {
       safeUserName,
       safeEventTitle,
       safeTypeLabel,
-      gifUrl,
     ),
   });
 
@@ -173,11 +145,10 @@ export function buildEventNotificationHtml(
   userName: string,
   eventTitle: string,
   typeLabel: string,
-  gifUrl: string | null,
 ) {
   return buildEmailLayout({
     greeting: `Bom dia, <strong>${userName}</strong>. Hoje é um dia especial! Não esqueça de celebrar. 🎉`,
-    content: brandHeroCard(typeLabel, eventTitle, undefined, gifUrl),
+    content: brandHeroCard(typeLabel, eventTitle),
     cta: ctaButton(`${APP_URL}/dates`, 'Ver no Rememberly'),
   });
 }

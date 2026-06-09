@@ -89,7 +89,6 @@ async function sendTodayNotifications() {
         eventTitle,
         eventType: event.event_type,
         customType: event.event_custom_type,
-        month,
       });
       sent++;
     } catch (err) {

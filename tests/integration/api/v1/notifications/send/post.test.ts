@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
+import { getToday } from 'lib/date-utils';
 
 beforeAll(async () => {
   await orchestrator.clearDatabase();
@@ -40,7 +41,7 @@ async function createUserAndSession() {
 }
 
 async function createEventForToday(token: string) {
-  const today = new Date();
+  const today = getToday();
 
   const response = await fetch('http://localhost:3000/api/v1/events', {
     method: 'POST',
@@ -51,8 +52,8 @@ async function createEventForToday(token: string) {
     body: JSON.stringify({
       title: faker.person.firstName(),
       type: 'birthday',
-      event_day: today.getUTCDate(),
-      event_month: today.getUTCMonth() + 1,
+      event_day: today.getDate(),
+      event_month: today.getMonth() + 1,
     }),
   });
 

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
 import database from 'infra/database';
+import { getToday } from 'lib/date-utils';
 
 beforeAll(async () => {
   await orchestrator.clearDatabase();
@@ -148,14 +149,14 @@ describe('GET /api/v1/notifications/send-reminders', () => {
 
     const { token } = await createUserAndSession();
 
-    const today = new Date();
+    const today = getToday();
     const futureDate = new Date(today);
-    futureDate.setUTCDate(futureDate.getUTCDate() + 7);
+    futureDate.setDate(futureDate.getDate() + 7);
 
     await createEvent(token, {
       title: 'Evento com reminder 7 dias',
-      event_day: futureDate.getUTCDate(),
-      event_month: futureDate.getUTCMonth() + 1,
+      event_day: futureDate.getDate(),
+      event_month: futureDate.getMonth() + 1,
       reminder_days_before: 7,
     });
 
@@ -182,15 +183,15 @@ describe('GET /api/v1/notifications/send-reminders', () => {
 
     const { token } = await createUserAndSession();
 
-    const today = new Date();
+    const today = getToday();
     const futureDate = new Date(today);
-    futureDate.setUTCDate(futureDate.getUTCDate() + 7);
+    futureDate.setDate(futureDate.getDate() + 7);
 
     // Event is 7 days away but reminder is set to 3 days — should NOT trigger
     await createEvent(token, {
       title: 'Reminder não deve disparar',
-      event_day: futureDate.getUTCDate(),
-      event_month: futureDate.getUTCMonth() + 1,
+      event_day: futureDate.getDate(),
+      event_month: futureDate.getMonth() + 1,
       reminder_days_before: 3,
     });
 
