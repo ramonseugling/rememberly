@@ -45,7 +45,7 @@ export default function Login() {
   return (
     <AuthShell
       title="Bem-vindo de volta"
-      subtitle="Entre para continuar lembrando quem importa."
+      subtitle="Entre para continuar lembrando datas importantes."
     >
       <a
         href={

@@ -15,13 +15,13 @@ const BENEFITS = [
     icon: Users,
     iconBg: 'bg-primary/10 text-primary',
     title: 'Simples de começar',
-    description: 'Crie seus grupos e adicione aniversários sem pagar nada.',
+    description: 'Adicione suas datas e receba os lembretes sem pagar nada.',
   },
   {
     icon: Zap,
     iconBg: 'bg-secondary/15 text-secondary',
     title: 'Em menos de 1 minuto',
-    description: 'Configure tudo rapidinho e convide seus amigos.',
+    description: 'Cadastre a primeira data agora e convide quem quiser depois.',
   },
   {
     icon: Heart,
@@ -47,7 +47,7 @@ export const CtaSection = () => {
           <h2 className="text-section-title font-heading font-bold tracking-tight mb-4 pb-2">
             <span className="block text-foreground">Comece agora e nunca</span>
             <span className="block text-brand-gradient pb-2">
-              mais esqueça ninguém
+              mais esqueça uma data
             </span>
           </h2>
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground">
@@ -92,7 +92,7 @@ export const CtaSection = () => {
                 Crie sua conta gratuita
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
-                e comece a lembrar com quem realmente importa
+                e comece a lembrar do que realmente importa
               </p>
               <Link href="/signup" className="block">
                 <Button

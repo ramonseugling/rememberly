@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Bell, ChevronRight, Gift, Heart, Users } from 'lucide-react';
+import { Bell, ChevronRight, Heart, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const TRUST_SIGNALS = [
@@ -41,25 +41,17 @@ export const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center text-center lg:items-start lg:text-left order-2 lg:order-1"
           >
-            <span className="pill-brand mb-6">
-              <Gift className="w-4 h-4 text-primary" aria-hidden="true" />
-              <span className="pill-brand-text">
-                Lembretes de aniversário para grupos
-              </span>
-            </span>
-
             <h1 className="text-hero font-heading font-bold tracking-tight mb-5 text-balance">
-              <span className="block text-foreground">
-                Nunca mais esqueça{' '}o
-              </span>
+              <span className="block text-foreground">Adicione uma data.</span>
               <span className="block text-brand-gradient pb-2">
-                aniversário de seus{' '}amigos
+                Lembre todos os anos.
               </span>
             </h1>
 
             <p className="max-w-xl text-base sm:text-lg text-muted-foreground mb-8 leading-relaxed">
-              Crie grupos com amigos e família. Cada pessoa cadastra o próprio
-              aniversário e todo mundo recebe lembretes no dia certo.
+              Aniversários, casamento e datas comemorativas. Você recebe o
+              lembrete por e-mail no dia certo, sozinho ou em grupo com amigos e
+              família.
             </p>
 
             <Link href="/signup" className="mb-8">
@@ -67,7 +59,7 @@ export const HeroSection = () => {
                 size="lg"
                 className="gradient-brand text-white shadow-warm text-base px-8 py-6 rounded-full transition-smooth hover:scale-105 hover:opacity-95"
               >
-                Criar meu grupo
+                Começar agora
                 <ChevronRight className="ml-1.5 h-5 w-5" />
               </Button>
             </Link>

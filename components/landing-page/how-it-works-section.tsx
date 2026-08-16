@@ -5,11 +5,11 @@ import { Sparkles } from 'lucide-react';
 const STEPS = [
   {
     number: 1,
-    icon: '/images/icons/group.png',
-    alt: 'Grupo de pessoas',
-    title: 'Grupos com amigos',
+    icon: '/images/icons/calendar.png',
+    alt: 'Calendário',
+    title: 'Adicione suas datas',
     description:
-      'Crie um grupo, convide seus amigos e nunca mais ninguém vai esquecer o aniversário de ninguém.',
+      'Aniversários, casamentos, formaturas ou datas comemorativas. Leva alguns segundos.',
   },
   {
     number: 2,
@@ -17,15 +17,15 @@ const STEPS = [
     alt: 'Sino de notificação',
     title: 'Lembretes no dia',
     description:
-      'Receba um e-mail no dia do aniversário — simples, direto, sem desculpa para esquecer.',
+      'Receba um e-mail no dia certo e, se quiser, também com antecedência.',
   },
   {
     number: 3,
-    icon: '/images/icons/handshake.png',
-    alt: 'Calendário',
-    title: 'Fortaleça conexões',
+    icon: '/images/icons/group.png',
+    alt: 'Grupo de pessoas',
+    title: 'Em grupo, se quiser',
     description:
-      'Pequenos gestos criam grandes laços. Esteja presente nas datas que importam.',
+      'Convide amigos e família: cada um adiciona a própria data e todo mundo é lembrado.',
   },
 ];
 
@@ -49,11 +49,11 @@ export const HowItWorksSection = () => {
             <span className="block text-foreground">
               Simples, direto e feito
             </span>
-            <span className="block text-brand-gradient">para amigos</span>
+            <span className="block text-brand-gradient">para não esquecer</span>
           </h2>
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground">
-            Tudo o que você precisa para nunca mais passar em branco num
-            aniversário
+            Tudo o que você precisa para nunca mais passar em branco numa data
+            importante
           </p>
         </div>
 

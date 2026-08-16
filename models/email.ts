@@ -79,7 +79,7 @@ function buildEmailLayout({
         }
         <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid ${COLOR.border};">
           <p style="color: ${COLOR.textMuted}; font-size: 12px; margin: 0; text-align: center;">
-            Enviado por <strong style="${BRAND_GRADIENT_TEXT}">Rememberly</strong> — Nunca mais esqueça o aniversário de seus amigos.
+            Enviado por <strong style="${BRAND_GRADIENT_TEXT}">Rememberly</strong>. Adicione uma data. Lembre todos os anos.
           </p>
         </div>
       </div>

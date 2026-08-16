@@ -94,9 +94,9 @@ export const AuthShell = ({ title, subtitle, children }: AuthShellProps) => {
             </div>
 
             <h2 className="mt-1 font-heading font-bold tracking-tight leading-[1.05] text-4xl xl:text-5xl">
-              <span className="block text-foreground">Nunca mais esqueça</span>
+              <span className="block text-foreground">Adicione uma data.</span>
               <span className="block text-brand-gradient pb-2">
-                quem importa
+                Lembre todos os anos.
               </span>
             </h2>
             <ul className="mt-8 flex items-start gap-6">

@@ -13,7 +13,7 @@ const TIPS: Tip[] = [
   {
     icon: Cake,
     title: 'Aniversários',
-    description: 'Nunca mais esqueça o aniversário de alguém especial.',
+    description: 'Adicione a data e lembre todos os anos, sem esforço.',
   },
   {
     icon: Star,
