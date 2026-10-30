@@ -13,6 +13,10 @@ Keep entries short. Update an existing decision or mark it superseded rather tha
 | D-007 | 2026-10-30 | Proposed | Use server-driven Expo push initially; preserve email as a separate channel. Confirm provider setup during the notification task.                                             |
 | D-008 | 2026-10-30 | Proposed | MVP writes require connectivity. Defer offline editing, contacts, calendar integration, widgets, billing, and mobile administration.                                          |
 
+## Session contract decision
+
+D-009 — 2026-10-30 — Implemented and locally verified in MOB-002: add `/api/v1/mobile/sessions` for password login, Bearer-only lookup, and idempotent token revocation. Use opaque mobile sessions without scheduled expiration or refresh tokens, per the user’s persistent-login requirement. Introduce nullable expiration and a compatible shared lookup; retain 30-day web sessions. Server-side revocation still applies. Ignore cookies on the new route and preserve cookie-first behavior on shared protected APIs; native clients must not send cookies. This additive route prevents changes to web token delivery and error behavior. See the [canonical contract](session-contract.md) and [implementation task](tasks/MOB-002-session-api.md).
+
 ## Decisions required later
 
 - Social login: keep Google and add Apple where required, or begin with first-party login only. Preserve existing web login either way.

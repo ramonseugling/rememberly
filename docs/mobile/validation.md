@@ -6,6 +6,10 @@ Onboarding on 2026-10-30 reported 208 passing and 8 failing tests (35 passing an
 
 These are historical observations, not results of the documentation task. Reproduce relevant failures before fixing them. Never call a failing suite green by omitting assertions or claiming unavailable services work. Avoid real outbound email to generated test addresses; establish a controlled test-delivery strategy before enabling email credentials for a full suite.
 
+## MOB-002 implementation evidence
+
+The targeted run passed 14 suites / 111 tests against live Next.js and local PostgreSQL: mobile lifecycle and parser cases, real database failure responses, forward migration preserving existing finite rows, repeated migration execution, legacy web session flows, and event/group authorization. Type checking still reports the nine documented baseline diagnostics in unrelated tests; changed implementation and test files produced no new diagnostics. No full-suite rerun, production build, deployment, or device validation was performed for this backend task.
+
 ## Verification ladder
 
 | Change                    | Start here                                                        | Broaden when needed                                         |

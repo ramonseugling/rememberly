@@ -1,27 +1,29 @@
 # API inventory and contract work
 
-Inventory inspected against commit `8a7fafa99656dbe46efefca27cc556eb8982df85`. Recheck implementation before changing a contract. This is an inventory and gap analysis, not an approved request/response specification.
+Original inventory inspected against commit `8a7fafa99656dbe46efefca27cc556eb8982df85`, updated for MOB-002 implementation in this working tree. Recheck implementation before changing a contract. The [mobile session contract](session-contract.md) is implemented and locally verified; it has not been deployed.
 
 ## Existing behavior
 
-| Capability                      | Source                                                                       | Mobile gap                                                                          |
-| ------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Protected API                   | `infra/controller.ts`                                                        | Accepts cookie or Bearer; verify all exceptions individually                        |
-| Login/session/logout            | `pages/api/v1/sessions/index.ts`                                             | POST sets cookie without token in JSON; GET/DELETE read only cookies                |
-| Session lifetime                | `models/session.ts`                                                          | Opaque token with 30-day expiration; no implemented refresh protocol                |
-| Registration and profile update | `pages/api/v1/users/index.ts`                                                | POST registration and authenticated PATCH; no full profile GET or account DELETE    |
-| OTP/password recovery           | `pages/api/v1/otp`, `pages/api/v1/password`                                  | Depends on email; native navigation and link handling needed                        |
-| Google login                    | `pages/api/v1/auth/google`, `models/google-auth.ts`                          | Web cookie state and callback redirect; no native exchange flow                     |
-| Personal events                 | `pages/api/v1/events/index.ts`, `pages/api/v1/events/[id].ts`                | CRUD available; preserve ownership checks                                           |
-| Combined agenda                 | `pages/dates.tsx`                                                            | SSR combines personal events and group birthdays; expose equivalent data            |
-| Groups                          | `pages/api/v1/groups`                                                        | Existing listing, creation, details, updates, deletion, join, and member management |
-| Group invitations               | `pages/join-group.tsx`                                                       | Web URL with invite code; native link/resume and optional preview contract needed   |
-| Commemorative dates             | `pages/commemorative-dates.tsx`, `pages/api/v1/commemorative-dates/[key].ts` | SSR reads catalog/preferences; API currently toggles by key                         |
-| Notifications                   | `models/notification.ts`                                                     | Email delivery; no device, preference, push, or receipt contract                    |
+| Capability                      | Source                                                                       | Mobile gap                                                                                                   |
+| ------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Protected API                   | `infra/controller.ts`                                                        | Accepts cookie or Bearer; verify all exceptions individually                                                 |
+| Login/session/logout            | `pages/api/v1/sessions/index.ts`                                             | POST sets cookie without token in JSON; GET/DELETE read only cookies                                         |
+| Session lifetime                | `models/session.ts`                                                          | Web sessions expire after 30 days; implemented mobile sessions have nullable expiration and remain revocable |
+| Registration and profile update | `pages/api/v1/users/index.ts`                                                | POST registration and authenticated PATCH; no full profile GET or account DELETE                             |
+| OTP/password recovery           | `pages/api/v1/otp`, `pages/api/v1/password`                                  | Depends on email; native navigation and link handling needed                                                 |
+| Google login                    | `pages/api/v1/auth/google`, `models/google-auth.ts`                          | Web cookie state and callback redirect; no native exchange flow                                              |
+| Personal events                 | `pages/api/v1/events/index.ts`, `pages/api/v1/events/[id].ts`                | CRUD available; preserve ownership checks                                                                    |
+| Combined agenda                 | `pages/dates.tsx`                                                            | SSR combines personal events and group birthdays; expose equivalent data                                     |
+| Groups                          | `pages/api/v1/groups`                                                        | Existing listing, creation, details, updates, deletion, join, and member management                          |
+| Group invitations               | `pages/join-group.tsx`                                                       | Web URL with invite code; native link/resume and optional preview contract needed                            |
+| Commemorative dates             | `pages/commemorative-dates.tsx`, `pages/api/v1/commemorative-dates/[key].ts` | SSR reads catalog/preferences; API currently toggles by key                                                  |
+| Notifications                   | `models/notification.ts`                                                     | Email delivery; no device, preference, push, or receipt contract                                             |
 
-## Proposed contract sequence
+The additive `/api/v1/mobile/sessions` route now implements password login, Bearer lookup, and revocation. The existing web route remains unchanged. See [MOB-002](tasks/MOB-002-session-api.md) for validation evidence.
 
-1. Define mobile credential issuance, authenticated session inspection, and revocation; retain web cookie behavior. See [MOB-001](tasks/MOB-001-session-contract.md).
+## Contract sequence
+
+1. Mobile sessions: specified in MOB-001 and implemented/locally verified in [MOB-002](tasks/MOB-002-session-api.md); public release requirements remain tracked in the contract.
 2. Define profile retrieval and a unified agenda with explicit source type, stable IDs, permissions, and ordering.
 3. Define commemorative catalog plus user subscriptions.
 4. Define device installation registration/removal and notification preferences.

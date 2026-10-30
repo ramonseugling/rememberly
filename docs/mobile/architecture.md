@@ -20,7 +20,7 @@ Proposed libraries: Expo Router for navigation, Expo SecureStore for credentials
 
 ## Authentication and data
 
-Preserve web cookie behavior. Mobile needs an explicit way to obtain, persist, present, inspect, and revoke credentials. Existing opaque sessions can support this; JWT and refresh tokens are not automatic requirements. Specify expiration, denial paths, and web regression behavior before implementation.
+Preserve web cookie behavior. Mobile needs an explicit way to obtain, persist, present, inspect, and revoke credentials. Existing opaque sessions can support this; JWT and refresh tokens are not automatic requirements. The [mobile session contract](session-contract.md) defines expiration, denial paths, and compatibility for the next implementation task.
 
 Credentials belong in platform secure storage. Clear cached account data and detach notification devices on logout/account changes. The app never receives database credentials, cron tokens, migration tokens, or server-side provider secrets. `EXPO_PUBLIC_*` values are public.
 

@@ -43,7 +43,7 @@ async function findOneValidByToken(token: string) {
       `SELECT s.*, u.id as user_id, u.name, u.email, u.birth_day, u.birth_month, u.birth_year, u.is_admin
        FROM sessions s
        JOIN users u ON s.user_id = u.id
-       WHERE s.token = $1 AND s.expires_at > NOW()
+       WHERE s.token = $1 AND (s.expires_at IS NULL OR s.expires_at > NOW())
        LIMIT 1`,
       [token],
     );
@@ -82,6 +82,25 @@ async function createForUser(user: {
   return { ...newSession, name: user.name, email: user.email };
 }
 
-const session = { create, createForUser, findOneValidByToken, expireByToken };
+async function createPersistent(email: string, rawPassword: string) {
+  const user = await authentication.getAuthenticatedUser(email, rawPassword);
+  const token = crypto.randomBytes(48).toString('hex');
+  const result = await database.query(
+    `INSERT INTO sessions (token, user_id, expires_at)
+     VALUES ($1, $2, NULL)
+     RETURNING id, token, user_id, expires_at, created_at`,
+    [token, user.id],
+  );
+
+  return { ...result.rows[0], name: user.name, email: user.email };
+}
+
+const session = {
+  create,
+  createForUser,
+  createPersistent,
+  findOneValidByToken,
+  expireByToken,
+};
 
 export default session;

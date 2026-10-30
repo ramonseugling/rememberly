@@ -1,6 +1,6 @@
 # MOB-001: Specify the mobile session contract
 
-Status: ready
+Status: done
 
 ## Outcome
 
@@ -27,10 +27,10 @@ Define a reviewable, implementable HTTP contract that lets a native app obtain a
 
 ## Acceptance criteria
 
-- [ ] Complete request/response examples use fictitious values and agree with the existing session model or explicitly justify changes.
-- [ ] Web compatibility and cookie/Bearer precedence are explicit.
-- [ ] Security, expiry, revocation, and failure semantics are testable.
-- [ ] Follow-up implementation has bounded scope and a concrete integration-test matrix.
+- [x] Complete request/response examples use fictitious values and agree with the existing session model or explicitly justify changes.
+- [x] Web compatibility and cookie/Bearer precedence are explicit.
+- [x] Security, expiry, revocation, and failure semantics are testable.
+- [x] Follow-up implementation has bounded scope and a concrete integration-test matrix.
 
 ## Verification
 
@@ -38,7 +38,7 @@ Cross-check the specification against actual handlers/models/tests. Format touch
 
 ## Completion record
 
-- Result: not started; task definition prepared.
-- Checks: none for contract behavior; no contract has been implemented.
+- Result: specified the [canonical mobile session contract](../session-contract.md), recorded D-009, and prepared [MOB-002](MOB-002-session-api.md) with a concrete integration-test matrix. No application code changed.
+- Checks: cross-checked handlers, session model/schema, authentication failures, validators, controller precedence, and four existing session test files. Markdown formatting and local links validated; endpoint behavior is not yet implemented or tested.
 - Blockers: none identified for specification work.
-- Next action: inspect the session implementation and write the proposed contract.
+- Next action: implement MOB-002; track login abuse controls before public rollout.

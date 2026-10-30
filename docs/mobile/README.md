@@ -6,15 +6,17 @@ This directory replaces the earlier Portuguese planning document. These are plan
 
 ## Read only what the task needs
 
-| Need                                                    | Document                                                   |
-| ------------------------------------------------------- | ---------------------------------------------------------- |
-| Scope, milestones, store preparation                    | [Roadmap](roadmap.md)                                      |
-| Boundaries, cloud workflow, notification design         | [Architecture](architecture.md)                            |
-| Existing HTTP capabilities and proposed changes         | [API contracts](api-contracts.md)                          |
-| Accepted choices and unresolved questions               | [Decisions](decisions.md)                                  |
-| Existing checks, historical blockers, automation policy | [Validation](validation.md)                                |
-| Smallest next delivery                                  | [Session contract task](tasks/MOB-001-session-contract.md) |
-| Start another bounded task                              | [Task template](tasks/TEMPLATE.md)                         |
+| Need                                                    | Document                                                |
+| ------------------------------------------------------- | ------------------------------------------------------- |
+| Scope, milestones, store preparation                    | [Roadmap](roadmap.md)                                   |
+| Boundaries, cloud workflow, notification design         | [Architecture](architecture.md)                         |
+| Existing HTTP capabilities and proposed changes         | [API contracts](api-contracts.md)                       |
+| Accepted choices and unresolved questions               | [Decisions](decisions.md)                               |
+| Existing checks, historical blockers, automation policy | [Validation](validation.md)                             |
+| Smallest next delivery                                  | [Contract sequence and next API work](api-contracts.md) |
+| Start another bounded task                              | [Task template](tasks/TEMPLATE.md)                      |
+
+The [mobile session contract](session-contract.md) is implemented and locally verified. [MOB-002](tasks/MOB-002-session-api.md) records 111 passing integration tests and remaining release requirements. The Expo application has not been created.
 
 ## Working loop
 
