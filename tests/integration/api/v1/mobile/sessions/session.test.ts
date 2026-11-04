@@ -22,6 +22,11 @@ beforeAll(async () => {
   ]);
 });
 
+beforeEach(async () => {
+  // Isolate authentication-contract cases; dedicated limiter tests cover budgets.
+  await database.query('DELETE FROM login_rate_limits');
+});
+
 async function request(
   method = 'GET',
   token?: string,

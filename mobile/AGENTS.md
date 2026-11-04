@@ -1,6 +1,6 @@
 # Mobile instructions
 
-This directory contains the independent Expo application foundation and password-session flow. Read the root instructions, this directory's `README.md`, and the relevant documents under `docs/mobile/`. Password sessions, native agenda/event CRUD, group management, profile editing, commemorative subscriptions, email signup/recovery UI, and other-session cleanup are implemented. Provider email delivery, push, social login, universal links, account deletion, and real-device behavior remain separate requirements.
+This directory contains the independent Expo application foundation and password-session flow. Read the root instructions, this directory's `README.md`, and the relevant documents under `docs/mobile/`. Password sessions, native agenda/event CRUD, group management, profile editing, commemorative subscriptions, email signup/recovery UI, and other-session cleanup are implemented. Native deletion and push settings are now implemented. Provider email delivery, actual push activation/scheduling/device verification, social login, universal links, and real-device behavior remain separate requirements. Preserve the owned-group block and keep server push delivery off unless explicitly activated after validation.
 
 ## Commands and configuration
 

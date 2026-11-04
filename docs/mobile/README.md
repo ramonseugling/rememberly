@@ -40,3 +40,9 @@ Use one primary agent by default. Additional agents are useful for an explicitly
 ## First useful milestone
 
 An installed development build can sign in with an existing account, fetch protected data, reopen its session, and log out with server-side revocation. Complete the session contract before implementation; do not bootstrap the entire product in one task.
+
+## Latest security and notification wave
+
+The previous feature wave was checkpointed at `bd38404`. New implementation adds [push infrastructure](tasks/MOB-014-push-backend.md), [account deletion](tasks/MOB-015-account-deletion.md), [durable login limits](tasks/MOB-016-login-rate-limits.md), [native push settings](tasks/MOB-017-native-push.md), [native deletion](tasks/MOB-018-native-account-deletion.md), and [public web deletion](tasks/MOB-019-web-account-deletion.md). Combined local evidence: 48 root suites/405 tests and 71 mobile tests passed; types, formatting, and both platform JS exports passed.
+
+Push delivery is off by default pending provider/device validation and a suitable receipt/retry schedule. Cloud Expo preview remains paused. Hosted CI/deployment gating, social login/provider reauthentication, native domain links, email delivery, privacy disclosures, and device/store release validation remain outstanding.

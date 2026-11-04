@@ -1,5 +1,11 @@
 # Validation and automation
 
+## Latest security and push evidence (2026-11-04)
+
+The complete CI-selected root run passed 48 suites/405 tests, with the same five provider-email suites deliberately excluded. The independent mobile run passed 71 cases, type checking, formatting, frozen-lock installation, and iOS/Android JS exports. Tests include real database rollback/locking races, cross-process durable login budgets, strict cookie/Bearer and CSRF isolation, deletion cascades, push opt-out/rebinding, concurrent queue claims, production batch protocol fixtures, bounded unknown/retry/receipt behavior, and native workflow guards. Push provider transport is injected in tests; no real notification was sent. Native OS/keychain/permission presentation remains unverified.
+
+Account deletion blocks owned groups as explicitly chosen by the user. Push delivery stays off until credentials, devices, and more frequent receipt/retry scheduling are validated. The latest changes are not deployed, and hosted CI/protection settings remain unverified.
+
 ## Latest feature-wave evidence (2026-11-04)
 
 The exact CI-selected backend run passed 41 suites / 311 tests on the disposable local database. The five provider-email suites remain deliberately excluded as documented in [CI coverage](../ci.md). Native aggregate tests passed all 55 cases; mobile types and formatting passed. Root type checking now passes after fixing the missing lib alias and a real test existence guard; the earlier nine diagnostics below are historical. Hosted GitHub Actions and its production web-build step have not run. Native exports verify bundling, not real-device rendering, secure storage, sharing, dialogs, or email delivery.

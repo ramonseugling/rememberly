@@ -1,6 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createSessionSchema, parseSchema } from '@/lib/validators';
 import controller from 'infra/controller';
+import {
+  consumeLoginEmail,
+  consumeLoginIp,
+  respondToLoginLimit,
+} from 'models/login-rate-limit';
 import session from 'models/session';
 
 export default controller({
@@ -32,7 +37,20 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    await consumeLoginIp(req);
+  } catch (error) {
+    if (respondToLoginLimit(res, error)) return;
+    throw error;
+  }
   const { email, password } = parseSchema(createSessionSchema, req.body);
+
+  try {
+    await consumeLoginEmail(email);
+  } catch (error) {
+    if (respondToLoginLimit(res, error)) return;
+    throw error;
+  }
 
   const createdSession = await session.create(email, password);
 

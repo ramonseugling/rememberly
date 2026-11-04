@@ -144,7 +144,7 @@ test('restoration removes rejected and malformed credentials', async () => {
 });
 
 test('invalid login and outages remain distinct without persisting credentials', async () => {
-  for (const status of [401, 500]) {
+  for (const status of [400, 401, 429, 500]) {
     const { storage, state } = memory();
     const controller = new SessionController(
       api({
@@ -159,7 +159,13 @@ test('invalid login and outages remain distinct without persisting credentials',
     assert.equal(controller.getSnapshot().status, 'signed-out');
     assert.match(
       controller.getSnapshot().message ?? '',
-      status === 401 ? /Invalid email/ : /unavailable/,
+      status === 400
+        ? /valid email address/
+        : status === 401
+          ? /Invalid email/
+          : status === 429
+            ? /Too many sign-in attempts/
+            : /unavailable/,
     );
   }
 });

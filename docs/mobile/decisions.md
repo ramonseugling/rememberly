@@ -21,12 +21,18 @@ D-009 — 2026-10-30 — Implemented and locally verified in MOB-002: add `/api/
 
 D-010 — 2026-10-30 — Specified by MOB-003 and implemented/locally verified in MOB-005: use additive Bearer-only `/api/v1/mobile/me`, `/api/v1/mobile/agenda`, and `/api/v1/mobile/commemorative-dates` reads. Preserve SSR and existing mutations, namespaced agenda IDs, member privacy, deterministic date ordering, and the current São Paulo calendar policy. See [data contracts](data-contracts.md); validation evidence is recorded in MOB-005.
 
+## Account deletion and push defaults
+
+D-011 — 2026-11-04 — Accepted explicitly by the user: account owners must delete their owned groups first. Account deletion returns 409 until then; it never silently cascades deletion to other group members’ groups. Password reauthentication and exact DELETE confirmation are required.
+
+D-012 — 2026-11-04 — Push implementation defaults to account opt-out and server delivery disabled. The MVP exposes a fixed 09:00 America/Sao_Paulo preference and uses the existing daily job only when PUSH_DELIVERY_ENABLED=true. Reliable receipts/retries need an approved more frequent trigger before activation; no additional Vercel cron is assumed.
+
 ## Decisions required later
 
 - Social login: keep Google and add Apple where required, or begin with first-party login only. Preserve existing web login either way.
 - Store account ownership and availability of iPhone/Android test devices.
 - Notification timezone/hour defaults, lock-screen content, and per-channel preferences.
-- Account deletion: transfer or delete owned groups, retention rules, and identity-provider revocation.
+- Account deletion: final retention/privacy disclosures and provider reauthentication/revocation for future social-login accounts. Owned-group behavior is settled by D-011.
 - February 29 recurrence, timezone changes, and deduplication of a person's birthday across groups.
 - Exact Expo SDK, package versions, signing identifiers, and build-service plan at bootstrap time.
 

@@ -2,7 +2,7 @@
 
 ## Approved scope
 
-Free iOS/Android application sharing accounts and data with the website: registration/recovery, dates, groups, commemorative-date subscriptions, profile, and push notifications. Preserve email as an existing backend capability. The native data flows, password sessions, profile/group/event management, commemorative subscriptions, and signup/recovery UI are implemented. Push, social login, universal links, account deletion, and device/store validation remain pending.
+Free iOS/Android application sharing accounts and data with the website: registration/recovery, dates, groups, commemorative-date subscriptions, profile, and push notifications. Preserve email as an existing backend capability. The native data flows, password sessions, profile/group/event management, commemorative subscriptions, and signup/recovery UI are implemented. Account deletion and push infrastructure/settings are now implemented. Actual push activation, social login/provider reauthentication, universal links, and device/store validation remain pending.
 
 | Flow                | First-release acceptance                                                                                |
 | ------------------- | ------------------------------------------------------------------------------------------------------- |

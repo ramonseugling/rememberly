@@ -121,12 +121,19 @@ describe.each(paths)('%s transport', (path) => {
           ? {}
           : { body: '{', headers: { 'Content-Type': 'application/json' } }),
       });
+      if (path === paths[0] && method === 'DELETE') {
+        expect(response.status).toBe(400);
+        expect((await request(path)).status).toBe(200);
+        return;
+      }
       expect(response.status).toBe(405);
-      expect(response.headers.get('allow')).toBe('GET');
+      expect(response.headers.get('allow')).toBe(
+        path === paths[0] ? 'GET, DELETE' : 'GET',
+      );
       if (method !== 'HEAD')
         expect(await response.json()).toMatchObject({
           name: 'MethodNotAllowedError',
-          action: 'Use GET.',
+          action: path === paths[0] ? 'Use GET or DELETE.' : 'Use GET.',
         });
     },
   );

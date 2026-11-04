@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SessionProvider, useSession } from '../src/session/provider';
+import { NotificationRuntime } from '../src/features/notifications';
 
 function Navigation() {
   const { state } = useSession();
@@ -25,6 +26,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <SessionProvider>
+        <NotificationRuntime />
         <Navigation />
       </SessionProvider>
     </SafeAreaProvider>

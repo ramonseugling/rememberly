@@ -289,9 +289,11 @@ export class SessionController {
             ? 'Invalid email or password. Google-only accounts cannot use password sign-in yet.'
             : error instanceof SessionApiError && error.status === 400
               ? 'Enter a valid email address and a nonempty password.'
-              : issued
-                ? 'We could not securely save your sign-in. Please retry sign-out cleanup, then sign in again.'
-                : 'Sign-in is unavailable. Check your connection and try again.',
+              : error instanceof SessionApiError && error.status === 429
+                ? 'Too many sign-in attempts. Wait before trying again.'
+                : issued
+                  ? 'We could not securely save your sign-in. Please retry sign-out cleanup, then sign in again.'
+                  : 'Sign-in is unavailable. Check your connection and try again.',
         null,
         !cleared || !!issued || this.pendingRevocations.size > 0,
       );

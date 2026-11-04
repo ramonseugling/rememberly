@@ -2,7 +2,7 @@
 
 Independent Expo Router / React Native app for iOS and Android using the existing Rememberly backend. Implemented: persistent password login; native agenda and event CRUD; groups, memberships and invite sharing; profile editing; commemorative subscriptions; signup/OTP and password-recovery UI; password-confirmed sign-out of other sessions. No fabricated user data is presented as real.
 
-These are implemented flows with local tests, not a claim of device/store readiness. Email delivery, native link association, push, social login, and account deletion remain pending.
+These are implemented flows with local tests, not a claim of device/store readiness. Email delivery, native link association, actual push delivery, social login/provider reauthentication, and release validation remain pending.
 
 ## Toolchain
 
@@ -61,10 +61,18 @@ The 15 session/controller/HTTP behavior tests exercise restoration, 401 versus o
 
 Store identifiers, app icons, signing, EAS project identity/profiles, and deep-link domain associations have deliberately not been assigned. Choose development/staging/production identities before a signed build. No paid service, account enrollment, native project generation, EAS build, or store submission is part of this foundation.
 
-Next, validate all native flows on actual iOS/Android devices and implement the remaining push, social-login, link-association, deletion, and release requirements. Push, authentication, links, and release behavior require real device validation. Expo Go or a successful export alone does not establish that readiness.
+Next, validate all native flows on actual iOS/Android devices and implement the remaining push activation, social-login, link-association, provider reauthentication, and release requirements. Push, authentication, links, and release behavior require real device validation. Expo Go or a successful export alone does not establish that readiness.
 
 ## Latest integrated checks
 
 The combined mobile run passed 55 pure tests (config, session/transport races, data requests, forms, permissions, and public-auth flows), type checking, and formatting. Both platform JavaScript exports were verified separately. The matching backend selection passed 41 suites / 311 tests. Five provider-email suites are explicitly excluded from CI; email signup/recovery UI is tested with injected transport, not real delivery. See [CI coverage](../docs/ci.md). Hosted CI has not run yet and does not currently block Vercel.
 
 Profile birthday fields cannot yet be cleared once saved because the existing backend update preserves null values; the UI explains this. Group invitations can be shared and joined by code; automatic native invitation links require domain association. Reset tokens can be entered manually or provided as route parameters, without claiming universal-link setup.
+
+## Account deletion and push settings
+
+Profile includes password-confirmed account deletion and push registration/preferences. Owners must first delete their owned groups. The website also exposes /account-deletion for authenticated deletion requests. The server now enforces shared persistent login budgets; migration deployment must precede updated login routes.
+
+Push preferences default to off. Remote delivery also requires PUSH_DELIVERY_ENABLED on the server, APNs/FCM setup, real device validation, and a receipt/retry trigger more frequent than the existing daily job. Expo Go cannot exercise this registration path; use a configured development/release build. Successful registration is not delivery confirmation. Notification content is generic and contains no names/date titles; the Android channel is reminders.
+
+Latest combined checks: 71 mobile cases, clean types/formatting, frozen installation, and both platform JS exports; root selected suites passed 405 tests across 48 files. Five email-provider suites and real browser/device/provider delivery remain unverified. No signed build, store submission, or production deployment is part of these changes.

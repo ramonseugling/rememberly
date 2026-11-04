@@ -1,4 +1,5 @@
 import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { LogoutCard } from '@/components/profile-page/logout-card';
 import { ProfileForm } from '@/components/profile-page/profile-form';
@@ -68,6 +69,12 @@ export default function Profile({ user }: ProfileProps) {
       <div className="flex flex-col gap-6">
         <ProfileForm user={user} />
         <LogoutCard />
+        <Link
+          href="/account-deletion"
+          className="text-sm text-destructive underline"
+        >
+          Delete account
+        </Link>
       </div>
     </section>
   );

@@ -19,6 +19,8 @@ import {
   type ProfileUser,
 } from '../../src/features/account/forms';
 import { SessionCleanup } from '../../src/features/account/session-cleanup';
+import { DeleteAccount } from '../../src/features/account/delete-account';
+import { NotificationSettings } from '../../src/features/notifications';
 import { useSession } from '../../src/session/provider';
 import { theme } from '../../src/theme';
 
@@ -166,6 +168,7 @@ function ProfileContent() {
             </Text>
           )}
           <SessionCleanup />
+          <NotificationSettings />
           {state.message && (
             <Text accessibilityRole="alert" style={styles.text}>
               {state.message}
@@ -178,6 +181,7 @@ function ProfileContent() {
           >
             <Text style={styles.buttonText}>Sign out</Text>
           </Pressable>
+          <DeleteAccount />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

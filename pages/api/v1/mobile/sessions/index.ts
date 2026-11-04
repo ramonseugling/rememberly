@@ -6,6 +6,11 @@ import {
   mobileError as fail,
   recordMobileFailure,
 } from 'infra/mobile-controller';
+import {
+  consumeLoginEmail,
+  consumeLoginIp,
+  respondToLoginLimit,
+} from 'models/login-rate-limit';
 import session from 'models/session';
 
 export const config = { api: { bodyParser: false } };
@@ -45,8 +50,10 @@ export default async function handler(
 
   try {
     if (req.method === 'POST') {
+      await consumeLoginIp(req);
       const login = await readLogin(req);
       if (!login) return fail(res, 'input');
+      await consumeLoginEmail(login.email);
 
       let created;
       try {
@@ -81,7 +88,8 @@ export default async function handler(
       expires_at: found.expires_at,
       user: { id: found.user_id, name: found.name, email: found.email },
     });
-  } catch {
+  } catch (error) {
+    if (respondToLoginLimit(res, error)) return;
     recordMobileFailure(req, '/api/v1/mobile/sessions');
     return fail(res, 'internal');
   }
