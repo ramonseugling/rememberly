@@ -10,6 +10,16 @@ These are historical observations, not results of the documentation task. Reprod
 
 The targeted run passed 14 suites / 111 tests against live Next.js and local PostgreSQL: mobile lifecycle and parser cases, real database failure responses, forward migration preserving existing finite rows, repeated migration execution, legacy web session flows, and event/group authorization. Type checking still reports the nine documented baseline diagnostics in unrelated tests; changed implementation and test files produced no new diagnostics. No full-suite rerun, production build, deployment, or device validation was performed for this backend task.
 
+## Parallel foundation evidence
+
+MOB-003 data contracts passed document/link/JSON checks; their endpoints are not implemented. MOB-004 independently installed the Expo project and passed mobile types, three actually executed configuration tests, formatting, offline SDK compatibility checks, and iOS/Android Hermes JavaScript exports. Online Expo API dependency validation was blocked by proxy access; no signed or device build was claimed. Root isolation retains all 42 backend suites, including mobile API tests; the focused session run passed 40 tests and the nine root type diagnostics exactly match the pre-bootstrap baseline. Root package files remain unchanged.
+
+## Parallel data and session implementation evidence
+
+MOB-005 passed 19 suites / 190 backend tests, plus a final 40-test session regression after strengthening an exact error-envelope assertion. New read APIs and calendar calculations were verified with real local services and isolated processes in four timezones. Root type checking retains the same nine historical diagnostics.
+
+MOB-006 passed independent npm ci, mobile types, three config tests, 15 session/client behavior tests, formatting, and both platform Hermes exports. The actual pure client/controller passed local live-API login/restoration/logout/revocation smoke with Node fetch and memory storage; its disposable account was deleted. Neither this smoke nor JavaScript exports establish native keychain/UI/transport behavior on real devices. Database ownership was sequential between backend suites and client smoke. No deployment or signed native build was performed.
+
 ## Verification ladder
 
 | Change                    | Start here                                                        | Broaden when needed                                         |

@@ -17,6 +17,10 @@ Keep entries short. Update an existing decision or mark it superseded rather tha
 
 D-009 — 2026-10-30 — Implemented and locally verified in MOB-002: add `/api/v1/mobile/sessions` for password login, Bearer-only lookup, and idempotent token revocation. Use opaque mobile sessions without scheduled expiration or refresh tokens, per the user’s persistent-login requirement. Introduce nullable expiration and a compatible shared lookup; retain 30-day web sessions. Server-side revocation still applies. Ignore cookies on the new route and preserve cookie-first behavior on shared protected APIs; native clients must not send cookies. This additive route prevents changes to web token delivery and error behavior. See the [canonical contract](session-contract.md) and [implementation task](tasks/MOB-002-session-api.md).
 
+## Mobile data read contracts
+
+D-010 — 2026-10-30 — Specified by MOB-003 and implemented/locally verified in MOB-005: use additive Bearer-only `/api/v1/mobile/me`, `/api/v1/mobile/agenda`, and `/api/v1/mobile/commemorative-dates` reads. Preserve SSR and existing mutations, namespaced agenda IDs, member privacy, deterministic date ordering, and the current São Paulo calendar policy. See [data contracts](data-contracts.md); validation evidence is recorded in MOB-005.
+
 ## Decisions required later
 
 - Social login: keep Google and add Apple where required, or begin with first-party login only. Preserve existing web login either way.

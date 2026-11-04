@@ -2,7 +2,7 @@
 
 The approved direction is a free iOS/Android application using React Native and Expo, with the existing features plus push notifications. The Next.js site, HTTP API, database, and user accounts remain shared.
 
-This directory replaces the earlier Portuguese planning document. These are planning and working instructions, not an implemented mobile application.
+This directory replaces the earlier Portuguese planning document. These documents distinguish specified contracts, implemented backend behavior, and the mobile foundation. Follow task records for verified capability and remaining work.
 
 ## Read only what the task needs
 
@@ -16,7 +16,9 @@ This directory replaces the earlier Portuguese planning document. These are plan
 | Smallest next delivery                                  | [Contract sequence and next API work](api-contracts.md) |
 | Start another bounded task                              | [Task template](tasks/TEMPLATE.md)                      |
 
-The [mobile session contract](session-contract.md) is implemented and locally verified. [MOB-002](tasks/MOB-002-session-api.md) records 111 passing integration tests and remaining release requirements. The Expo application has not been created.
+The [mobile session contract](session-contract.md) is implemented and locally verified. [MOB-002](tasks/MOB-002-session-api.md) records 111 passing integration tests and remaining release requirements. The independent [Expo app](../../mobile/README.md) now implements password login, persistent-session restoration, session identity, and logout. Feature data screens are not integrated yet.
+
+Completed parallel tracks: [MOB-003 data contracts](tasks/MOB-003-data-contracts.md) and [MOB-004 Expo foundation](tasks/MOB-004-expo-foundation.md). Completed implementation tracks: [MOB-005 backend reads](tasks/MOB-005-data-api.md) and [MOB-006 native sessions](tasks/MOB-006-mobile-sessions.md). The next integration is native feature screens consuming those APIs, followed by real-device validation. Contracts are in [data contracts](data-contracts.md).
 
 ## Working loop
 

@@ -405,7 +405,12 @@ describe('credential selection and methods', () => {
       expect(response.status).toBe(405);
       expect(response.headers.get('allow')).toBe('GET, POST, DELETE');
       if (method !== 'HEAD')
-        expect((await response.json()).message).toBe('Method not allowed.');
+        expect(await response.json()).toEqual({
+          name: 'MethodNotAllowedError',
+          message: 'Method not allowed.',
+          action: 'Use GET, POST, or DELETE.',
+          status_code: 405,
+        });
     },
   );
 

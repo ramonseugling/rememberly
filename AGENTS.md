@@ -20,7 +20,7 @@
 - `pages/` and `components/`: Next.js web application; `pages/api/v1/`: HTTP API shared with future clients.
 - `models/`: server-side domain and database operations. `infra/`: controllers, errors, database, migrations, and local services.
 - `lib/`: mixed utilities; inspect dependencies before treating any file as client-safe.
-- `mobile/`: reserved for an independent Expo application. It currently contains instructions only; do not assume mobile commands or dependencies exist.
+- `mobile/`: independent Expo application with its own manifest, lockfile, configuration, and commands. Read `mobile/AGENTS.md` and `mobile/README.md`; root installation/checks do not install or validate it.
 - Keep the existing Next.js backend and PostgreSQL. Mobile accesses HTTPS APIs, never database models or web server rendering.
 - Preserve web behavior and API compatibility. Installed mobile releases may remain active after the server changes.
 - Never expose credentials, database connections, or privileged cron/migration operations to a client bundle. Keep TLS verification enabled.
