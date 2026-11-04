@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "infra/*": ["./infra/*"],
+      "lib/*": ["./lib/*"],
       "models/*": ["./models/*"],
       "tests/*": ["./tests/*"]
     }

@@ -1,5 +1,11 @@
 # Validation and automation
 
+## Latest feature-wave evidence (2026-11-04)
+
+The exact CI-selected backend run passed 41 suites / 311 tests on the disposable local database. The five provider-email suites remain deliberately excluded as documented in [CI coverage](../ci.md). Native aggregate tests passed all 55 cases; mobile types and formatting passed. Root type checking now passes after fixing the missing lib alias and a real test existence guard; the earlier nine diagnostics below are historical. Hosted GitHub Actions and its production web-build step have not run. Native exports verify bundling, not real-device rendering, secure storage, sharing, dialogs, or email delivery.
+
+Session-security coverage includes transactional rollback, replay races, stale-password issuance synchronization, persistent-session reset revocation, and password-confirmed other-session cleanup. Signup/recovery UI uses actual API contracts with injected transport tests; no real email was sent. New CI runs parallel web/API and mobile jobs but does not alter Vercel or branch-protection settings.
+
 ## Current evidence versus historical observations
 
 Onboarding on 2026-10-30 reported 208 passing and 8 failing tests (35 passing and 5 failing suites). Missing Resend credentials affected email flows. Type checking reported unresolved `lib/*` imports in tests and possibly undefined birthday assertions. The production build failed downloading Google fonts. Network requirements and setup/start instructions were saved in the environment draft; a draft save does not prove runtime application or publication.
@@ -32,7 +38,7 @@ MOB-006 passed independent npm ci, mobile types, three config tests, 15 session/
 | Native config/SDK/signing | Compatible remote build                                           | Install and verify the resulting artifact                   |
 | Release                   | Release-build smoke and full release checklist                    | Store beta and staged rollout                               |
 
-Existing commands and prerequisites are in the root `AGENTS.md`. No mobile command exists yet. Add validated mobile commands at bootstrap instead of inventing passing placeholder scripts.
+Existing commands and prerequisites are in the root `AGENTS.md`. Native commands are documented in mobile/AGENTS.md; npm test from mobile runs the aggregate pure suite.
 
 Integration tests use a disposable local database and run sequentially. Do not run parallel suites against the same schema. A server PID or port is not functional evidence: make representative HTTP requests or run real integration tests. Inspect exit statuses; keep failures, skips, and unrun checks distinct.
 

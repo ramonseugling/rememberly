@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { router } from 'expo-router';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -107,9 +108,19 @@ export default function LoginScreen() {
                 onPress={submit}
               />
               <Text style={styles.text}>
-                Use an existing account with an email and password. Google
-                sign-in and registration are not available in this app yet.
+                Sign in with your email and password. Google sign-in is not
+                available in this app yet.
               </Text>
+              <Action
+                label="Create an account"
+                secondary
+                onPress={() => router.push('/signup')}
+              />
+              <Action
+                label="Forgot password?"
+                secondary
+                onPress={() => router.push('/forgot-password')}
+              />
               {state.logoutUnconfirmed && (
                 <Action
                   label="Retry sign-out cleanup"

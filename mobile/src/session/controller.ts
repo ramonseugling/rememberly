@@ -1,5 +1,7 @@
 import { SessionApiError } from './api.ts';
 import type { SessionApi, SessionIdentity } from './api.ts';
+import { ApiError } from '../data/client.ts';
+import type { AuthenticatedTransport, RequestOptions } from '../data/client.ts';
 
 export interface CredentialStorage {
   get(): Promise<string | null>;
@@ -33,10 +35,80 @@ export class SessionController {
   private storageQueue: Promise<unknown> = Promise.resolve();
   private api: SessionApi;
   private storage: CredentialStorage;
+  private dataTransport?: AuthenticatedTransport;
 
-  constructor(api: SessionApi, storage: CredentialStorage) {
+  constructor(
+    api: SessionApi,
+    storage: CredentialStorage,
+    dataTransport?: AuthenticatedTransport,
+  ) {
     this.api = api;
     this.storage = storage;
+    this.dataTransport = dataTransport;
+  }
+
+  request = async <T>(path: string, options?: RequestOptions): Promise<T> => {
+    const token = this.token;
+    const epoch = this.epoch;
+    if (!token || this.state.status !== 'authenticated')
+      throw new ApiError('http', 401);
+    if (!this.dataTransport) throw new ApiError('network');
+    try {
+      const data = await this.dataTransport<T>(path, token, options);
+      if (
+        epoch !== this.epoch ||
+        token !== this.token ||
+        this.state.status !== 'authenticated'
+      ) {
+        throw new ApiError('stale');
+      }
+      return data;
+    } catch (error) {
+      if (
+        epoch !== this.epoch ||
+        token !== this.token ||
+        this.state.status !== 'authenticated'
+      ) {
+        throw new ApiError('stale');
+      }
+      if (error instanceof ApiError && error.status === 401) {
+        await this.rejectSession(epoch, token);
+        if (
+          this.epoch !== epoch + 1 ||
+          this.token !== null ||
+          this.getSnapshot().status !== 'signed-out'
+        ) {
+          throw new ApiError('stale');
+        }
+      }
+      throw error;
+    }
+  };
+
+  private async rejectSession(epoch: number, token: string) {
+    if (epoch !== this.epoch || token !== this.token) return;
+    const rejectedEpoch = ++this.epoch;
+    this.token = null;
+    this.update(
+      'signed-out',
+      'Your session is no longer valid. Please sign in again.',
+    );
+    let removed = true;
+    try {
+      await this.stored(async () => {
+        if (rejectedEpoch === this.epoch) await this.storage.remove();
+      });
+    } catch {
+      removed = false;
+    }
+    if (!removed && rejectedEpoch === this.epoch) {
+      this.update(
+        'signed-out',
+        'Your session is no longer valid. Saved sign-in cleanup failed; retry signing out.',
+        null,
+        true,
+      );
+    }
   }
 
   getSnapshot = () => this.state;
@@ -90,12 +162,16 @@ export class SessionController {
   }
 
   async restore() {
+    const activeIdentity =
+      this.state.status === 'authenticated' ? this.state.identity : null;
+    const activeToken = this.token;
     const epoch = ++this.epoch;
-    this.update('restoring');
+    if (!activeIdentity) this.update('restoring');
     try {
       const token = await this.stored(() => this.storage.get());
       if (epoch !== this.epoch) return;
       this.token = token;
+      if (activeIdentity && token !== activeToken) this.update('restoring');
       if (!token) {
         this.update('signed-out');
         return;
@@ -116,6 +192,10 @@ export class SessionController {
       if (epoch !== this.epoch) return;
       if (error instanceof SessionApiError && error.status === 401) {
         this.token = null;
+        this.update(
+          'signed-out',
+          'Your session is no longer valid. Please sign in again.',
+        );
         let removed = true;
         try {
           await this.stored(async () => {
@@ -133,6 +213,13 @@ export class SessionController {
             null,
             !removed,
           );
+      } else if (activeIdentity && this.token === activeToken) {
+        this.update(
+          'authenticated',
+          'We could not recheck your session. Your current screen has been kept. Try again when connected.',
+          activeIdentity,
+          this.pendingRevocations.size > 0,
+        );
       } else {
         this.update(
           'unavailable',

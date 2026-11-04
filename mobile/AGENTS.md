@@ -1,10 +1,10 @@
 # Mobile instructions
 
-This directory contains the independent Expo application foundation and password-session flow. Read the root instructions, this directory's `README.md`, and the relevant documents under `docs/mobile/`. Login, session identity, restoration, and logout are implemented; dates/groups/occasions and full profile editing remain honest feature placeholders.
+This directory contains the independent Expo application foundation and password-session flow. Read the root instructions, this directory's `README.md`, and the relevant documents under `docs/mobile/`. Password sessions, native agenda/event CRUD, group management, profile editing, commemorative subscriptions, email signup/recovery UI, and other-session cleanup are implemented. Provider email delivery, push, social login, universal links, account deletion, and real-device behavior remain separate requirements.
 
 ## Commands and configuration
 
-- Run commands from `mobile/` using its own package/lockfile and Node.js 24: `npm ci`, `npm run start`, `npm run typecheck`, `npm run test:config`, `npm run test:sessions`, and `npm run format:check -- --ignore-path .prettierignore`.
+- Run commands from `mobile/` using its own package/lockfile and Node.js 24: `npm ci`, `npm run start`, `npm run typecheck`, `npm run test:config`, `npm run test:sessions`, `npm test` (all pure tests), and `npm run format:check -- --ignore-path .prettierignore`.
 - Provide `EXPO_PUBLIC_APP_ENV` and `EXPO_PUBLIC_API_URL` via ignored local configuration or the process environment. The API URL must be an origin; staging and production require HTTPS. No production default is defined.
 - `EXPO_PUBLIC_APP_ENV=development EXPO_PUBLIC_API_URL=http://localhost:3000 npm run export:native` exports both platform JavaScript bundles to ignored `dist/`; it is not a signed native build or device test.
 - The Node configuration tests cover the client origin trust boundary. Add a UI test framework only when there is a concrete behavior to validate.
@@ -24,7 +24,7 @@ This directory contains the independent Expo application foundation and password
 - Store session credentials using platform-backed secure storage. Do not put credentials in ordinary cache, logs, links, analytics, or screenshots.
 - Handle session expiration, logout, account switching, and cache cleanup explicitly. Revocation occurs on the server as well as on the device.
 - Native HTTP uses `expo/fetch`, with `credentials: 'omit'` and `redirect: 'error'`. Preserve those controls; RN global fetch is not a drop-in trust-boundary replacement. Session client tests cover transport options and response rejection; device behavior still needs validation.
-- Secure Store keys are scoped to environment and API origin. The controller's observable state contains no credential; only the token is persisted securely. Later user-data clients must route authenticated 401 responses through session invalidation and clear their account caches on logout/switch.
+- Secure Store keys are scoped to environment and API origin. The controller's observable state contains no credential; only the token is persisted securely. User-data requests use the controller-owned transport and invalidate only the matching current session on 401; focus-aware resources hide stale account results. Preserve those epoch/scope checks.
 - Preserve pending navigation across login, but validate destinations and resource access. Use the system browser for OAuth.
 - Keep server state and temporary form state separate. Prefer existing patterns before adding state libraries.
 

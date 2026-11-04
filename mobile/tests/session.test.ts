@@ -73,6 +73,35 @@ test('login persists only the token and restoration verifies it before exposing 
   assert.equal(reopened.getSnapshot().status, 'authenticated');
 });
 
+test('foreground revalidation preserves the current identity while pending and during outages, then clears it on 401', async () => {
+  const { storage, state } = memory(tokenA);
+  let check = deferred<SessionIdentity>();
+  const controller = new SessionController(
+    api({ inspect: () => check.promise }),
+    storage,
+  );
+  await controller.login('alex@example.com', 'password');
+  const activeIdentity = controller.getSnapshot().identity;
+  const pending = controller.restore();
+  await tick();
+  assert.equal(controller.getSnapshot().status, 'authenticated');
+  assert.equal(controller.getSnapshot().identity, activeIdentity);
+  check.reject(new SessionApiError(503));
+  await pending;
+  assert.equal(controller.getSnapshot().status, 'authenticated');
+  assert.equal(controller.getSnapshot().identity, activeIdentity);
+  assert.match(controller.getSnapshot().message ?? '', /recheck/);
+  assert.equal(state.value, tokenA);
+  check = deferred<SessionIdentity>();
+  const rejected = controller.restore();
+  await tick();
+  check.reject(new SessionApiError(401));
+  await rejected;
+  assert.equal(controller.getSnapshot().status, 'signed-out');
+  assert.equal(controller.getSnapshot().identity, null);
+  assert.equal(state.value, null);
+});
+
 test('restoration keeps saved credentials on network and server failure, then retries', async () => {
   for (const status of [0, 500, 503]) {
     const { storage, state } = memory(tokenA);

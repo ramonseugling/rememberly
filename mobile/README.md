@@ -1,6 +1,8 @@
 # Rememberly mobile
 
-Independent Expo Router / React Native foundation for iOS and Android. Existing password users can sign in, reopen their persistent session, see their actual session identity, and sign out. Four authenticated tabs share a native theme; dates, groups, occasions, and full profile editing remain unavailable feature states. Registration, Google/Apple login, push, and other account actions are not implemented. No fabricated user data is presented as real.
+Independent Expo Router / React Native app for iOS and Android using the existing Rememberly backend. Implemented: persistent password login; native agenda and event CRUD; groups, memberships and invite sharing; profile editing; commemorative subscriptions; signup/OTP and password-recovery UI; password-confirmed sign-out of other sessions. No fabricated user data is presented as real.
+
+These are implemented flows with local tests, not a claim of device/store readiness. Email delivery, native link association, push, social login, and account deletion remain pending.
 
 ## Toolchain
 
@@ -29,6 +31,7 @@ npm run start
 npm run typecheck
 npm run test:config
 npm run test:sessions
+npm test
 npm run format:check -- --ignore-path .prettierignore
 ```
 
@@ -44,13 +47,13 @@ Exports go to ignored `dist/`. This checks bundling for both platforms; it does 
 
 ## Sessions and transport
 
-The app uses only `/api/v1/mobile/sessions`. Tokens are stored using Expo SecureStore, scoped to the selected environment and API origin, with `WHEN_UNLOCKED_THIS_DEVICE_ONLY` keychain accessibility on iOS. The SecureStore config plugin handles native configuration, including Android backup exclusions. Provider credentials never belong in public configuration.
+Sessions use `/api/v1/mobile/sessions`; controller-owned authenticated requests consume the mobile read APIs and existing mutation routes. Public signup/recovery requests use a separate fixed-origin transport without credentials. Tokens are stored using Expo SecureStore, scoped to the selected environment and API origin, with `WHEN_UNLOCKED_THIS_DEVICE_ONLY` keychain accessibility on iOS. The SecureStore config plugin handles native configuration, including Android backup exclusions. Provider credentials never belong in public configuration.
 
 Startup and foreground revalidation check the saved token before exposing identity. A rejected session clears local access; a network or server outage preserves the credential and offers retry or sign-out. Native navigation protects the authenticated tabs. Password sign-in is explicitly unavailable for Google-only accounts.
 
 Logout clears identity immediately, serializes secure-storage cleanup, and revokes the captured session. Storage or revocation failures are shown explicitly with retry. Failed revocation tokens are retained only in memory for the current process; restarting after offline logout cannot guarantee server revocation. A failed account switch never intentionally restores the previous account, and stale requests cannot overwrite a newer session.
 
-The native adapter uses `expo/fetch` with cookies omitted and redirects rejected; the client always targets the fixed configured origin, rejects unexpected status/identity responses, sanitizes errors, and times requests out. Inspection of the installed SDK's iOS/Android transport implementations confirms these options have native handling; this is not device test evidence. Full user-data queries and their cache invalidation will be added separately.
+The native adapter uses `expo/fetch` with cookies omitted and redirects rejected; the client always targets the fixed configured origin, rejects unexpected status/identity responses, sanitizes errors, and times requests out. Inspection of the installed SDK's iOS/Android transport implementations confirms these options have native handling; this is not device test evidence. Focus-aware data resources scope results to the exact authenticated identity, cancel obsolete reads, and suppress old-account responses. Screens never receive a session token. Password confirmation failure is 403 so it does not invalidate the current session.
 
 The 15 session/controller/HTTP behavior tests exercise restoration, 401 versus outage handling, revocation, secure-storage failure, delayed-request/write races, account switching, credential isolation, and response rejection with deterministic injected adapters. A separate live smoke used the actual client/controller and Node transport against the local backend with one disposable user, covering login, identity, saved-token restoration, invalid-password denial, logout, and confirmed revocation; the fixture was removed. Node memory storage in that smoke does not validate native keychain storage or rendering.
 
@@ -58,4 +61,10 @@ The 15 session/controller/HTTP behavior tests exercise restoration, 401 versus o
 
 Store identifiers, app icons, signing, EAS project identity/profiles, and deep-link domain associations have deliberately not been assigned. Choose development/staging/production identities before a signed build. No paid service, account enrollment, native project generation, EAS build, or store submission is part of this foundation.
 
-Next, connect feature screens to the agreed data contracts and validate the session UI, secure storage, foreground transitions, and transport on actual iOS/Android devices. Push, authentication, links, and release behavior require real device validation. Expo Go or a successful export alone does not establish that readiness.
+Next, validate all native flows on actual iOS/Android devices and implement the remaining push, social-login, link-association, deletion, and release requirements. Push, authentication, links, and release behavior require real device validation. Expo Go or a successful export alone does not establish that readiness.
+
+## Latest integrated checks
+
+The combined mobile run passed 55 pure tests (config, session/transport races, data requests, forms, permissions, and public-auth flows), type checking, and formatting. Both platform JavaScript exports were verified separately. The matching backend selection passed 41 suites / 311 tests. Five provider-email suites are explicitly excluded from CI; email signup/recovery UI is tested with injected transport, not real delivery. See [CI coverage](../docs/ci.md). Hosted CI has not run yet and does not currently block Vercel.
+
+Profile birthday fields cannot yet be cleared once saved because the existing backend update preserves null values; the UI explains this. Group invitations can be shared and joined by code; automatic native invitation links require domain association. Reset tokens can be entered manually or provided as route parameters, without claiming universal-link setup.

@@ -12,6 +12,9 @@ function Navigation() {
       </Stack.Protected>
       <Stack.Protected guard={state.status !== 'authenticated'}>
         <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="reset-password" />
       </Stack.Protected>
     </Stack>
   );

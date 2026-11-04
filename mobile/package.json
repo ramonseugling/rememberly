@@ -13,7 +13,8 @@
     "test:config": "node --experimental-strip-types --test --test-isolation=none tests/api-config.test.ts",
     "test:sessions": "node --experimental-strip-types --test --test-isolation=none tests/session.test.ts",
     "format:check": "prettier --check .",
-    "export:native": "expo export --platform ios --platform android --output-dir dist"
+    "export:native": "expo export --platform ios --platform android --output-dir dist",
+    "test": "node --experimental-strip-types --test --test-isolation=none tests/*.test.ts"
   },
   "dependencies": {
     "expo": "~58.0.21",

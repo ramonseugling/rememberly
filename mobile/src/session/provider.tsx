@@ -12,6 +12,7 @@ import { AppState } from 'react-native';
 import { apiConfiguration } from '../config/environment';
 import { createSessionApi } from './api';
 import { SessionController } from './controller';
+import { createAuthenticatedTransport } from '../data/client';
 
 const SessionContext = createContext<SessionController | null>(null);
 
@@ -31,6 +32,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           }),
         remove: () => SecureStore.deleteItemAsync(key),
       },
+      createAuthenticatedTransport(apiConfiguration.apiOrigin, expoFetch),
     );
   });
   useEffect(() => {
