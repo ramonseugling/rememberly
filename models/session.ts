@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import type { Client } from 'pg';
 import database from 'infra/database';
 import { UnauthorizedError } from 'infra/errors';
 import authentication from 'models/authentication';
@@ -112,10 +113,29 @@ async function createPersistent(email: string, rawPassword: string) {
   return createPasswordSession(email, rawPassword, true);
 }
 
+// The verified-identity caller owns the transaction and its proof consumption.
+async function createPersistentForVerifiedUser(
+  client: Client,
+  user: { id: string; name: string; email: string },
+) {
+  const locked = await client.query(
+    'SELECT id FROM users WHERE id = $1 FOR SHARE',
+    [user.id],
+  );
+  if (!locked.rows[0]) throw new Error('Verified user is unavailable.');
+  const result = await client.query(
+    `INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, NULL)
+     RETURNING id, token, user_id, expires_at, created_at`,
+    [crypto.randomBytes(48).toString('hex'), user.id],
+  );
+  return { ...result.rows[0], name: user.name, email: user.email };
+}
+
 const session = {
   create,
   createForUser,
   createPersistent,
+  createPersistentForVerifiedUser,
   findOneValidByToken,
   expireByToken,
 };

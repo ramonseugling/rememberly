@@ -20,7 +20,7 @@ export default async () => {
   return {
     ...nextJestConfig,
     transformIgnorePatterns: [
-      '/node_modules/(?!(node-pg-migrate|@faker-js/faker)/)',
+      '/node_modules/(?!(node-pg-migrate|@faker-js/faker|jose)/)',
     ],
   };
 };

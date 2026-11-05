@@ -79,11 +79,11 @@ jobs:
           import sys
 
           excluded = {
-              'tests/integration/api/v1/admin/broadcast/post.test.ts',
-              'tests/integration/api/v1/notifications/send-reminders/get.test.ts',
-              'tests/integration/api/v1/notifications/send/post.test.ts',
-              'tests/integration/api/v1/otp/post.test.ts',
-              'tests/integration/api/v1/password/forgot.test.ts',
+              'tests/integration/api/v1/admin/broadcast/post.delivery.test.ts',
+              'tests/integration/api/v1/notifications/send-reminders/get.delivery.test.ts',
+              'tests/integration/api/v1/notifications/send/post.delivery.test.ts',
+              'tests/integration/api/v1/otp/post.delivery.test.ts',
+              'tests/integration/api/v1/password/forgot.delivery.test.ts',
           }
           for path in sorted(Path('tests').rglob('*.test.ts')):
               if path.as_posix() in excluded:

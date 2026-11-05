@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
+import database from 'infra/database';
 import { getToday } from 'lib/date-utils';
 
 beforeAll(async () => {
@@ -7,58 +7,26 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
-async function createUserAndSession() {
-  const userData = {
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    password: 'senha123',
-    birth_day: faker.number.int({ min: 1, max: 28 }),
-    birth_month: faker.number.int({ min: 1, max: 12 }),
-    birth_year: faker.number.int({ min: 1950, max: 2005 }),
-  };
+beforeEach(async () => {
+  await database.query('TRUNCATE users, cron_runs CASCADE');
+});
 
-  const otpRecord = await orchestrator.createValidOtp(userData.email);
-
-  await fetch('http://localhost:3000/api/v1/users', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...userData, otp_code: otpRecord.code }),
-  });
-
-  const sessionResponse = await fetch('http://localhost:3000/api/v1/sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: userData.email,
-      password: userData.password,
-    }),
-  });
-
-  const setCookie = sessionResponse.headers.get('set-cookie') ?? '';
-  const token = setCookie.match(/session_token=([^;]+)/)?.[1] ?? '';
-
-  return { userData, token };
-}
-
-async function createEventForToday(token: string) {
-  const today = getToday();
-
-  const response = await fetch('http://localhost:3000/api/v1/events', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      title: faker.person.firstName(),
-      type: 'birthday',
-      event_day: today.getDate(),
-      event_month: today.getMonth() + 1,
-    }),
-  });
-
-  return response.json();
-}
+afterEach(async () => {
+  // Zero sends alone could conceal caught delivery failures; no mailer candidate may be selected.
+  const runs = await database.query('SELECT status, metrics FROM cron_runs');
+  for (const run of runs.rows) {
+    expect(run).toMatchObject({
+      status: 'success',
+      metrics: { sent: 0, failed: 0 },
+    });
+  }
+  const candidates = await database.query(
+    `SELECT metrics FROM cron_runs WHERE job_name IN ('notifications_send', 'notifications_reminders')`,
+  );
+  for (const run of candidates.rows) {
+    expect(run.metrics.total).toBe(0);
+  }
+});
 
 describe('GET /api/v1/notifications/send', () => {
   it('returns 401 without CRON_SECRET', async () => {
@@ -104,23 +72,22 @@ describe('GET /api/v1/notifications/send', () => {
     expect(data.sent).toBe(0);
   });
 
-  it('sends a notification for an event today', async () => {
-    const { token } = await createUserAndSession();
-    await createEventForToday(token);
-
+  it('does not send for an event on a different date', async () => {
+    const user = await orchestrator.createUser();
+    const tomorrow = new Date(getToday());
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await orchestrator.createEvent(user.id, {
+      event_day: tomorrow.getDate(),
+      event_month: tomorrow.getMonth() + 1,
+    });
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
       {
-        headers: {
-          Authorization: `Bearer ${process.env.CRON_SECRET}`,
-        },
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
       },
     );
-
     expect(response.status).toBe(200);
-
-    const data = await response.json();
-    expect(data.sent).toBeGreaterThanOrEqual(1);
+    expect(await response.json()).toEqual({ sent: 0 });
   });
 
   it('returns 405 for disallowed methods', async () => {

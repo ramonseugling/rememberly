@@ -1,6 +1,7 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
+import { resetToken } from '../src/navigation/intents';
 import { passwordError } from '../src/features/auth/api';
 import {
   AuthAction,
@@ -13,7 +14,7 @@ import {
 
 export default function ResetPasswordScreen() {
   const params = useLocalSearchParams<{ token?: string | string[] }>();
-  const supplied = typeof params.token === 'string' ? params.token : '';
+  const supplied = resetToken(params.token) ? params.token : '';
   const task = useAuthTask();
   const [token, setToken] = useState(supplied);
   const [password, setPassword] = useState('');
@@ -38,9 +39,8 @@ export default function ResetPasswordScreen() {
       ) : (
         <>
           <Text style={styles.text}>
-            Enter the reset token from your email link. Links currently open on
-            the website; opening them directly in the app requires additional
-            link configuration.
+            Enter the reset token from your email link, then choose a new
+            password.
           </Text>
           <AuthField
             label="Password reset token"

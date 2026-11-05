@@ -9,6 +9,7 @@ This directory replaces the earlier Portuguese planning document. These document
 | Need                                                    | Document                                                |
 | ------------------------------------------------------- | ------------------------------------------------------- |
 | Scope, milestones, store preparation                    | [Roadmap](roadmap.md)                                   |
+| Current implementation status and next priorities       | [Backlog](backlog.md)                                   |
 | Boundaries, cloud workflow, notification design         | [Architecture](architecture.md)                         |
 | Existing HTTP capabilities and proposed changes         | [API contracts](api-contracts.md)                       |
 | Accepted choices and unresolved questions               | [Decisions](decisions.md)                               |
@@ -46,3 +47,5 @@ An installed development build can sign in with an existing account, fetch prote
 The previous feature wave was checkpointed at `bd38404`. New implementation adds [push infrastructure](tasks/MOB-014-push-backend.md), [account deletion](tasks/MOB-015-account-deletion.md), [durable login limits](tasks/MOB-016-login-rate-limits.md), [native push settings](tasks/MOB-017-native-push.md), [native deletion](tasks/MOB-018-native-account-deletion.md), and [public web deletion](tasks/MOB-019-web-account-deletion.md). Combined local evidence: 48 root suites/405 tests and 71 mobile tests passed; types, formatting, and both platform JS exports passed.
 
 Push delivery is off by default pending provider/device validation and a suitable receipt/retry schedule. Cloud Expo preview remains paused. Hosted CI/deployment gating, social login/provider reauthentication, native domain links, email delivery, privacy disclosures, and device/store release validation remain outstanding.
+
+The next parallel wave implements [native custom links and notification navigation](tasks/MOB-020-native-links.md), the [social-auth backend foundation](tasks/MOB-021-native-social-auth.md), and [service-independent email endpoint coverage](tasks/MOB-022-email-test-coverage.md). Combined local verification passes: 56 root suites/479 tests, 77 mobile tests, types/formatting, and both platform JS exports. Interactive social login and verified HTTPS domain association remain pending. See the [backlog](backlog.md) for current priorities and commit status.

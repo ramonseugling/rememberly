@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SessionProvider, useSession } from '../src/session/provider';
+import { IntentProvider } from '../src/navigation/provider';
 import { NotificationRuntime } from '../src/features/notifications';
 
 function Navigation() {
@@ -15,8 +16,9 @@ function Navigation() {
         <Stack.Screen name="login" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="forgot-password" />
-        <Stack.Screen name="reset-password" />
       </Stack.Protected>
+      <Stack.Screen name="reset-password" />
+      <Stack.Screen name="join-group" />
     </Stack>
   );
 }
@@ -26,8 +28,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <SessionProvider>
-        <NotificationRuntime />
-        <Navigation />
+        <IntentProvider>
+          <NotificationRuntime />
+          <Navigation />
+        </IntentProvider>
       </SessionProvider>
     </SafeAreaProvider>
   );

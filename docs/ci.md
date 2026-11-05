@@ -12,17 +12,21 @@ The workflow has read-only repository permissions, cancels superseded runs for t
 
 ## Email coverage deliberately excluded
 
-CI selects root test files and prints each excluded suite in its log. These five suites currently include delivery assertions against the real Resend provider and generated recipient addresses, so the entire files are excluded:
+CI selects root test files and logs each exclusion. Only these explicitly named provider-delivery suites are excluded:
 
-- `tests/integration/api/v1/admin/broadcast/post.test.ts`
-- `tests/integration/api/v1/notifications/send-reminders/get.test.ts`
-- `tests/integration/api/v1/notifications/send/post.test.ts`
-- `tests/integration/api/v1/otp/post.test.ts`
-- `tests/integration/api/v1/password/forgot.test.ts`
+- `tests/integration/api/v1/admin/broadcast/post.delivery.test.ts`
+- `tests/integration/api/v1/notifications/send-reminders/get.delivery.test.ts`
+- `tests/integration/api/v1/notifications/send/post.delivery.test.ts`
+- `tests/integration/api/v1/otp/post.delivery.test.ts`
+- `tests/integration/api/v1/password/forgot.delivery.test.ts`
 
-This also omits those files' validation, rate-limiting, and authorization assertions. CI does not claim full email or full backend coverage. Other suites, including password-reset consumption and mobile session revocation, remain selected. Daily-digest tests exercise the no-recipient branch because `DIGEST_RECIPIENTS` is unset; successful digest delivery is not covered.
+Their adjacent original suites now run in CI. They cover authorization, input validation, unsupported methods, unknown/passwordless reset accounts, reset throttling with two persisted recent tokens, cron no-match cases, marketing opt-out, and suppression of already-recorded broadcast deliveries. Cron and broadcast fixtures are isolated per case: no eligible recipient reaches the mailer. The mismatched reminder case now calls the endpoint and asserts zero sends rather than merely checking that its fixture exists. Required cron configuration is asserted; missing configuration does not silently skip a test.
 
-No fabricated `RESEND_API_KEY` is configured, no email delivery is mocked, and application email behavior is unchanged. Before restoring these suites, introduce a supported controlled delivery setup or separate delivery-dependent cases from service-independent assertions. A real API key alone is insufficient: recipient delivery must be controlled as well. Future suites that send email need the same review before joining CI.
+The excluded assertions still cover OTP sending, successful password reset requests (including the allowance and expired-window cases), matching event/reminder sends, broadcast delivery persistence, and idempotency after a real send. Successful delivery and the full request-to-provider path are **not** verified by CI. The persisted-delivery fixture only verifies recipient suppression, not that a prior email was sent. Daily-digest tests exercise the no-recipient branch because `DIGEST_RECIPIENTS` is unset; successful digest delivery remains uncovered.
+
+No fabricated `RESEND_API_KEY` is configured, no email delivery is mocked, and production email code is unchanged. The delivery suites retain generated recipient addresses; do not run them against a live provider until recipients are adapted to a controlled inbox/domain and an isolated delivery environment is configured. An API key alone is insufficient. Future suites that send email need the same review before joining CI.
+
+See [MOB-022](mobile/tasks/MOB-022-email-test-coverage.md) for local verification evidence and remaining delivery work. Hosted GitHub Actions results require a separate observed run.
 
 ## Deployment settings remain separate
 

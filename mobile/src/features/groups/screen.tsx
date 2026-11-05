@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { resourceId } from '../../navigation/intents';
 import {
   ActivityIndicator,
   Alert,
@@ -62,8 +63,15 @@ export function GroupsScreen() {
 
 function GroupContent({ userId }: { userId: string }) {
   const { request } = useAuthenticatedApi();
+  const params = useLocalSearchParams<{ groupId?: string | string[] }>();
   const groups = useResource<Group[]>('/api/v1/groups');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (resourceId(params.groupId)) {
+      setSelectedId(params.groupId);
+      router.setParams({ groupId: undefined });
+    }
+  }, [params.groupId]);
   const path = selectedId
     ? `/api/v1/groups/${encodeURIComponent(selectedId)}`
     : null;
