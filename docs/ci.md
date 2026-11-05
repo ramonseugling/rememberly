@@ -4,6 +4,8 @@ The [CI workflow](../.github/workflows/ci.yml) runs on pull requests and pushes 
 
 ## Checks
 
+The PostgreSQL service and `DATABASE_URL` both use `rememberly_test`, matching the destructive-test guard in the Google suites. Browser Google redirect tests use explicit nonfunctional client ID/secret fixtures on the local server; they never exchange a real Google code or contact Google. No real OAuth credentials are needed. Keep these settings aligned when changing the runner database.
+
 **Web and API** installs root dependencies, checks root Prettier formatting and TypeScript, starts PostgreSQL 16, applies migrations, starts the real Next.js development server, and runs the selected root Jest suites serially. Readiness requires the expected unauthenticated `401` from `/api/v1/mobile/me`. Tests use an isolated runner database and may drop/recreate its schema. The job then builds the web application with `npm run build`; it does not run the production migration/deployment command from `vercel.json`.
 
 **Mobile** installs the independent `mobile/` dependencies, checks formatting and TypeScript, runs every `mobile/tests/*.test.ts` file with Node's test runner, and exports iOS and Android JavaScript bundles. The explicit staging API origin uses a reserved invalid domain. Exporting bundles does not contact that API, upload to EAS, create an installable native binary, or publish a release. Newly added feature unit tests in that directory join CI automatically.

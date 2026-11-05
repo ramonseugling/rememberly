@@ -23,7 +23,7 @@ jobs:
         env:
           POSTGRES_USER: local_user
           POSTGRES_PASSWORD: local_password
-          POSTGRES_DB: rememberly
+          POSTGRES_DB: rememberly_test
         ports:
           - 5432:5432
         options: >-
@@ -41,11 +41,13 @@ jobs:
       - name: Configure isolated test environment
         run: |
           cat > .env.development <<'ENV'
-          DATABASE_URL=postgres://local_user:local_password@127.0.0.1:5432/rememberly
+          DATABASE_URL=postgres://local_user:local_password@127.0.0.1:5432/rememberly_test
           MIGRATIONS_TOKEN=ci-local-migrations
           CRON_SECRET=ci-local-cron
           UNSUBSCRIBE_SECRET=ci-local-unsubscribe
           APP_URL=http://localhost:3000
+          GOOGLE_CLIENT_ID=ci-google-client.example.invalid
+          GOOGLE_CLIENT_SECRET=ci-google-secret-not-a-real-credential
           ENV
       - name: Check root formatting
         run: npm run lint:check
