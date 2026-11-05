@@ -1,3 +1,4 @@
+import { dayOptions } from './editor-options';
 import { Text } from '../../components/brand-text/brand-text';
 import { useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SelectField } from '../../components/select-field/select-field';
 import { theme } from '../../theme';
 import {
   eventPayload,
@@ -60,11 +62,11 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
             keyboardShouldPersistTaps="handled"
           >
             <Text accessibilityRole="header" style={styles.heading}>
-              {item ? 'Edit date' : 'Add a date'}
+              {item ? 'Editar data' : 'Adicionar data'}
             </Text>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>Título</Text>
             <TextInput
-              accessibilityLabel="Event title"
+              accessibilityLabel="Título da data"
               style={styles.input}
               value={form.title}
               onChangeText={(value) => change('title', value)}
@@ -72,32 +74,22 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
               editable={!pending}
               autoCapitalize="sentences"
             />
-            <Text style={styles.label}>Type</Text>
-            <View style={styles.choices}>
-              {eventTypes.map((type) => (
-                <Pressable
-                  key={type.value}
-                  accessibilityRole="radio"
-                  accessibilityState={{
-                    checked: form.type === type.value,
-                    disabled: pending,
-                  }}
-                  disabled={pending}
-                  onPress={() => change('type', type.value)}
-                  style={[
-                    styles.choice,
-                    form.type === type.value && styles.selected,
-                  ]}
-                >
-                  <Text style={styles.label}>{type.label}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <Text style={styles.label}>Tipo</Text>
+            <SelectField
+              label="Tipo"
+              value={form.type}
+              options={eventTypes}
+              disabled={pending}
+              onChange={(value) => {
+                change('type', value as EventForm['type']);
+                if (value !== 'custom') change('customType', '');
+              }}
+            />
             {form.type === 'custom' && (
               <>
-                <Text style={styles.label}>Custom type</Text>
+                <Text style={styles.label}>Tipo personalizado</Text>
                 <TextInput
-                  accessibilityLabel="Custom event type"
+                  accessibilityLabel="Tipo personalizado"
                   style={styles.input}
                   value={form.customType}
                   onChangeText={(value) => change('customType', value)}
@@ -108,54 +100,64 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
             )}
             <View style={styles.row}>
               <View style={styles.dateField}>
-                <Text style={styles.label}>Day (1–31)</Text>
-                <TextInput
-                  accessibilityLabel="Event day, 1 to 31"
-                  style={styles.input}
-                  value={form.day}
-                  onChangeText={(value) => change('day', value)}
-                  inputMode="numeric"
-                  maxLength={2}
-                  editable={!pending}
+                <Text style={styles.label}>Mês</Text>
+                <SelectField
+                  label="Mês"
+                  value={form.month}
+                  disabled={pending}
+                  options={[
+                    'Janeiro',
+                    'Fevereiro',
+                    'Março',
+                    'Abril',
+                    'Maio',
+                    'Junho',
+                    'Julho',
+                    'Agosto',
+                    'Setembro',
+                    'Outubro',
+                    'Novembro',
+                    'Dezembro',
+                  ].map((label, index) => ({
+                    label,
+                    value: String(index + 1),
+                  }))}
+                  onChange={(value) => {
+                    change('month', value);
+                    change('day', '');
+                  }}
                 />
               </View>
               <View style={styles.dateField}>
-                <Text style={styles.label}>Month (1–12)</Text>
-                <TextInput
-                  accessibilityLabel="Event month, 1 to 12"
-                  style={styles.input}
-                  value={form.month}
-                  onChangeText={(value) => change('month', value)}
-                  inputMode="numeric"
-                  maxLength={2}
-                  editable={!pending}
+                <Text style={styles.label}>Dia</Text>
+                <SelectField
+                  label="Dia"
+                  value={form.day}
+                  disabled={pending || !form.month}
+                  options={dayOptions(form.month)}
+                  onChange={(value) => change('day', value)}
                 />
               </View>
             </View>
-            <Text style={styles.label}>Reminder preference</Text>
-            <View style={styles.choices}>
-              {reminderDays.map((days) => (
-                <Pressable
-                  key={days}
-                  accessibilityRole="radio"
-                  accessibilityState={{
-                    checked: form.reminder === days,
-                    disabled: pending,
-                  }}
-                  disabled={pending}
-                  onPress={() => change('reminder', days)}
-                  style={[
-                    styles.choice,
-                    form.reminder === days && styles.selected,
-                  ]}
-                >
-                  <Text style={styles.label}>{reminderLabel(days)}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <Text style={styles.label}>Notificação antecipada</Text>
+            <SelectField
+              label="Notificação antecipada"
+              value={String(form.reminder)}
+              options={reminderDays.map((days) => ({
+                value: String(days),
+                label:
+                  days === 0
+                    ? 'Somente no dia'
+                    : days === 1
+                      ? '1 dia antes'
+                      : days + ' dias antes',
+              }))}
+              disabled={pending}
+              onChange={(value) => change('reminder', Number(value))}
+            />
             <Text style={styles.description}>
-              Dates repeat annually. Saving a reminder preference does not
-              enable device push notifications.
+              As datas se repetem todos os anos. Você recebe lembretes por
+              email.
             </Text>
             {(validation || error) && (
               <Text accessibilityRole="alert" style={styles.error}>
@@ -176,7 +178,7 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
               style={[styles.button, pending && styles.disabled]}
             >
               <Text style={styles.label}>
-                {pending ? 'Saving…' : 'Save date'}
+                {pending ? 'Salvando...' : 'Salvar data'}
               </Text>
             </Pressable>
             <Pressable
@@ -186,7 +188,7 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
               onPress={onClose}
               style={styles.choice}
             >
-              <Text style={styles.label}>Cancel</Text>
+              <Text style={styles.label}>Cancelar</Text>
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>

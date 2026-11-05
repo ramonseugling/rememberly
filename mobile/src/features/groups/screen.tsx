@@ -4,6 +4,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { resourceId } from '../../navigation/intents';
 import {
   ActivityIndicator,
+  Modal,
   Alert,
   BackHandler,
   KeyboardAvoidingView,
@@ -20,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { useSession } from '../../session/provider';
+import { useScreenAddAction } from '../../navigation/add-action';
 import { theme } from '../../theme';
 import {
   birthdayLabel,
@@ -77,6 +79,13 @@ function GroupContent({ userId }: { userId: string }) {
     : null;
   const detail = useResource<Group>(path);
   const members = useResource<GroupMember[]>(path ? `${path}/members` : null);
+  const [createOpen, setCreateOpen] = useState(false);
+  useScreenAddAction('Criar grupo', () => {
+    if (!busy.current) {
+      setSelectedId(null);
+      setCreateOpen(true);
+    }
+  });
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [rename, setRename] = useState('');
@@ -158,7 +167,7 @@ function GroupContent({ userId }: { userId: string }) {
   const group = detail.data;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <KeyboardAvoidingView
         style={styles.safeArea}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -244,42 +253,84 @@ function GroupContent({ userId }: { userId: string }) {
                   />
                 </View>
               ))}
-              <View style={styles.card}>
-                <Text accessibilityRole="header" style={styles.heading}>
-                  Create a group
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  accessibilityLabel="New group name"
-                  placeholder="Group name"
-                  placeholderTextColor={theme.colors.muted}
-                  value={name}
-                  onChangeText={setName}
-                  editable={!pending}
-                  maxLength={100}
-                />
-                <Button
-                  label="Create group"
-                  disabled={pending}
-                  onPress={() => {
-                    const validation = groupNameError(name);
-                    if (validation) {
-                      setError(validation);
-                      return;
-                    }
-                    void mutate(async () => {
-                      const created = await request<Group>('/api/v1/groups', {
-                        method: 'POST',
-                        body: { name: name.trim() },
-                      });
-                      if (!alive.current) return;
-                      setName('');
-                      setSelectedId(created.id);
-                      await groups.reload();
-                    });
-                  }}
-                />
-              </View>
+              <Button
+                label="Criar grupo"
+                disabled={pending}
+                onPress={() => setCreateOpen(true)}
+              />
+              <Modal
+                visible={createOpen}
+                animationType="slide"
+                onRequestClose={() => {
+                  if (!pending) setCreateOpen(false);
+                }}
+              >
+                <SafeAreaView style={styles.safeArea}>
+                  <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                  >
+                    <ScrollView
+                      keyboardShouldPersistTaps="handled"
+                      contentContainerStyle={styles.content}
+                    >
+                      <View style={styles.card}>
+                        <Text accessibilityRole="header" style={styles.heading}>
+                          Criar grupo
+                        </Text>
+                        {error && (
+                          <Text
+                            accessibilityRole="alert"
+                            style={styles.destructive}
+                          >
+                            {error}
+                          </Text>
+                        )}
+                        <TextInput
+                          style={styles.input}
+                          accessibilityLabel="Nome do novo grupo"
+                          placeholder="Nome do grupo"
+                          placeholderTextColor={theme.colors.muted}
+                          value={name}
+                          onChangeText={setName}
+                          editable={!pending}
+                          maxLength={100}
+                        />
+                        <Button
+                          label="Criar grupo"
+                          disabled={pending}
+                          onPress={() => {
+                            const validation = groupNameError(name);
+                            if (validation) {
+                              setError(validation);
+                              return;
+                            }
+                            void mutate(async () => {
+                              const created = await request<Group>(
+                                '/api/v1/groups',
+                                {
+                                  method: 'POST',
+                                  body: { name: name.trim() },
+                                },
+                              );
+                              if (!alive.current) return;
+                              setName('');
+                              setCreateOpen(false);
+                              setSelectedId(created.id);
+                              await groups.reload();
+                            });
+                          }}
+                        />
+                        <Button
+                          label="Cancelar"
+                          disabled={pending}
+                          onPress={() => setCreateOpen(false)}
+                        />
+                      </View>
+                    </ScrollView>
+                  </KeyboardAvoidingView>
+                </SafeAreaView>
+              </Modal>
               <View style={styles.card}>
                 <Text accessibilityRole="header" style={styles.heading}>
                   Join a group

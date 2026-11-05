@@ -72,7 +72,7 @@ function ProfileContent() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={['left', 'right']}>
       <KeyboardAvoidingView
         style={styles.safe}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

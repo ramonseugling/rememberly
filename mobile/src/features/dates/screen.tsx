@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
 import { DateCard } from '../../components/date-card/date-card';
 import { dateSections } from './sections';
+import { useScreenAddAction } from '../../navigation/add-action';
 import { theme } from '../../theme';
 import { EventEditor } from './event-editor';
 import {
@@ -46,6 +47,8 @@ export function DatesScreen() {
     setMutationError(null);
     setEditor({ item });
   }
+
+  useScreenAddAction('Adicionar data', () => openEditor());
 
   async function save(payload: EventPayload) {
     if (!mounted.current || busy.current) return;
@@ -132,7 +135,7 @@ export function DatesScreen() {
 
   const grouped = dateSections(data?.items ?? [], expanded);
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <SectionList
         sections={grouped.sections}
         stickySectionHeadersEnabled={false}
