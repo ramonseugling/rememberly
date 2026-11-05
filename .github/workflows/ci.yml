@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-and-api:
+    name: Web and API
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: local_user
+          POSTGRES_PASSWORD: local_password
+          POSTGRES_DB: rememberly
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U local_user -d rememberly"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Configure isolated test environment
+        run: |
+          cat > .env.development <<'ENV'
+          DATABASE_URL=postgres://local_user:local_password@127.0.0.1:5432/rememberly
+          MIGRATIONS_TOKEN=ci-local-migrations
+          CRON_SECRET=ci-local-cron
+          UNSUBSCRIBE_SECRET=ci-local-unsubscribe
+          APP_URL=http://localhost:3000
+          ENV
+      - name: Check root formatting
+        run: npm run lint:check
+      - name: Check root types
+        run: npx --no-install tsc --noEmit
+      - name: Wait for PostgreSQL and apply migrations
+        run: |
+          npm run wait-for-postgres
+          npm run migrations:up
+      - name: Run real HTTP and database tests without email delivery
+        env:
+          NODE_OPTIONS: --no-experimental-strip-types
+        run: |
+          node node_modules/next/dist/bin/next dev > "$RUNNER_TEMP/rememberly-next.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in {1..60}; do
+            if [ "$(curl --silent --max-time 10 --output /dev/null --write-out '%{http_code}' http://localhost:3000/api/v1/mobile/me)" = 401 ]; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            cat "$RUNNER_TEMP/rememberly-next.log"
+            exit 1
+          fi
+          mapfile -t test_files < <(python3 - <<'PY'
+          from pathlib import Path
+          import sys
+
+          excluded = {
+              'tests/integration/api/v1/admin/broadcast/post.delivery.test.ts',
+              'tests/integration/api/v1/notifications/send-reminders/get.delivery.test.ts',
+              'tests/integration/api/v1/notifications/send/post.delivery.test.ts',
+              'tests/integration/api/v1/otp/post.delivery.test.ts',
+              'tests/integration/api/v1/password/forgot.delivery.test.ts',
+          }
+          for path in sorted(Path('tests').rglob('*.test.ts')):
+              if path.as_posix() in excluded:
+                  print(f'Excluded email-provider suite: {path}', file=sys.stderr)
+              else:
+                  print(path.as_posix())
+          PY
+          )
+          test "${#test_files[@]}" -gt 0
+          npm test -- --runTestsByPath "${test_files[@]}"
+      - name: Build web application
+        run: npm run build
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-server-log
+          path: ${{ runner.temp }}/rememberly-next.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  mobile:
+    name: Mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_API_URL: https://ci-api.example.invalid
+      EXPO_PUBLIC_APP_ENV: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+      - name: Run config, session, and feature unit tests
+        run: npm test
+      - name: Export iOS and Android bundles
+        run: npm run export:native

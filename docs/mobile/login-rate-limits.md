@@ -1,0 +1,15 @@
+# Login rate limits
+
+Password login on `POST /api/v1/sessions` and `POST /api/v1/mobile/sessions` shares PostgreSQL budgets. Each fixed 15-minute UTC window allows 10 attempts per normalized email and 100 attempts per source IP. Successful and unsuccessful attempts both count. Invalid input counts against the IP budget; a validated email consumes its budget before password authentication. Changing endpoint, process, or server instance does not reset either budget.
+
+The mobile route checks IP before reading its bounded JSON body. The web route retains Next.js's existing body parsing and checks IP before schema validation and authentication. GET and DELETE session operations do not consume login attempts. Existing web cookies and mobile Bearer session contracts remain unchanged.
+
+The default identity is the canonical socket IP. Arbitrary `x-forwarded-for` and `x-real-ip` headers are ignored. The reserved `x-vercel-forwarded-for` header is accepted only with the established Vercel runtime markers `VERCEL=1`, a recognized `VERCEL_ENV`, and a nonempty `VERCEL_REGION`; malformed values fall back to the socket. A non-Vercel reverse proxy must supply a separately reviewed trusted IP integration before deployment, or users behind it share the proxy's budget. Missing socket identities share one conservative fallback bucket.
+
+`login_rate_limits` retains only a scoped SHA-256 bucket identifier incorporating the window, its scope, a capped attempt count, and expiry. It stores no raw email, IP, password, or token. Hashes are pseudonymous identifiers, not protection against guessing predictable inputs. Atomic upserts prevent concurrent requests from exceeding admission budgets. PostgreSQL supplies the window and retry clock. Each attempt removes at most 100 expired buckets; cleanup is opportunistic, so expired rows can remain during idle periods.
+
+An exhausted budget returns HTTP 429 with `name: "TooManyRequestsError"`, the generic message `Too many login attempts.`, and numeric `retry_after_seconds`. The `Retry-After` header carries the same number of seconds; responses are `Cache-Control: no-store`. Clients should wait that interval before retrying. Known and unknown accounts use identical budgets and limit responses. A limiter storage failure returns a sanitized HTTP 503 `ServiceError` and blocks authentication.
+
+These limits cover password login only. OAuth, signup, password reset, distributed abuse beyond these budgets, and edge-level request/body protection require separate controls. Fixed windows permit a burst around a boundary; they do not provide a rolling-window guarantee.
+
+Verification lives in `tests/lib/login-rate-limit-identity.test.ts`, `tests/integration/models/login-rate-limit.test.ts`, and `tests/integration/api/v1/mobile/sessions/rate-limit.test.ts`. Existing mobile authentication-contract tests reset limiter rows between cases; the dedicated suites retain rows within each budget scenario. Integration suites use only the disposable local database and run sequentially because they recreate its schema.

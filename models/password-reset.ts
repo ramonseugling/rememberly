@@ -39,38 +39,46 @@ async function createToken(email: string) {
 }
 
 async function resetPassword(token: string, newPassword: string) {
-  const result = await database.query(
-    `SELECT prt.id, prt.user_id
-     FROM password_reset_tokens prt
-     WHERE prt.token = $1 
-       AND prt.expires_at > NOW()
-       AND prt.used_at IS NULL
-     LIMIT 1`,
-    [token],
-  );
-
-  const tokenRow = result.rows[0];
-
-  if (!tokenRow) {
-    throw new ValidationError({
-      message: 'Link inválido ou expirado.',
-      action: 'Solicite um novo link de redefinição de senha.',
-    });
+  const client = await database.getNewClient();
+  let userId: string | undefined;
+  try {
+    await client.query('BEGIN');
+    const result = await client.query(
+      `SELECT prt.id, prt.user_id
+       FROM password_reset_tokens prt
+       WHERE prt.token = $1 AND prt.expires_at > NOW() AND prt.used_at IS NULL
+       LIMIT 1 FOR UPDATE`,
+      [token],
+    );
+    const tokenRow = result.rows[0];
+    if (!tokenRow) {
+      throw new ValidationError({
+        message: 'Link inválido ou expirado.',
+        action: 'Solicite um novo link de redefinição de senha.',
+      });
+    }
+    const hashedPassword = await password.hash(newPassword);
+    await client.query('UPDATE users SET password = $1 WHERE id = $2', [
+      hashedPassword,
+      tokenRow.user_id,
+    ]);
+    await client.query(
+      'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1',
+      [tokenRow.id],
+    );
+    await client.query(
+      'UPDATE sessions SET expires_at = NOW() WHERE user_id = $1',
+      [tokenRow.user_id],
+    );
+    await client.query('COMMIT');
+    userId = tokenRow.user_id;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.end();
   }
-
-  const hashedPassword = await password.hash(newPassword);
-
-  await database.query(`UPDATE users SET password = $1 WHERE id = $2`, [
-    hashedPassword,
-    tokenRow.user_id,
-  ]);
-
-  await database.query(
-    `UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1`,
-    [tokenRow.id],
-  );
-
-  log.info('password_reset_completed', { userId: tokenRow.user_id });
+  log.info('password_reset_completed', { userId });
 }
 
 async function checkRateLimit(userId: string) {

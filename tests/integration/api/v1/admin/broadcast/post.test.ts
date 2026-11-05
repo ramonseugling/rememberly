@@ -6,6 +6,10 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
+beforeEach(async () => {
+  await database.query('TRUNCATE users CASCADE');
+});
+
 describe('POST /api/v1/admin/broadcast', () => {
   describe('anonymous user', () => {
     test('should return 401', async () => {
@@ -47,6 +51,31 @@ describe('POST /api/v1/admin/broadcast', () => {
   });
 
   describe('authenticated admin user', () => {
+    test('does not resend to users with a persisted delivery', async () => {
+      const { user, session } = await orchestrator.createAdminUserAndSession();
+      await database.query(
+        'INSERT INTO broadcast_deliveries (user_id, announcement_key) VALUES ($1, $2)',
+        [user.id, 'commemorative_dates'],
+      );
+      const response = await fetch(
+        'http://localhost:3000/api/v1/admin/broadcast',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.token}`,
+          },
+          body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
+        },
+      );
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ sent: 0, failed: 0, total: 0 });
+      const deliveries = await database.query(
+        'SELECT COUNT(*)::int AS count FROM broadcast_deliveries',
+      );
+      expect(deliveries.rows[0].count).toBe(1);
+    });
+
     test('should return 400 when announcementKey is missing', async () => {
       const { session } = await orchestrator.createAdminUserAndSession();
 
@@ -87,94 +116,28 @@ describe('POST /api/v1/admin/broadcast', () => {
       expect(body.name).toBe('ValidationError');
     });
 
-    test('should populate broadcast_deliveries and return sent count', async () => {
-      const { session } = await orchestrator.createAdminUserAndSession();
-
-      // Create 2 opted-in users and 1 opted-out
-      await orchestrator.createUser({ marketing_consent: true });
-      await orchestrator.createUser({ marketing_consent: true });
-      await orchestrator.createUser({ marketing_consent: false });
-
-      const countRes = await fetch(
-        'http://localhost:3000/api/v1/admin/broadcast?key=commemorative_dates',
-        { headers: { Authorization: `Bearer ${session.token}` } },
-      );
-      const { recipientCount } = await countRes.json();
-
-      const response = await fetch(
-        'http://localhost:3000/api/v1/admin/broadcast',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.token}`,
-          },
-          body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
-        },
-      );
-      const body = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(typeof body.sent).toBe('number');
-      expect(typeof body.failed).toBe('number');
-      expect(typeof body.total).toBe('number');
-      expect(body.total).toBe(recipientCount);
-
-      // Verify deliveries were recorded
-      const deliveries = await database.query(
-        `SELECT COUNT(*)::int AS count FROM broadcast_deliveries WHERE announcement_key = $1`,
-        ['commemorative_dates'],
-      );
-      expect(deliveries.rows[0].count).toBeGreaterThan(0);
-    });
-
-    test('second POST returns sent:0 (idempotency)', async () => {
-      const { session } = await orchestrator.createAdminUserAndSession();
-
-      // First send
-      await fetch('http://localhost:3000/api/v1/admin/broadcast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.token}`,
-        },
-        body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
-      });
-
-      // Second send should find 0 new recipients
-      const response = await fetch(
-        'http://localhost:3000/api/v1/admin/broadcast',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.token}`,
-          },
-          body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
-        },
-      );
-      const body = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(body.sent).toBe(0);
-      expect(body.total).toBe(0);
-    });
-
     test('should exclude users with marketing_consent=false', async () => {
       const { session } = await orchestrator.createAdminUserAndSession();
 
-      // Create an opted-out user and send the broadcast
+      // Isolate the opt-out decision: no other eligible recipients exist.
+      await database.query('UPDATE users SET marketing_consent = false');
       const optedOut = await orchestrator.createUser({
         marketing_consent: false,
       });
-      await fetch('http://localhost:3000/api/v1/admin/broadcast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.token}`,
+      const response = await fetch(
+        'http://localhost:3000/api/v1/admin/broadcast',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.token}`,
+          },
+          body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
         },
-        body: JSON.stringify({ announcementKey: 'commemorative_dates' }),
-      });
+      );
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ sent: 0, failed: 0, total: 0 });
 
       // The opted-out user must never appear in broadcast_deliveries
       const delivery = await database.query(

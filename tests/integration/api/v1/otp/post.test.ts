@@ -7,27 +7,12 @@ beforeAll(async () => {
 });
 
 describe('POST /api/v1/otp', () => {
-  it('sends an OTP to a valid and unregistered email', async () => {
-    const body = { email: faker.internet.email() };
-
-    const response = await fetch('http://localhost:3000/api/v1/otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    expect(response.status).toBe(201);
-
-    const data = await response.json();
-    expect(data.message).toBe('Código enviado com sucesso.');
-  });
-
   it('returns 400 when the email is already in use', async () => {
     const email = faker.internet.email();
 
     const otpRecord = await orchestrator.createValidOtp(email);
 
-    await fetch('http://localhost:3000/api/v1/users', {
+    const registration = await fetch('http://localhost:3000/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -40,6 +25,8 @@ describe('POST /api/v1/otp', () => {
         otp_code: otpRecord.code,
       }),
     });
+
+    expect(registration.status).toBe(201);
 
     const response = await fetch('http://localhost:3000/api/v1/otp', {
       method: 'POST',

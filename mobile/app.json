@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Rememberly",
+    "slug": "rememberly-mobile",
+    "scheme": "rememberly",
+    "extra": {
+      "eas": {
+        "projectId": "ff75e502-f110-4d4e-819b-5f0f868968ee"
+      }
+    },
+    "version": "0.1.0",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": ["expo-router", "expo-secure-store", "expo-notifications"],
+    "experiments": {
+      "autolinkingModuleResolution": true
+    },
+    "ios": {
+      "supportsTablet": true
+    }
+  }
+}

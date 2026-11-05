@@ -23,6 +23,7 @@ async function createUserWithOtp() {
       otp_code: otpRecord.code,
     }),
   });
+  expect(res.status).toBe(201);
   const createdUser = await res.json();
   return { ...createdUser, email };
 }
@@ -35,24 +36,6 @@ describe('POST /api/v1/password/forgot', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: faker.internet.email() }),
-      },
-    );
-
-    expect(response.status).toBe(200);
-
-    const data = await response.json();
-    expect(data.message).toBeDefined();
-  });
-
-  it('returns 200 when the email exists (without leaking information)', async () => {
-    const createdUser = await createUserWithOtp();
-
-    const response = await fetch(
-      'http://localhost:3000/api/v1/password/forgot',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: createdUser.email }),
       },
     );
 
@@ -101,6 +84,22 @@ describe('POST /api/v1/password/forgot', () => {
     expect(response.status).toBe(405);
   });
 
+  it.each([{}, { email: 'invalid' }])(
+    'rejects invalid reset input: %j',
+    async (body) => {
+      const response = await fetch(
+        'http://localhost:3000/api/v1/password/forgot',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        },
+      );
+      expect(response.status).toBe(400);
+      expect((await response.json()).name).toBe('ValidationError');
+    },
+  );
+
   describe('rate limiting', () => {
     async function requestPasswordReset(email: string) {
       return fetch('http://localhost:3000/api/v1/password/forgot', {
@@ -110,46 +109,30 @@ describe('POST /api/v1/password/forgot', () => {
       });
     }
 
-    it('allows up to 2 requests per hour', async () => {
-      const createdUser = await createUserWithOtp();
-
-      const first = await requestPasswordReset(createdUser.email);
-      expect(first.status).toBe(200);
-
-      const second = await requestPasswordReset(createdUser.email);
-      expect(second.status).toBe(200);
-    });
-
     it('returns 429 on the 3rd request within an hour', async () => {
       const createdUser = await createUserWithOtp();
 
-      await requestPasswordReset(createdUser.email);
-      await requestPasswordReset(createdUser.email);
+      await database.query(
+        `INSERT INTO password_reset_tokens (token, user_id, expires_at)
+         VALUES ($1, $2, NOW() + INTERVAL '1 hour'),
+                ($3, $2, NOW() + INTERVAL '1 hour')`,
+        [
+          faker.string.hexadecimal({ length: 96, prefix: '' }),
+          createdUser.id,
+          faker.string.hexadecimal({ length: 96, prefix: '' }),
+        ],
+      );
 
       const third = await requestPasswordReset(createdUser.email);
       expect(third.status).toBe(429);
 
       const data = await third.json();
       expect(data.name).toBe('TooManyRequestsError');
-    });
-
-    it('does not count tokens created more than 1 hour ago', async () => {
-      const createdUser = await createUserWithOtp();
-
-      await database.query(
-        `INSERT INTO password_reset_tokens (token, user_id, expires_at, created_at)
-         VALUES ($1, $2, NOW() + INTERVAL '1 hour', NOW() - INTERVAL '2 hours'),
-                ($3, $4, NOW() + INTERVAL '1 hour', NOW() - INTERVAL '2 hours')`,
-        [
-          faker.string.hexadecimal({ length: 96, prefix: '' }),
-          createdUser.id,
-          faker.string.hexadecimal({ length: 96, prefix: '' }),
-          createdUser.id,
-        ],
+      const tokens = await database.query(
+        'SELECT COUNT(*)::int AS count FROM password_reset_tokens WHERE user_id = $1',
+        [createdUser.id],
       );
-
-      const response = await requestPasswordReset(createdUser.email);
-      expect(response.status).toBe(200);
+      expect(tokens.rows[0].count).toBe(2);
     });
   });
 });

@@ -6,7 +6,7 @@ const createJestConfig = nextJest({ dir: './' });
 const customConfig: Config = {
   testEnvironment: 'node',
   testTimeout: 60000,
-  testPathIgnorePatterns: ['/node_modules/', '/.claude/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.claude/', '<rootDir>/mobile/'],
   moduleNameMapper: {
     '^infra/(.*)$': '<rootDir>/infra/$1',
     '^models/(.*)$': '<rootDir>/models/$1',
@@ -20,7 +20,7 @@ export default async () => {
   return {
     ...nextJestConfig,
     transformIgnorePatterns: [
-      '/node_modules/(?!(node-pg-migrate|@faker-js/faker)/)',
+      '/node_modules/(?!(node-pg-migrate|@faker-js/faker|jose)/)',
     ],
   };
 };

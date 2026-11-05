@@ -1,35 +1,52 @@
 import crypto from 'crypto';
+import type { Client } from 'pg';
 import database from 'infra/database';
+import { UnauthorizedError } from 'infra/errors';
 import authentication from 'models/authentication';
 
 const EXPIRATION_IN_MS = 1000 * 60 * 60 * 24 * 30; // 30 dias
 
 async function create(email: string, rawPassword: string) {
-  const foundUser = await authentication.getAuthenticatedUser(
-    email,
-    rawPassword,
-  );
+  return createPasswordSession(email, rawPassword, false);
+}
 
-  const token = crypto.randomBytes(48).toString('hex');
-  const expiresAt = new Date(Date.now() + EXPIRATION_IN_MS);
-
-  const newSession = await runInsertQuery(token, foundUser.id, expiresAt);
-
-  return { ...newSession, name: foundUser.name, email: foundUser.email };
-
-  async function runInsertQuery(
-    token: string,
-    userId: string,
-    expiresAt: Date,
-  ) {
-    const result = await database.query(
+async function createPasswordSession(
+  email: string,
+  rawPassword: string,
+  persistent: boolean,
+) {
+  const user = await authentication.getAuthenticatedUser(email, rawPassword);
+  const client = await database.getNewClient();
+  try {
+    await client.query('BEGIN');
+    // Lock user before inserting a session, matching reset/revocation lock order.
+    const current = await client.query(
+      'SELECT password FROM users WHERE id = $1 FOR SHARE',
+      [user.id],
+    );
+    if (!current.rows[0] || current.rows[0].password !== user.password) {
+      throw new UnauthorizedError({
+        message: 'Dados de autenticação não conferem.',
+        action: 'Verifique se os dados enviados estão corretos.',
+      });
+    }
+    const token = crypto.randomBytes(48).toString('hex');
+    const expiresAt = persistent
+      ? null
+      : new Date(Date.now() + EXPIRATION_IN_MS);
+    const result = await client.query(
       `INSERT INTO sessions (token, user_id, expires_at)
        VALUES ($1, $2, $3)
        RETURNING id, token, user_id, expires_at, created_at`,
-      [token, userId, expiresAt],
+      [token, user.id, expiresAt],
     );
-
-    return result.rows[0];
+    await client.query('COMMIT');
+    return { ...result.rows[0], name: user.name, email: user.email };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.end();
   }
 }
 
@@ -43,7 +60,7 @@ async function findOneValidByToken(token: string) {
       `SELECT s.*, u.id as user_id, u.name, u.email, u.birth_day, u.birth_month, u.birth_year, u.is_admin
        FROM sessions s
        JOIN users u ON s.user_id = u.id
-       WHERE s.token = $1 AND s.expires_at > NOW()
+       WHERE s.token = $1 AND (s.expires_at IS NULL OR s.expires_at > NOW())
        LIMIT 1`,
       [token],
     );
@@ -68,20 +85,59 @@ async function createForUser(user: {
   name: string;
   email: string;
 }) {
-  const token = crypto.randomBytes(48).toString('hex');
-  const expiresAt = new Date(Date.now() + EXPIRATION_IN_MS);
-
-  const result = await database.query(
-    `INSERT INTO sessions (token, user_id, expires_at)
-     VALUES ($1, $2, $3)
-     RETURNING id, token, user_id, expires_at, created_at`,
-    [token, user.id, expiresAt],
-  );
-
-  const newSession = result.rows[0];
-  return { ...newSession, name: user.name, email: user.email };
+  const client = await database.getNewClient();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT id FROM users WHERE id = $1 FOR SHARE', [
+      user.id,
+    ]);
+    const token = crypto.randomBytes(48).toString('hex');
+    const expiresAt = new Date(Date.now() + EXPIRATION_IN_MS);
+    const result = await client.query(
+      `INSERT INTO sessions (token, user_id, expires_at)
+       VALUES ($1, $2, $3)
+       RETURNING id, token, user_id, expires_at, created_at`,
+      [token, user.id, expiresAt],
+    );
+    await client.query('COMMIT');
+    return { ...result.rows[0], name: user.name, email: user.email };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.end();
+  }
 }
 
-const session = { create, createForUser, findOneValidByToken, expireByToken };
+async function createPersistent(email: string, rawPassword: string) {
+  return createPasswordSession(email, rawPassword, true);
+}
+
+// The verified-identity caller owns the transaction and its proof consumption.
+async function createPersistentForVerifiedUser(
+  client: Client,
+  user: { id: string; name: string; email: string },
+) {
+  const locked = await client.query(
+    'SELECT id FROM users WHERE id = $1 FOR SHARE',
+    [user.id],
+  );
+  if (!locked.rows[0]) throw new Error('Verified user is unavailable.');
+  const result = await client.query(
+    `INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, NULL)
+     RETURNING id, token, user_id, expires_at, created_at`,
+    [crypto.randomBytes(48).toString('hex'), user.id],
+  );
+  return { ...result.rows[0], name: user.name, email: user.email };
+}
+
+const session = {
+  create,
+  createForUser,
+  createPersistent,
+  createPersistentForVerifiedUser,
+  findOneValidByToken,
+  expireByToken,
+};
 
 export default session;

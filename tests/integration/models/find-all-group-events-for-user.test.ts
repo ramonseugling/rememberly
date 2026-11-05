@@ -52,6 +52,9 @@ describe('groupMember.findAllBirthdaysForUser()', () => {
     expect(birthdays.length).toBeGreaterThanOrEqual(1);
     const joaoBirthday = birthdays.find((b) => b.title === 'João');
     expect(joaoBirthday).toBeDefined();
+    if (!joaoBirthday) {
+      throw new Error('Expected João to have a group birthday');
+    }
     expect(joaoBirthday.event_day).toBe(22);
     expect(joaoBirthday.event_month).toBe(7);
     expect(joaoBirthday.group_name).toBe('Família');
