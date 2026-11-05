@@ -167,7 +167,7 @@ function GroupContent({ userId }: { userId: string }) {
   const group = detail.data;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         style={styles.safeArea}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

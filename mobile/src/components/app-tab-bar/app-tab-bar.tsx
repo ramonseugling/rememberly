@@ -8,9 +8,9 @@ import { useAddAction } from '../../navigation/add-action';
 import { theme } from '../../theme';
 
 const items = [
-  { name: 'index', label: 'Minhas Datas', Icon: Calendar },
+  { name: 'index', label: 'Datas', Icon: Calendar },
   { name: 'groups', label: 'Grupos', Icon: Users },
-  { name: 'occasions', label: 'Comemorativas', Icon: Gift },
+  { name: 'occasions', label: 'Especiais', Icon: Gift },
   { name: 'profile', label: 'Perfil', Icon: User },
 ];
 type BottomTabBarProps = Parameters<

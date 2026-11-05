@@ -1,7 +1,6 @@
 import { Calendar, Users, Gift, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { AddActionProvider } from '../../src/navigation/add-action';
-import { AppHeader } from '../../src/components/app-header/app-header';
 import { AppTabBar } from '../../src/components/app-tab-bar/app-tab-bar';
 import { theme } from '../../src/theme';
 
@@ -11,8 +10,7 @@ export default function TabLayout() {
       <Tabs
         tabBar={(props) => <AppTabBar {...props} />}
         screenOptions={{
-          headerShown: true,
-          header: () => <AppHeader />,
+          headerShown: false,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.muted,
           tabBarStyle: { backgroundColor: theme.colors.card },
@@ -22,7 +20,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Minhas Datas',
+            title: 'Datas',
             tabBarIcon: ({ color }) => <Calendar color={color} size={20} />,
           }}
         />
@@ -36,7 +34,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="occasions"
           options={{
-            title: 'Comemorativas',
+            title: 'Especiais',
             tabBarIcon: ({ color }) => <Gift color={color} size={20} />,
           }}
         />

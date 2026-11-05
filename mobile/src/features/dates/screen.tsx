@@ -135,7 +135,7 @@ export function DatesScreen() {
 
   const grouped = dateSections(data?.items ?? [], expanded);
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <SectionList
         sections={grouped.sections}
         stickySectionHeadersEnabled={false}

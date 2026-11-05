@@ -4,6 +4,8 @@ Reference: the current local web application at phone widths, as explicitly sele
 
 ## Status definitions
 
+User refinement (2026-11-05): authenticated native screens use bottom navigation only, with no top app header/menu. Bottom labels are `Datas`, `Grupos`, `Especiais`, `Perfil`; keep full titles within screens. Screen content owns its top safe-area inset again. This supersedes the header/menu reproduction requirement in VIS-004 and the historical navigation implementation notes below. Profile remains available through the bottom tab, including sign-out.
+
 `In progress` includes source implementation without completed visual/device validation. `Pending` means remaining work. No item is accepted solely because types or bundles pass.
 
 | ID      | Priority | Delivery / web reference                                                         | Current difference and remaining acceptance                                                                                                                                                                                                                                                                      | Dependencies                                    | Status / evidence                                            |
