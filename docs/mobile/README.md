@@ -1,5 +1,7 @@
 # Mobile development guide
 
+Current scope (2026-11-05): reproduce the approved web application without adding product features. Work order is Google login, existing email journeys, links and development builds. Push, CI/deploy and store preparation are deferred. See [backlog](backlog.md) and [Google web parity](google-login.md); historical social-linking/Apple proposals below are not current requirements.
+
 The approved direction is a free iOS/Android application using React Native and Expo, with the existing features plus push notifications. The Next.js site, HTTP API, database, and user accounts remain shared.
 
 This directory replaces the earlier Portuguese planning document. These documents distinguish specified contracts, implemented backend behavior, and the mobile foundation. Follow task records for verified capability and remaining work.

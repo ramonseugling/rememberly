@@ -1,5 +1,5 @@
 import { SessionApiError } from './api.ts';
-import type { SessionApi, SessionIdentity } from './api.ts';
+import type { CreatedSession, SessionApi, SessionIdentity } from './api.ts';
 import { ApiError } from '../data/client.ts';
 import type { AuthenticatedTransport, RequestOptions } from '../data/client.ts';
 
@@ -230,6 +230,17 @@ export class SessionController {
   }
 
   async login(email: string, password: string) {
+    return this.signIn(() => this.api.login(email, password));
+  }
+
+  async loginWithGoogle(authorize: () => Promise<CreatedSession | null>) {
+    return this.signIn(authorize, true);
+  }
+
+  private async signIn(
+    authorize: () => Promise<CreatedSession | null>,
+    google = false,
+  ) {
     const epoch = ++this.epoch;
     const previous = this.token;
     this.token = null;
@@ -248,7 +259,11 @@ export class SessionController {
         if (old) await this.revoke(old);
       }
       if (epoch !== this.epoch) return;
-      const created = await this.api.login(email, password);
+      const created = await authorize();
+      if (!created) {
+        if (epoch === this.epoch) this.update('signed-out');
+        return;
+      }
       issued = created.token;
       if (epoch !== this.epoch) {
         await this.revokeObsolete(issued);
@@ -285,15 +300,17 @@ export class SessionController {
         'signed-out',
         !cleared
           ? 'Saved sign-in could not be cleared. Retry sign-out cleanup before switching accounts.'
-          : error instanceof SessionApiError && error.status === 401
-            ? 'Invalid email or password. Google-only accounts cannot use password sign-in yet.'
-            : error instanceof SessionApiError && error.status === 400
-              ? 'Enter a valid email address and a nonempty password.'
-              : error instanceof SessionApiError && error.status === 429
-                ? 'Too many sign-in attempts. Wait before trying again.'
-                : issued
-                  ? 'We could not securely save your sign-in. Please retry sign-out cleanup, then sign in again.'
-                  : 'Sign-in is unavailable. Check your connection and try again.',
+          : google
+            ? 'Não foi possível entrar com Google. Tente novamente.'
+            : error instanceof SessionApiError && error.status === 401
+              ? 'Invalid email or password. Google-only accounts cannot use password sign-in yet.'
+              : error instanceof SessionApiError && error.status === 400
+                ? 'Enter a valid email address and a nonempty password.'
+                : error instanceof SessionApiError && error.status === 429
+                  ? 'Too many sign-in attempts. Wait before trying again.'
+                  : issued
+                    ? 'We could not securely save your sign-in. Please retry sign-out cleanup, then sign in again.'
+                    : 'Sign-in is unavailable. Check your connection and try again.',
         null,
         !cleared || !!issued || this.pendingRevocations.size > 0,
       );

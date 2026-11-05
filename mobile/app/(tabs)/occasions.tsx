@@ -1,3 +1,4 @@
+import { Text } from '../../src/components/brand-text/brand-text';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -5,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

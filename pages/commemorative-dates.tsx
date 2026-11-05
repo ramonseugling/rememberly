@@ -43,7 +43,7 @@ export default function CommemorativeDates({ items }: CommemorativeDatesProps) {
     <section className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 max-w-3xl">
       <div className="mb-6 animate-fade-in">
         <h1 className="text-3xl font-heading font-bold text-foreground leading-tight">
-          Datas Comemorativas
+          Datas comemorativas
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Ative os lembretes que deseja receber com 7 dias de antecedência.

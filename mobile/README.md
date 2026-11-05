@@ -59,6 +59,8 @@ The 15 session/controller/HTTP behavior tests exercise restoration, 401 versus o
 
 ## Native builds and next work
 
+Current priority is parity with the approved website, with no new product features. The login screen now includes Google via the system browser, using the existing web Google account resolution and a PKCE-bound native session handoff. See [Google setup](../docs/mobile/google-login.md) and [MOB-023](../docs/mobile/tasks/MOB-023-google-web-parity.md). It requires an installed development build and the additional server callback registered in Google Cloud; Expo Go intentionally disables this button. Real Google/device validation remains pending. Existing email journeys, links and development builds come next; push, CI/deploy and store preparation are deferred.
+
 Store identifiers, app icons, signing, EAS project identity/profiles, and deep-link domain associations have deliberately not been assigned. Choose development/staging/production identities before a signed build. No paid service, account enrollment, native project generation, EAS build, or store submission is part of this foundation.
 
 Next, validate all native flows on actual iOS/Android devices and implement the remaining push activation, social-login, link-association, provider reauthentication, and release requirements. Push, authentication, links, and release behavior require real device validation. Expo Go or a successful export alone does not establish that readiness.

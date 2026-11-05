@@ -35,6 +35,8 @@ The runtime handles active response events and the last response at startup, ded
 
 ## Universal Links and Android App Links prerequisites
 
+The development iOS/Android identifier is now approved as `br.com.rememberly.app.dev`; see [development builds](development-builds.md). Apple team, Android signing fingerprints and a separate HTTPS development backend remain unavailable. Association and signed-device checks remain pending; do not substitute invented signing metadata.
+
 Choose final per-environment iOS bundle IDs and Android application IDs first. Supply the Apple Developer Team ID and actual signing certificate SHA-256 fingerprints for Android (including Play App Signing for store releases). The EAS project ID is not any of these values.
 
 For each trusted HTTPS host that should open the app:

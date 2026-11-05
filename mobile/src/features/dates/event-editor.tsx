@@ -1,3 +1,4 @@
+import { Text } from '../../components/brand-text/brand-text';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,7 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -198,7 +198,12 @@ export function EventEditor({ item, pending, error, onClose, onSave }: Props) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
   content: { padding: 24, gap: 12 },
-  heading: { fontSize: 28, fontWeight: '700', color: theme.colors.foreground },
+  heading: {
+    fontSize: 28,
+    fontWeight: '700',
+    fontFamily: theme.fonts.heading,
+    color: theme.colors.foreground,
+  },
   label: { color: theme.colors.foreground, fontSize: 16, fontWeight: '600' },
   description: { fontSize: 15, lineHeight: 22, color: theme.colors.muted },
   input: {

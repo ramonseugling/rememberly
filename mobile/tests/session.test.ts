@@ -52,6 +52,41 @@ function api(overrides: Partial<SessionApi> = {}): SessionApi {
 
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
 
+test('Google sessions use secure persistence and cancellation leaves no credentials', async () => {
+  const { storage, state } = memory();
+  const controller = new SessionController(api(), storage);
+  await controller.loginWithGoogle(async () => created());
+  assert.equal(state.value, tokenA);
+  assert.equal(controller.getSnapshot().status, 'authenticated');
+  await controller.logout();
+  await controller.loginWithGoogle(async () => null);
+  assert.equal(state.value, null);
+  assert.equal(controller.getSnapshot().status, 'signed-out');
+  assert.equal(controller.getSnapshot().message, null);
+});
+
+test('a Google callback arriving after logout revokes its issued session', async () => {
+  const { storage, state } = memory();
+  const pending = deferred<ReturnType<typeof created> | null>();
+  const revoked: string[] = [];
+  const controller = new SessionController(
+    api({
+      revoke: async (token) => {
+        revoked.push(token);
+      },
+    }),
+    storage,
+  );
+  const signingIn = controller.loginWithGoogle(() => pending.promise);
+  await tick();
+  await controller.logout();
+  pending.resolve(created());
+  await signingIn;
+  assert.equal(state.value, null);
+  assert.equal(controller.getSnapshot().status, 'signed-out');
+  assert.deepEqual(revoked, [tokenA]);
+});
+
 test('login persists only the token and restoration verifies it before exposing identity', async () => {
   const { storage, state } = memory();
   const controller = new SessionController(api(), storage);

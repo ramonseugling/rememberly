@@ -29,6 +29,10 @@ D-012 — 2026-11-04 — Push implementation defaults to account opt-out and ser
 
 ## Decisions required later
 
+D-013 — 2026-11-05 — Explicit user direction: the approved web product is the source of truth for mobile features and behavior. Port existing Google login, email journeys, links and development builds first. Defer push, CI/deploy and store preparation. Do not introduce Apple login, a new account-linking feature or other product additions as part of this work. Google mobile sign-in reuses the approved web account-resolution logic through a browser flow and a PKCE-bound native handoff. This supersedes conflicting future social-login proposals in older task records; no existing endpoint is removed.
+
+D-014 — 2026-11-05 — The user approved `br.com.rememberly.app.dev` as the iOS/Android development identifier. Production identifiers remain undecided. Preserve the existing EAS project and custom scheme; do not invent signing certificates or Apple team ownership. See [development builds](development-builds.md).
+
 - Social login: keep Google and add Apple where required, or begin with first-party login only. Preserve existing web login either way.
 - Store account ownership and availability of iPhone/Android test devices.
 - Notification timezone/hour defaults, lock-screen content, and per-channel preferences.

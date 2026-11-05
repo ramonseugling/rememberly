@@ -1,3 +1,4 @@
+import { Text } from '../../src/components/brand-text/brand-text';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';

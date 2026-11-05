@@ -1,16 +1,18 @@
+import { Text } from '../../components/brand-text/brand-text';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
+  SectionList,
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
+import { DateCard } from '../../components/date-card/date-card';
+import { dateSections } from './sections';
 import { theme } from '../../theme';
 import { EventEditor } from './event-editor';
 import {
@@ -22,6 +24,7 @@ import {
 import type { Agenda, AgendaItem, EventPayload } from './model';
 
 export function DatesScreen() {
+  const [expanded, setExpanded] = useState(false);
   const { data, loading, error, reload } = useResource<Agenda>(
     '/api/v1/mobile/agenda',
   );
@@ -127,10 +130,34 @@ export function DatesScreen() {
     }
   }
 
+  const grouped = dateSections(data?.items ?? [], expanded);
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <FlatList
-        data={data?.items ?? []}
+      <SectionList
+        sections={grouped.sections}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) => (
+          <Text
+            style={{
+              fontFamily: theme.fonts.heading,
+              fontSize: 20,
+              marginTop: 20,
+              marginBottom: 8,
+            }}
+          >
+            {section.title}
+          </Text>
+        )}
+        ListFooterComponent={
+          grouped.laterCount > 3 ? (
+            <Pressable
+              style={styles.control}
+              onPress={() => setExpanded(!expanded)}
+            >
+              <Text>{expanded ? 'Mostrar menos' : 'Ver todas as datas'}</Text>
+            </Pressable>
+          ) : undefined
+        }
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         refreshControl={
@@ -145,13 +172,15 @@ export function DatesScreen() {
           <View style={styles.header}>
             <Text style={styles.brand}>Rememberly</Text>
             <Text accessibilityRole="header" style={styles.title}>
-              Dates that matter
+              Minhas Datas
             </Text>
             <Text style={styles.description}>
-              Your personal dates and birthdays from your groups.
+              As datas especiais de quem você ama, em um só lugar.
             </Text>
             {data && (
-              <Text style={styles.description}>Calendar: {data.time_zone}</Text>
+              <Text style={styles.description}>
+                {grouped.upcomingCount} datas nos próximos 30 dias
+              </Text>
             )}
             <Pressable
               accessibilityRole="button"
@@ -160,7 +189,7 @@ export function DatesScreen() {
               onPress={() => openEditor()}
               style={styles.button}
             >
-              <Text style={styles.buttonText}>Add a date</Text>
+              <Text style={styles.buttonText}>Adicionar data</Text>
             </Pressable>
             {loading && !data && (
               <ActivityIndicator
@@ -181,7 +210,7 @@ export function DatesScreen() {
                     }}
                     style={styles.control}
                   >
-                    <Text style={styles.buttonText}>Retry</Text>
+                    <Text style={styles.buttonText}>Tentar novamente</Text>
                   </Pressable>
                 )}
               </View>
@@ -203,50 +232,24 @@ export function DatesScreen() {
           ) : undefined
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text accessibilityRole="header" style={styles.cardTitle}>
-              {item.title}
-            </Text>
-            <Text style={styles.description}>{eventTypeLabel(item)}</Text>
-            <Text style={styles.date}>{occurrenceLabel(item)}</Text>
-            {item.source.kind === 'group_birthday' ? (
-              <Text style={styles.description}>
-                From {item.source.group_name}
-                {item.source.group_count > 1
-                  ? ` and ${item.source.group_count - 1} other ${item.source.group_count === 2 ? 'group' : 'groups'}`
-                  : ''}
-                . Shared birthday; managed by this member.
-              </Text>
-            ) : (
-              <Text style={styles.description}>
-                {item.reminder_days_before === null
-                  ? 'No reminder preference'
-                  : `Reminder: ${reminderLabel(item.reminder_days_before)}`}
-              </Text>
-            )}
+          <View style={{ gap: 4 }}>
+            <DateCard
+              item={item}
+              disabled={pending}
+              onEdit={
+                editableEventId(item) ? () => openEditor(item) : undefined
+              }
+            />
             {editableEventId(item) && (
-              <View style={styles.actions}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Edit ${item.title}`}
-                  accessibilityState={{ disabled: pending }}
-                  disabled={pending}
-                  onPress={() => openEditor(item)}
-                  style={styles.control}
-                >
-                  <Text style={styles.buttonText}>Edit</Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${item.title}`}
-                  accessibilityState={{ disabled: pending }}
-                  disabled={pending}
-                  onPress={() => confirmDelete(item)}
-                  style={styles.control}
-                >
-                  <Text style={styles.buttonText}>Delete</Text>
-                </Pressable>
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Excluir ${item.title}`}
+                disabled={pending}
+                onPress={() => confirmDelete(item)}
+                style={{ padding: 12, minHeight: 44, alignSelf: 'flex-end' }}
+              >
+                <Text style={{ color: theme.colors.destructive }}>Excluir</Text>
+              </Pressable>
             )}
           </View>
         )}
@@ -271,10 +274,14 @@ export function DatesScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  content: { padding: theme.spacing.large, gap: theme.spacing.medium },
+  content: { padding: 16, gap: theme.spacing.medium },
   header: { gap: 16 },
   brand: { color: theme.colors.primary, fontSize: 18, fontWeight: '700' },
-  title: { color: theme.colors.foreground, fontSize: 32, fontWeight: '700' },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: 32,
+    fontFamily: theme.fonts.heading,
+  },
   description: { color: theme.colors.muted, fontSize: 16, lineHeight: 24 },
   card: {
     backgroundColor: theme.colors.card,

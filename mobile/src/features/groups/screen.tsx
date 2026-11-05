@@ -1,3 +1,4 @@
+import { Text } from '../../components/brand-text/brand-text';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { resourceId } from '../../navigation/intents';
@@ -12,7 +13,6 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -509,7 +509,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
   content: { padding: theme.spacing.large, gap: theme.spacing.medium },
   brand: { color: theme.colors.primary, fontSize: 18, fontWeight: '700' },
-  title: { color: theme.colors.foreground, fontSize: 32, fontWeight: '700' },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: 32,
+    fontFamily: theme.fonts.heading,
+  },
   heading: { color: theme.colors.foreground, fontSize: 20, fontWeight: '600' },
   body: { color: theme.colors.muted, fontSize: 16, lineHeight: 24 },
   card: {

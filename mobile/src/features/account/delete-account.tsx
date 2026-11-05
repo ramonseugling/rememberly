@@ -1,13 +1,7 @@
+import { Text } from '../../components/brand-text/brand-text';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ApiError, useAuthenticatedApi } from '../../data/hooks';
 import { useSession } from '../../session/provider';
 import { theme } from '../../theme';

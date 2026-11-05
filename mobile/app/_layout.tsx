@@ -1,3 +1,9 @@
+import { useFonts, Fredoka_600SemiBold } from '@expo-google-fonts/fredoka';
+import {
+  Quicksand_500Medium,
+  Quicksand_700Bold,
+} from '@expo-google-fonts/quicksand';
+import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,6 +30,23 @@ function Navigation() {
 }
 
 export default function RootLayout() {
+  const [loaded, error] = useFonts({
+    Fredoka_600SemiBold,
+    Quicksand_500Medium,
+    Quicksand_700Bold,
+  });
+  if (!loaded && !error)
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          backgroundColor: '#fdf9f7',
+        }}
+      >
+        <ActivityIndicator accessibilityLabel="Carregando" />
+      </View>
+    );
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />

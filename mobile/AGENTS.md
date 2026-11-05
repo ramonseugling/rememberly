@@ -1,5 +1,7 @@
 # Mobile instructions
 
+Current explicit user scope (2026-11-05): port the approved web behavior without inventing product features. Priorities: Google login, existing emails, links and development builds. Defer push, CI/deploy and store preparation. Use the browser-based Google web-parity flow documented in `docs/mobile/google-login.md`; the historical native ID-token/Apple/linking proposals are not current product requirements. Development iOS/Android IDs are `br.com.rememberly.app.dev`; do not use them for production.
+
 This directory contains the independent Expo application foundation and password-session flow. Read the root instructions, this directory's `README.md`, and the relevant documents under `docs/mobile/`. Password sessions, native agenda/event CRUD, group management, profile editing, commemorative subscriptions, email signup/recovery UI, and other-session cleanup are implemented. Native deletion and push settings are now implemented. Provider email delivery, actual push activation/scheduling/device verification, social login, universal links, and real-device behavior remain separate requirements. Preserve the owned-group block and keep server push delivery off unless explicitly activated after validation.
 
 ## Commands and configuration

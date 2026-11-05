@@ -1,9 +1,9 @@
 export const eventTypes = [
-  { value: 'birthday', label: 'Birthday' },
-  { value: 'dating_anniversary', label: 'Dating anniversary' },
-  { value: 'wedding_anniversary', label: 'Wedding anniversary' },
-  { value: 'celebration', label: 'Celebration' },
-  { value: 'custom', label: 'Custom' },
+  { value: 'birthday', label: 'Aniversário' },
+  { value: 'dating_anniversary', label: 'Aniversário de namoro' },
+  { value: 'wedding_anniversary', label: 'Aniversário de casamento' },
+  { value: 'celebration', label: 'Celebração' },
+  { value: 'custom', label: 'Personalizado' },
 ] as const;
 export type EventType = (typeof eventTypes)[number]['value'];
 export const reminderDays = [0, 1, 3, 7, 15, 30] as const;

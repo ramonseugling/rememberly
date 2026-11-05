@@ -1,3 +1,4 @@
+import { Text } from '../../components/brand-text/brand-text';
 import { fetch as expoFetch } from 'expo/fetch';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -9,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
 } from 'react-native';
 import type { TextInputProps } from 'react-native';
@@ -148,7 +148,11 @@ export const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
   content: { padding: 24, gap: 16, flexGrow: 1 },
   brand: { color: theme.colors.primary, fontSize: 20, fontWeight: '700' },
-  title: { color: theme.colors.foreground, fontSize: 32, fontWeight: '700' },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: 32,
+    fontFamily: theme.fonts.heading,
+  },
   text: { color: theme.colors.foreground, fontSize: 16, lineHeight: 24 },
   input: {
     color: theme.colors.foreground,

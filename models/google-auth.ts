@@ -11,9 +11,11 @@ interface GoogleUserProfile {
   name: string;
 }
 
-function getAuthorizationUrl(state: string) {
+function getAuthorizationUrl(
+  state: string,
+  redirectUri = `${process.env.APP_URL}/api/v1/auth/google/callback`,
+) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = `${process.env.APP_URL}/api/v1/auth/google/callback`;
 
   const params = new URLSearchParams({
     client_id: clientId!,
@@ -28,7 +30,10 @@ function getAuthorizationUrl(state: string) {
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
 }
 
-async function exchangeCodeForTokens(code: string) {
+async function exchangeCodeForTokens(
+  code: string,
+  redirectUri = `${process.env.APP_URL}/api/v1/auth/google/callback`,
+) {
   const response = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -36,7 +41,7 @@ async function exchangeCodeForTokens(code: string) {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID!,
       client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: `${process.env.APP_URL}/api/v1/auth/google/callback`,
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
     }),
   });

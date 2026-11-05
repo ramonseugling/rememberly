@@ -1,63 +1,262 @@
-# Project instructions
+# Rememberly
 
-## Scope and language
+## Product vision
 
-- Write new instructions, documentation, task records, comments, and development communication in English. Do not bulk-translate existing product copy as an unrelated change.
-- Work in the existing checkout. Cloud tasks are already isolated; do not create a worktree unless requested.
-- Complete the requested task, verify it, and report concrete results. Avoid unrelated refactors or dependency upgrades.
+A multi-user application to record important dates for people and receive email notifications on the day of the event.
 
-## Find context efficiently
+**Problem it solves**: remembering annual dates like birthdays, weddings, and relationship anniversaries of the important people in your life.
 
-- Inspect `git status --short` before editing and preserve existing work.
-- Read the relevant files rather than scanning the entire repository repeatedly.
-- For mobile work, start with `docs/mobile/README.md`, then read only documents needed for the task. Instructions under `mobile/AGENTS.md` apply inside that directory.
-- `CLAUDE.md` contains detailed legacy web conventions; consult the relevant section when changing web/backend code. Current code and explicit user instructions take precedence over stale descriptions.
-- Use one bounded task at a time. Record decisions and outcomes in the task/document that owns them; link to existing information rather than duplicating it.
-- Use one agent by default. Delegate only when requested or explicitly authorized, with independent scopes and clear file ownership.
+### Entities
 
-## Repository boundaries
+**User**
 
-- `pages/` and `components/`: Next.js web application; `pages/api/v1/`: HTTP API shared with future clients.
-- `models/`: server-side domain and database operations. `infra/`: controllers, errors, database, migrations, and local services.
-- `lib/`: mixed utilities; inspect dependencies before treating any file as client-safe.
-- `mobile/`: independent Expo application with its own manifest, lockfile, configuration, and commands. Read `mobile/AGENTS.md` and `mobile/README.md`; root installation/checks do not install or validate it.
-- Keep the existing Next.js backend and PostgreSQL. Mobile accesses HTTPS APIs, never database models or web server rendering.
-- Preserve web behavior and API compatibility. Installed mobile releases may remain active after the server changes.
-- Never expose credentials, database connections, or privileged cron/migration operations to a client bundle. Keep TLS verification enabled.
+- `name` — full name
+- `email` — email address (unique, case-insensitive)
+- `password` — bcrypt hash (nullable — users who sign up via Google may not have a password)
+- `birthday` — the user's own birthday (optional)
+- `is_admin` — admin flag
+- `id`, `created_at`, `updated_at`
 
-## Backend conventions
+**Event**
 
-- Use existing controllers, validation schemas, typed errors, and model boundaries. Parameterize SQL.
-- Enforce ownership/membership on the server; hiding a control in the app is not authorization.
-- Test authentication and authorization changes, including denial paths and existing web cookie behavior.
-- Add forward migrations for schema changes; inspect the project's migration conventions before writing one. Do not edit applied migrations.
-- No production data in development or integration tests. The integration suite drops and recreates the public schema.
+- `title` — free text (e.g. "Pedro", "Dating anniversary with Ana")
+- `type` — enum: `birthday`, `dating_anniversary`, `wedding_anniversary`, `celebration`, `custom`
+- `custom_type` — free text when `type = 'custom'`
+- `date` — day + month (year optional — events repeat annually)
+- `reminder_days_before` — how many days in advance to send a reminder. Valid values: `0, 1, 3, 7, 15, 30` (`0` = only on the day)
+- `user_id` — FK to the owner user
+- `id`, `created_at`, `updated_at`
 
-## Existing commands (repository root)
+**Group / GroupMember**
 
-Node.js 24 is pinned in `.nvmrc`; dependencies use `package-lock.json`.
+- Groups for sharing events across multiple users (e.g. family, team)
+- `group_members` links `user_id` to `group_id` with a role
 
-| Operation                                    | Command                                                                                              |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Install locked dependencies                  | `npm ci`                                                                                             |
-| Start PostgreSQL, migrate, and start Next.js | `npm run dev`                                                                                        |
-| Check database readiness                     | `npm run wait-for-postgres`                                                                          |
-| Apply migrations                             | `npm run migrations:up`                                                                              |
-| Check types                                  | `npx --no-install tsc --noEmit`                                                                      |
-| Run all existing tests on Node 24            | `NODE_OPTIONS=--no-experimental-strip-types npm test`                                                |
-| Run one existing suite                       | `NODE_OPTIONS=--no-experimental-strip-types npm test -- --runTestsByPath tests/path/to/file.test.ts` |
-| Build web application                        | `npm run build`                                                                                      |
-| Check formatting of touched files            | `npx --no-install prettier --check <paths>`                                                          |
+**Session, OtpToken, PasswordResetToken** — supporting tables for auth.
 
-API integration tests require the local database, migrations, `.env.development`, and a running server on port 3000. Preserve injected environment settings and do not print secret values. Under a cloud sandbox, use the supported permission flow for blocked Docker, network, or localhost operations.
+### Business rules
 
-The Node option above addresses the observed Jest config-loading issue on Node 24; preserve other required Node options when combining settings. Do not replace meaningful tests with mocks just to bypass required services.
+- Each user sees and manages only their own events (and those of groups they belong to)
+- Events repeat annually on the same date
+- On the event day the user receives an email; if `reminder_days_before > 0`, they also receive an advance reminder email
+- A daily cron job (Vercel Cron) checks the day's events and sends the emails
 
-## Verification and completion
+### Main flow
 
-- Match checks to the change. Documentation-only work needs formatting/link checks, not application builds. Start code changes with focused checks; broaden when shared behavior changes.
-- Diagnose failures. Distinguish repository defects, missing setup, skipped checks, and regressions. Historical baseline results are in `docs/mobile/validation.md`; they are not current evidence.
-- Do not rerun unchanged failing commands without a new diagnosis or state change. Do not run costly remote builds for every edit.
-- Next.js may regenerate `next-env.d.ts`; review and restore only incidental changes caused by your commands.
-- Report the outcome, files changed, checks run, and unresolved blockers. Update the task status and next step.
-- Do not commit, push, submit builds, or publish a release merely to complete a documentation task.
+1. Sign up with email OTP OR sign in with Google
+2. User creates events (title, type, date, reminder advance)
+3. Every morning they receive emails for events that fall today + reminders for upcoming events
+
+### Access
+
+- Open registration — via email (with OTP) or Google OAuth
+
+## Technical decisions
+
+### Notifications
+
+- **Cron job**: Vercel Cron Jobs — runs daily in the morning by calling an internal endpoint (authorized via `CRON_SECRET`)
+- **Email**: Resend (via `resend` SDK) — sender domain `rememberly.com.br`
+- Locally: uses the Resend sandbox (`onboarding@resend.dev`), which only delivers to the account that owns the API key
+
+### Auth
+
+- Custom DB-backed session (HttpOnly cookie `session_token`, 30-day expiry)
+- Sign up with email OTP (`otp_tokens` table)
+- Password reset with token (`password_reset_tokens` table)
+- Google OAuth login (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`)
+
+### UI
+
+- **Tailwind CSS v4** with `@theme` (no `tailwind.config.ts`)
+- **shadcn/ui** for base components (`components/ui/`)
+- **Google Fonts**: Fredoka (headings) + Quicksand (body) via `next/font/google`
+- Design system defined in `styles/globals.css`
+
+### Observability
+
+- Logging via `next-axiom` — datasets in Axiom (`AXIOM_DATASET`, `AXIOM_TOKEN`)
+- Important events (email sent, internal errors) are logged with `log.info` / `log.error`
+
+### Deploy
+
+- Hosting: **Vercel** (required for Vercel Cron Jobs)
+- Database: **Neon** (serverless Postgres, SSL required in production)
+
+## Stack
+
+- Next.js 16, React 19, TypeScript (strict mode)
+- PostgreSQL (via `pg` — no ORM, raw parameterized SQL queries)
+- `node-pg-migrate` for migrations
+- Prettier: single quotes, semi, tabWidth 2, trailingComma all
+
+## MVC Architecture
+
+Simple implementation with well-defined layers and separated responsibilities.
+
+```
+HTTP Request
+    ↓
+[Controller]  pages/api/v1/*       → receives the request, calls model, returns response
+    ↓
+[Middleware]  infra/controller.ts  → authentication, authorization, error handling
+    ↓
+[Model]       models/*             → business logic and data access
+    ↓
+[Infra]       infra/database.ts    → PostgreSQL query execution
+```
+
+### Layers
+
+**Controller** (`pages/api/v1/`)
+
+- Receives the HTTP request
+- Delegates to the corresponding model
+- Returns the response
+
+**Middleware** (`infra/controller.ts`)
+
+- **Authentication**: validates whether the user is logged in (valid session)
+- **Authorization**: validates whether the user has permission to access the resource
+- **Errors**: catches exceptions and formats the error response
+
+**Model** (`models/`)
+
+- All business logic
+- Database queries
+- Domain validations
+
+**Infra** (`infra/`)
+
+- `database.ts` — connection pool and query execution
+- `errors.ts` — custom error classes
+- `migrations/` — database schema
+
+## Folder structure
+
+```
+pages/
+  index.tsx
+  _app.tsx           → global wrapper with fonts applied
+  _document.tsx      → base HTML
+  api/
+    v1/              → all endpoints here
+components/
+  ui/                → shadcn/ui components (Button, Card, Badge...)
+  layout/            → layout.tsx
+  header/            → header.tsx
+  footer/            → footer.tsx
+  [feature]/         → each component in its own directory
+lib/
+  fonts.ts           → centralized next/font/google instances
+  utils.ts           → cn() (clsx + tailwind-merge)
+mocks/               → mock data for development
+models/              → business logic (user, event, session, otp, password-reset, google-auth, group, group-member, notification, email, admin, ...)
+infra/
+  database.ts        → PostgreSQL connection pool
+  errors.ts          → custom error classes
+  controller.ts      → middleware: auth, authorization, errors
+  migrations/        → migration files
+  scripts/           → utilities (e.g. wait-for-postgres)
+styles/
+  globals.css        → design system (Tailwind v4 @theme, CSS vars, utilities)
+tests/
+  orchestrator.ts    → test setup/teardown
+  integration/
+    api/v1/          → tests mirroring endpoint structure
+```
+
+## API
+
+- All endpoints under `/api/v1/`
+- HTTP method routing via custom wrappers in `infra/controller.ts`:
+  - `controller({ GET, POST, ... })` — public routes
+  - `authenticatedController({ GET, POST, ... })` — protected routes (validates `session_token` cookie or `Authorization: Bearer` header); the handler receives `AuthenticatedRequest` with `req.user.{ id, name, email }`
+- Responses: 201 for creation, 200 for success, 204 for empty, 4xx/5xx for errors
+- Errors always return JSON with: `name`, `message`, `action`, `status_code`
+
+## Custom errors (`infra/errors.ts`)
+
+Error hierarchy with typed classes:
+
+- `ValidationError` → 400
+- `UnauthorizedError` → 401
+- `NotFoundError` → 404
+- `MethodNotAllowedError` → 405
+- `TooManyRequestsError` → 429
+- `ServiceError` → 503
+- `InternalServerError` → 500 (automatic fallback for untyped exceptions — never throw explicitly)
+
+Each error implements `toJSON()` for a consistent API response.
+
+## Database
+
+- Queries with parameters (`$1, $2`) — never string interpolation
+- `RETURNING *` on create/update operations
+- Case-insensitive checks for unique fields (username, email)
+- Automatic SSL in production
+
+## Migrations
+
+- Use `node-pg-migrate`
+- `exports.down = false` — no automatic rollback
+- Default fields in all tables:
+  - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `created_at TIMESTAMPTZ DEFAULT NOW()`
+  - `updated_at TIMESTAMPTZ DEFAULT NOW()`
+
+## Tests
+
+- Framework: Jest
+- Philosophy: **no mocks** — use real services (real database, etc.)
+- Tests mirror endpoint structure: `tests/integration/api/v1/...`
+- `orchestrator.ts` centralizes: `clearDatabase()`, `runPendingMigrations()`, factories
+- Use `@faker-js/faker` for generating test data
+- Default timeout: 60 seconds
+- Run with `--runInBand` (sequential) to avoid database conflicts
+
+## Code conventions
+
+### Components
+
+- **Pages** (`pages/*.tsx`): `export default function PageName()`
+- **Components** (`components/**/*.tsx`): `export const ComponentName = () => {}`
+- One component per directory, file with explicit name (not `index.tsx`)
+  - E.g. `components/date-card/date-card.tsx`
+- Props typed with `interface`:
+  ```ts
+  interface DateCardProps {
+    name: string;
+    type: 'birthday' | 'anniversary';
+  }
+  ```
+- Imports always with `@/` alias:
+  - `import { Button } from '@/components/ui/button'`
+
+### General
+
+- No `any`
+- No obvious comments
+- User-facing error messages in Portuguese (pt-BR)
+
+### Fonts (next/font/google)
+
+Centralized instances in `lib/fonts.ts`. Applied in `pages/_app.tsx`:
+
+- `quicksand.className` on the wrapper div → body font via CSS inheritance
+- `fredoka.style.fontFamily` via `<style>` tag → applied to `h1-h6` and `.font-heading`
+
+Reason: in Pages Router, font CSS variables are not available on parent elements (body/html) when applied to child divs. The `<style>` tag injects the actual font value generated by next/font.
+
+## Commits
+
+- At the end of each development round, verify the changes, commit all pending work with Conventional Commits, and push to the current branch's remote. This is explicitly authorized by the user; report the commit and push result. Do not force-push.
+
+- Follow Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- Validated with commitlint + husky
+
+## Local infrastructure
+
+- Docker Compose in `infra/compose.yaml` for local PostgreSQL
+- `wait-for-postgres` script before starting the server
+- `.env.development` for local variables

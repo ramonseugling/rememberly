@@ -1,3 +1,4 @@
+import { Text } from '../src/components/brand-text/brand-text';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import {
@@ -7,13 +8,16 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../src/session/provider';
 import { theme } from '../src/theme';
+import {
+  authorizeGoogle,
+  googleNeedsBuild,
+} from '../src/features/auth/google-native';
 
 export default function LoginScreen() {
   const { state, controller } = useSession();
@@ -107,10 +111,20 @@ export default function LoginScreen() {
                 disabled={!email.trim() || !password}
                 onPress={submit}
               />
-              <Text style={styles.text}>
-                Sign in with your email and password. Google sign-in is not
-                available in this app yet.
-              </Text>
+              <Action
+                label="Continuar com Google"
+                disabled={googleNeedsBuild}
+                secondary
+                onPress={() => {
+                  void controller.loginWithGoogle(authorizeGoogle);
+                }}
+              />
+              {googleNeedsBuild && (
+                <Text style={styles.text}>
+                  O login com Google requer uma versão de desenvolvimento
+                  instalada. Ele não está disponível no Expo Go.
+                </Text>
+              )}
               <Action
                 label="Create an account"
                 secondary
