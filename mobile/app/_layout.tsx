@@ -1,4 +1,8 @@
-import { useFonts, Fredoka_600SemiBold } from '@expo-google-fonts/fredoka';
+import {
+  useFonts,
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
+} from '@expo-google-fonts/fredoka';
 import {
   Quicksand_500Medium,
   Quicksand_700Bold,
@@ -32,6 +36,7 @@ function Navigation() {
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     Fredoka_600SemiBold,
+    Fredoka_700Bold,
     Quicksand_500Medium,
     Quicksand_700Bold,
   });

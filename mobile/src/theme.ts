@@ -15,6 +15,7 @@ export const theme = {
   radius: 24,
   fonts: {
     heading: 'Fredoka_600SemiBold',
+    headingBold: 'Fredoka_700Bold',
     body: 'Quicksand_500Medium',
     bold: 'Quicksand_700Bold',
   },

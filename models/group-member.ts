@@ -1,3 +1,4 @@
+import { getBirthdayInfo } from '@/lib/date-utils';
 import database from 'infra/database';
 import {
   NotFoundError,
@@ -207,7 +208,45 @@ async function findAllBirthdaysForUser(userId: string) {
   }[];
 }
 
+async function findAllWithUpcomingBirthdaysByUserId(userId: string) {
+  const [groups, birthdays] = await Promise.all([
+    group.findAllByUserId(userId),
+    findAllBirthdaysByUserId(userId),
+  ]);
+  const byGroup = new Map<
+    string,
+    {
+      name: string;
+      birth_day: number;
+      birth_month: number;
+      days_until: number;
+    }[]
+  >();
+  for (const birthday of birthdays) {
+    const { daysUntil } = getBirthdayInfo(
+      birthday.birth_day,
+      birthday.birth_month,
+    );
+    if (daysUntil === null || daysUntil > 30) continue;
+    const entries = byGroup.get(birthday.group_id) ?? [];
+    entries.push({
+      name: birthday.name,
+      birth_day: birthday.birth_day,
+      birth_month: birthday.birth_month,
+      days_until: daysUntil,
+    });
+    byGroup.set(birthday.group_id, entries);
+  }
+  return groups.map((entry) => ({
+    ...entry,
+    upcoming_birthdays: (byGroup.get(entry.id) ?? []).sort(
+      (a, b) => a.days_until - b.days_until,
+    ),
+  }));
+}
+
 const groupMember = {
+  findAllWithUpcomingBirthdaysByUserId,
   join,
   remove,
   findAllByGroupId,

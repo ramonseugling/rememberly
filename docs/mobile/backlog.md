@@ -1,6 +1,6 @@
 # Mobile backlog
 
-Current visual-parity work is tracked in [VIS-001–012](visual-parity.md). The local web-mobile UI is the approved reference; initial source changes are in progress and visual/device acceptance remains pending.
+Current visual-parity work is tracked in [VIS-001–012](visual-parity.md). On 2026-11-06 the user limited the current round to Dates and Groups, with the current web as primary reference and compact bottom sheets for creation/editing. Source implementation now covers their cards, headers, sections, forms and group-detail tabs. Visual/device acceptance remains pending; Login, Occasions and Profile are deferred to a later visual round.
 
 This is the current implementation index. Task records contain detailed contracts and validation evidence. Implemented code still requires device and release validation.
 

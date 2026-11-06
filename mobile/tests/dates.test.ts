@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  daysLabel,
   editableEventId,
   eventPayload,
   formForEvent,
@@ -125,13 +126,28 @@ test('only the complete server-supported reminder set can be saved', () => {
 });
 
 test('display server occurrence date without parsing an instant or shifting timezone', () => {
-  assert.equal(occurrenceLabel(item), '01/03/2027 · In 2 days');
+  assert.equal(occurrenceLabel(item), '01/03/2027 · Em 2 dias');
   assert.equal(
     occurrenceLabel({ ...item, days_until: 0 }),
-    '01/03/2027 · Today',
+    '01/03/2027 · Hoje!',
   );
   assert.equal(
     occurrenceLabel({ ...item, days_until: 1 }),
-    '01/03/2027 · Tomorrow',
+    '01/03/2027 · Amanhã',
   );
+});
+
+test('countdown copy follows web week/month boundaries', () => {
+  const cases: [number, string][] = [
+    [0, 'Hoje! 🎉'],
+    [1, 'Amanhã'],
+    [7, 'Em 7 dias'],
+    [8, 'Em 1 semana'],
+    [14, 'Em 2 semanas'],
+    [29, 'Em 4 semanas'],
+    [30, 'Em 1 mês'],
+    [45, 'Em 2 meses'],
+    [365, 'Em 12 meses'],
+  ];
+  for (const [days, expected] of cases) assert.equal(daysLabel(days), expected);
 });

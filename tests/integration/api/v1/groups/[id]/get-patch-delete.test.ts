@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
+import { getToday } from '@/lib/date-utils';
 
 beforeAll(async () => {
   await orchestrator.clearDatabase();
@@ -25,6 +26,7 @@ describe('GET /api/v1/groups/[id]', () => {
     expect(data.invite_code).toBeDefined();
     expect(data.role).toBe('owner');
     expect(data.member_count).toBe(1);
+    expect(data.current_month).toBe(getToday().getMonth() + 1);
     expect(data.members).toBeDefined();
     expect(data.members.length).toBe(1);
   });

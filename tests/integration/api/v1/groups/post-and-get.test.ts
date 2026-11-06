@@ -1,5 +1,8 @@
 import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
+import { getToday } from '@/lib/date-utils';
+import group from 'models/group';
+import groupMember from 'models/group-member';
 
 beforeAll(async () => {
   await orchestrator.clearDatabase();
@@ -82,6 +85,74 @@ describe('POST /api/v1/groups', () => {
 });
 
 describe('GET /api/v1/groups', () => {
+  it('returns ordered birthdays through day 30 only within the authenticated memberships, excluding self', async () => {
+    const today = getToday();
+    const owner = await orchestrator.createUserAndSession({
+      birth_day: today.getDate(),
+      birth_month: today.getMonth() + 1,
+    });
+    const owned = await group.create(owner.user.id, { name: 'Família' });
+    const second = await group.create(owner.user.id, { name: 'Equipe' });
+    for (const offset of [30, 31, 0]) {
+      const target = new Date(today);
+      target.setDate(target.getDate() + offset);
+      const member = await orchestrator.createUser({
+        name: `Pessoa ${offset}`,
+        birth_day: target.getDate(),
+        birth_month: target.getMonth() + 1,
+      });
+      await groupMember.join(owned.invite_code, member.id);
+      if (offset === 0) await groupMember.join(second.invite_code, member.id);
+    }
+    const stranger = await orchestrator.createUserAndSession();
+    const privateGroup = await group.create(stranger.user.id, {
+      name: 'Privado',
+    });
+    const outsider = await orchestrator.createUser({
+      name: 'Pessoa privada',
+      birth_day: today.getDate(),
+      birth_month: today.getMonth() + 1,
+    });
+    await groupMember.join(privateGroup.invite_code, outsider.id);
+    const response = await fetch('http://localhost:3000/api/v1/groups', {
+      headers: { Authorization: `Bearer ${owner.session.token}` },
+    });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveLength(2);
+    const firstGroup = data.find(
+      (entry: { id: string }) => entry.id === owned.id,
+    );
+    expect(firstGroup.upcoming_birthdays).toEqual([
+      {
+        name: 'Pessoa 0',
+        birth_day: today.getDate(),
+        birth_month: today.getMonth() + 1,
+        days_until: 0,
+      },
+      expect.objectContaining({ name: 'Pessoa 30', days_until: 30 }),
+    ]);
+    expect(firstGroup.member_count).toBe(4);
+    expect(
+      data.find((entry: { id: string }) => entry.id === second.id)
+        .upcoming_birthdays,
+    ).toEqual([expect.objectContaining({ name: 'Pessoa 0', days_until: 0 })]);
+    expect(Object.keys(firstGroup.upcoming_birthdays[0]).sort()).toEqual([
+      'birth_day',
+      'birth_month',
+      'days_until',
+      'name',
+    ]);
+    const otherResponse = await fetch('http://localhost:3000/api/v1/groups', {
+      headers: { Authorization: `Bearer ${stranger.session.token}` },
+    });
+    const otherData = await otherResponse.json();
+    expect(otherData).toHaveLength(1);
+    expect(otherData[0].id).toBe(privateGroup.id);
+    expect(otherData[0].upcoming_birthdays).toEqual([
+      expect.objectContaining({ name: 'Pessoa privada', days_until: 0 }),
+    ]);
+  });
   it('lists the user groups', async () => {
     const token = await orchestrator.createUserAndToken();
 

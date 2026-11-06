@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, View, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Check, ChevronDown, X } from 'lucide-react-native';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
+import { Check, ChevronDown } from 'lucide-react-native';
+import { BottomSheet } from '../bottom-sheet/bottom-sheet';
 import { Text } from '../brand-text/brand-text';
 import { theme } from '../../theme';
 
@@ -12,6 +12,7 @@ interface SelectFieldProps {
   onChange: (value: string) => void;
   disabled?: boolean;
 }
+
 export const SelectField = ({
   label,
   value,
@@ -20,123 +21,74 @@ export const SelectField = ({
   disabled,
 }: SelectFieldProps) => {
   const [open, setOpen] = useState(false);
+  const selected = options.find((option) => option.value === value)?.label;
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${options.find((option) => option.value === value)?.label ?? 'Selecione'}`}
+        accessibilityLabel={label + ': ' + (selected ?? 'Selecione')}
         accessibilityState={{ disabled: !!disabled, expanded: open }}
         disabled={disabled}
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          Keyboard.dismiss();
+          setOpen(true);
+        }}
         style={[styles.field, disabled && { opacity: 0.5 }]}
       >
-        <Text>
-          {options.find((option) => option.value === value)?.label ?? label}
-        </Text>
+        <Text style={styles.value}>{selected ?? label}</Text>
         <ChevronDown size={16} color={theme.colors.muted} />
       </Pressable>
-      <Modal
-        visible={open}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setOpen(false)}
-      >
-        <View style={styles.backdrop}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fechar seleção"
-            onPress={() => setOpen(false)}
-            style={StyleSheet.absoluteFill}
-          />
-          <SafeAreaView
-            edges={['bottom', 'left', 'right']}
-            style={styles.panel}
-          >
-            <View style={styles.header}>
-              <Text style={{ fontFamily: theme.fonts.heading, fontSize: 22 }}>
-                {label}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Fechar seleção"
-                onPress={() => setOpen(false)}
-                style={styles.close}
-              >
-                <X color={theme.colors.foreground} />
-              </Pressable>
-            </View>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              {options.map((option) => (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="radio"
-                  accessibilityState={{
-                    checked: option.value === value,
-                    disabled: !!disabled,
-                  }}
-                  disabled={disabled}
-                  onPress={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  style={styles.option}
-                >
-                  <Text style={{ flex: 1 }}>{option.label}</Text>
-                  {option.value === value && (
-                    <Check color={theme.colors.primary} size={20} />
-                  )}
-                </Pressable>
-              ))}
-            </ScrollView>
-          </SafeAreaView>
+      <BottomSheet visible={open} title={label} onClose={() => setOpen(false)}>
+        <View accessibilityRole="radiogroup" style={{ gap: 2 }}>
+          {options.map((option) => (
+            <Pressable
+              key={option.value}
+              accessibilityRole="radio"
+              accessibilityState={{
+                checked: option.value === value,
+                disabled: !!disabled,
+              }}
+              disabled={disabled}
+              onPress={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              style={[styles.option, option.value === value && styles.selected]}
+            >
+              <Text style={styles.value}>{option.label}</Text>
+              {option.value === value && (
+                <Check color={theme.colors.primary} size={20} />
+              )}
+            </Pressable>
+          ))}
         </View>
-      </Modal>
+      </BottomSheet>
     </>
   );
 };
+
 const styles = StyleSheet.create({
   field: {
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 12,
-    minHeight: 48,
-    padding: 12,
-    backgroundColor: theme.colors.card,
+    borderRadius: 16,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  backdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: '#00000055',
-  },
-  panel: {
-    backgroundColor: theme.colors.background,
-    maxHeight: '75%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  close: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  value: { flex: 1, fontSize: 14, color: theme.colors.foreground },
   option: {
     minHeight: 48,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border,
+    gap: 8,
+    borderRadius: 12,
   },
+  selected: { backgroundColor: 'hsla(340, 75%, 68%, 0.1)' },
 });

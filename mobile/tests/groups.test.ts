@@ -5,6 +5,9 @@ import {
   canRemoveMember,
   groupNameError,
   inviteUrl,
+  daysLabel,
+  orderedBirthdays,
+  orderedMembers,
 } from '../src/features/groups/model.ts';
 import type { GroupMember } from '../src/features/groups/model.ts';
 
@@ -46,13 +49,61 @@ test('birthday presentation handles absent dates, leap days, and today', () => {
     birth_month: null,
     daysUntil: null,
   };
-  assert.equal(birthdayLabel(member), 'Birthday not shared');
+  assert.equal(birthdayLabel(member), 'Aniversário não informado');
   assert.equal(
     birthdayLabel({ ...member, birth_day: 29, birth_month: 2, daysUntil: 0 }),
-    'February 29 · Today!',
+    '29 de fevereiro',
   );
   assert.equal(
     birthdayLabel({ ...member, birth_day: 1, birth_month: 1, daysUntil: 1 }),
-    'January 1 · Tomorrow',
+    '1 de janeiro',
+  );
+});
+
+test('group birthday badges match the web thresholds', () => {
+  assert.deepEqual([0, 1, 7, 8, 14, 29, 30, 60].map(daysLabel), [
+    'Hoje! 🎉',
+    'Amanhã',
+    'Em 7 dias',
+    'Em 1 semana',
+    'Em 2 semanas',
+    'Em 4 semanas',
+    'Em 1 mês',
+    'Em 2 meses',
+  ]);
+});
+
+test('group dates sort shared birthdays and omit missing dates without mutating member order', () => {
+  const base: GroupMember = {
+    id: 'a',
+    name: 'A',
+    email: 'a@example.com',
+    role: 'member',
+    birth_day: 15,
+    birth_month: 12,
+    daysUntil: 30,
+  };
+  const members = [
+    base,
+    { ...base, id: 'b', daysUntil: 0 },
+    { ...base, id: 'c', birth_day: null, daysUntil: null },
+  ];
+  assert.deepEqual(
+    orderedBirthdays(members).map((member) => member.id),
+    ['b', 'a'],
+  );
+  assert.deepEqual(
+    members.map((member) => member.id),
+    ['a', 'b', 'c'],
+  );
+  assert.deepEqual(
+    orderedMembers([members[2]!, members[0]!, members[1]!]).map(
+      (member) => member.id,
+    ),
+    ['b', 'a', 'c'],
+  );
+  assert.equal(
+    birthdayLabel({ ...base, weekday: 'terça-feira' }),
+    '15 de dezembro (terça-feira)',
   );
 });

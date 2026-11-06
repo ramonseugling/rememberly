@@ -86,15 +86,18 @@ export function eventPayload(
   const title = form.title.trim();
   const customType = form.customType.trim();
   if (!title || title.length > 200) {
-    return { payload: null, error: 'Enter a title with 1 to 200 characters.' };
+    return {
+      payload: null,
+      error: 'Informe um título com 1 a 200 caracteres.',
+    };
   }
   if (!eventTypes.some((type) => type.value === form.type)) {
-    return { payload: null, error: 'Select an event type.' };
+    return { payload: null, error: 'Selecione um tipo de data.' };
   }
   if (form.type === 'custom' && (!customType || customType.length > 100)) {
     return {
       payload: null,
-      error: 'Enter a custom type with 1 to 100 characters.',
+      error: 'Informe um tipo personalizado com 1 a 100 caracteres.',
     };
   }
   if (
@@ -102,17 +105,17 @@ export function eventPayload(
     Number(form.day) < 1 ||
     Number(form.day) > 31
   ) {
-    return { payload: null, error: 'Enter a whole day from 1 to 31.' };
+    return { payload: null, error: 'Selecione um dia de 1 a 31.' };
   }
   if (
     !/^\d{1,2}$/.test(form.month) ||
     Number(form.month) < 1 ||
     Number(form.month) > 12
   ) {
-    return { payload: null, error: 'Enter a whole month from 1 to 12.' };
+    return { payload: null, error: 'Selecione um mês de 1 a 12.' };
   }
   if (!reminderDays.some((days) => days === form.reminder)) {
-    return { payload: null, error: 'Select a supported reminder.' };
+    return { payload: null, error: 'Selecione uma antecedência válida.' };
   }
   return {
     payload: {
@@ -129,23 +132,50 @@ export function eventPayload(
 
 export function eventTypeLabel(item: AgendaItem): string {
   return item.type === 'custom'
-    ? (item.custom_type ?? 'Custom')
+    ? (item.custom_type ?? 'Personalizado')
     : (eventTypes.find((type) => type.value === item.type)?.label ?? item.type);
 }
 
 export function reminderLabel(days: number): string {
   return days === 0
-    ? 'On the day'
-    : `${days} ${days === 1 ? 'day' : 'days'} before`;
+    ? 'Nenhuma'
+    : `${days} ${days === 1 ? 'dia' : 'dias'} antes`;
 }
 
 export function occurrenceLabel(item: AgendaItem): string {
   const [year, month, day] = item.next_date.split('-');
   return `${day}/${month}/${year} · ${
     item.days_until === 0
-      ? 'Today'
+      ? 'Hoje!'
       : item.days_until === 1
-        ? 'Tomorrow'
-        : `In ${item.days_until} days`
+        ? 'Amanhã'
+        : `Em ${item.days_until} dias`
   }`;
+}
+
+export const monthNames = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+] as const;
+
+export function daysLabel(days: number): string {
+  if (days === 0) return 'Hoje! 🎉';
+  if (days === 1) return 'Amanhã';
+  if (days <= 7) return `Em ${days} dias`;
+  if (days < 30) {
+    const weeks = Math.floor(days / 7);
+    return `Em ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+  }
+  const months = Math.round(days / 30);
+  return `Em ${months} ${months === 1 ? 'mês' : 'meses'}`;
 }

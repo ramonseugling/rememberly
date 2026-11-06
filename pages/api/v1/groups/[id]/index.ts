@@ -1,4 +1,5 @@
 import type { NextApiResponse } from 'next';
+import { getToday } from '@/lib/date-utils';
 import { parseSchema, updateGroupSchema } from '@/lib/validators';
 import {
   AuthenticatedRequest,
@@ -24,6 +25,7 @@ async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
     ...foundGroup,
     role: membership.role,
     member_count: memberCount,
+    current_month: getToday().getMonth() + 1,
     members,
   });
 }

@@ -5,6 +5,7 @@ import {
   authenticatedController,
 } from 'infra/controller';
 import group from 'models/group';
+import groupMember from 'models/group-member';
 
 export default authenticatedController({
   POST: handlePost,
@@ -18,6 +19,8 @@ async function handlePost(req: AuthenticatedRequest, res: NextApiResponse) {
 }
 
 async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
-  const groups = await group.findAllByUserId(req.user.id);
+  const groups = await groupMember.findAllWithUpcomingBirthdaysByUserId(
+    req.user.id,
+  );
   res.status(200).json(groups);
 }

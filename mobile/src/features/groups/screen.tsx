@@ -1,10 +1,16 @@
-import { Text } from '../../components/brand-text/brand-text';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { resourceId } from '../../navigation/intents';
+import {
+  ArrowLeft,
+  Cake,
+  Plus,
+  Settings,
+  Share2,
+  Users,
+  X,
+} from 'lucide-react-native';
 import {
   ActivityIndicator,
-  Modal,
   Alert,
   BackHandler,
   KeyboardAvoidingView,
@@ -18,44 +24,33 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BottomSheet } from '../../components/bottom-sheet/bottom-sheet';
+import { BrandButton } from '../../components/brand-button/brand-button';
+import { Text } from '../../components/brand-text/brand-text';
+import { GroupCard } from '../../components/group-card/group-card';
+import { GroupDates } from '../../components/group-dates/group-dates';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
-import { useSession } from '../../session/provider';
 import { useScreenAddAction } from '../../navigation/add-action';
+import { resourceId } from '../../navigation/intents';
+import { useSession } from '../../session/provider';
 import { theme } from '../../theme';
 import {
   birthdayLabel,
+  daysLabel,
+  orderedMembers,
   canRemoveMember,
   groupNameError,
   inviteUrl,
 } from './model';
 import type { Group, GroupMember } from './model';
 
-function Button({
-  label,
-  onPress,
-  disabled = false,
-  destructive = false,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  destructive?: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.button, disabled && styles.disabled]}
-    >
-      <Text style={[styles.buttonText, destructive && styles.destructive]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+type GroupTab = 'dates' | 'members' | 'settings';
+const tabs = [
+  { id: 'dates', label: 'Datas', Icon: Cake },
+  { id: 'members', label: 'Membros', Icon: Users },
+  { id: 'settings', label: 'Configurações', Icon: Settings },
+] as const;
 
 export function GroupsScreen() {
   const { state } = useSession();
@@ -68,37 +63,47 @@ function GroupContent({ userId }: { userId: string }) {
   const params = useLocalSearchParams<{ groupId?: string | string[] }>();
   const groups = useResource<Group[]>('/api/v1/groups');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  useEffect(() => {
-    if (resourceId(params.groupId)) {
-      setSelectedId(params.groupId);
-      router.setParams({ groupId: undefined });
-    }
-  }, [params.groupId]);
-  const path = selectedId
-    ? `/api/v1/groups/${encodeURIComponent(selectedId)}`
-    : null;
-  const detail = useResource<Group>(path);
-  const members = useResource<GroupMember[]>(path ? `${path}/members` : null);
+  const [tab, setTab] = useState<GroupTab>('dates');
+  const [expandedJoin, setExpandedJoin] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  useScreenAddAction('Criar grupo', () => {
-    if (!busy.current) {
-      setSelectedId(null);
-      setCreateOpen(true);
-    }
-  });
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [rename, setRename] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const busy = useRef(false);
   const alive = useRef(true);
+  const path = selectedId
+    ? `/api/v1/groups/${encodeURIComponent(selectedId)}`
+    : null;
+  const detail = useResource<Group>(path);
+  const members = useResource<GroupMember[]>(path ? `${path}/members` : null);
+  const group = detail.data;
+
+  useEffect(() => {
+    if (resourceId(params.groupId)) {
+      setSelectedId(params.groupId);
+      setTab('dates');
+      router.setParams({ groupId: undefined });
+    }
+  }, [params.groupId]);
   useEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
     };
   }, []);
+  useEffect(() => {
+    setRename(detail.data?.name ?? '');
+  }, [detail.data?.name]);
+  useScreenAddAction('Criar grupo', () => {
+    if (!busy.current) {
+      setError(null);
+      setSaved(false);
+      setCreateOpen(true);
+    }
+  });
   useFocusEffect(
     useCallback(() => {
       if (!selectedId) return;
@@ -115,15 +120,13 @@ function GroupContent({ userId }: { userId: string }) {
       return () => subscription.remove();
     }, [selectedId]),
   );
-  useEffect(() => {
-    setRename(detail.data?.name ?? '');
-  }, [detail.data?.name]);
 
   async function mutate(action: () => Promise<void>) {
     if (busy.current || !alive.current) return;
     busy.current = true;
     setPending(true);
     setError(null);
+    setSaved(false);
     try {
       await action();
     } catch (failure) {
@@ -131,7 +134,7 @@ function GroupContent({ userId }: { userId: string }) {
         setError(
           failure instanceof Error
             ? failure.message
-            : 'Unable to save. Check your connection and try again.',
+            : 'Não foi possível salvar. Confira sua conexão e tente novamente.',
         );
     } finally {
       busy.current = false;
@@ -148,7 +151,7 @@ function GroupContent({ userId }: { userId: string }) {
     action: () => Promise<void>,
   ) {
     Alert.alert(title, message, [
-      { text: 'Cancel', style: 'cancel' },
+      { text: 'Cancelar', style: 'cancel' },
       {
         text: label,
         style: 'destructive',
@@ -161,10 +164,73 @@ function GroupContent({ userId }: { userId: string }) {
   function open(groupId: string) {
     if (busy.current) return;
     setError(null);
+    setSaved(false);
     setRename('');
+    setTab('dates');
     setSelectedId(groupId);
   }
-  const group = detail.data;
+  function share(item: Group) {
+    void Share.share({
+      message: `Entrei no Rememberly e criei o grupo ${item.name} — entra com a gente! ${inviteUrl(apiConfiguration.apiOrigin, item.invite_code)}`,
+    }).catch(() => {
+      if (alive.current)
+        setError('Não foi possível compartilhar o convite. Tente novamente.');
+    });
+  }
+  function showCreate() {
+    setError(null);
+    setSaved(false);
+    setCreateOpen(true);
+  }
+  function create() {
+    const validation = groupNameError(name);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    void mutate(async () => {
+      const created = await request<Group>('/api/v1/groups', {
+        method: 'POST',
+        body: { name: name.trim() },
+      });
+      if (!alive.current) return;
+      setName('');
+      setCreateOpen(false);
+      setSelectedId(created.id);
+      setTab('dates');
+      await groups.reload();
+    });
+  }
+  function join() {
+    if (!code.trim()) {
+      setError('Informe o código de convite.');
+      return;
+    }
+    void mutate(async () => {
+      const joined = await request<Group>('/api/v1/groups/join', {
+        method: 'POST',
+        body: { invite_code: code.trim() },
+      });
+      if (!alive.current) return;
+      setCode('');
+      setExpandedJoin(false);
+      setSelectedId(joined.id);
+      setTab('dates');
+      await groups.reload();
+    });
+  }
+  const creator = members.data?.find((member) => member.role === 'owner');
+  const createdDate = group?.created_at
+    ? new Date(group.created_at).toLocaleDateString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+      })
+    : null;
+  const creatorLabel =
+    group?.role === 'owner'
+      ? 'Criado por você'
+      : creator
+        ? `Criado por ${creator.name}`
+        : 'Criado';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -173,6 +239,7 @@ function GroupContent({ userId }: { userId: string }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
+          key={selectedId ?? 'list'}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.content}
           refreshControl={
@@ -183,50 +250,53 @@ function GroupContent({ userId }: { userId: string }) {
               onRefresh={() => {
                 void refresh();
               }}
+              tintColor={theme.colors.primary}
             />
           }
         >
-          <Text style={styles.brand}>Rememberly</Text>
-          {selectedId && (
-            <Button
-              label="Back to groups"
-              disabled={pending}
-              onPress={() => {
-                setSelectedId(null);
-                setError(null);
-              }}
-            />
-          )}
-          <Text accessibilityRole="header" style={styles.title}>
-            {selectedId ? (group?.name ?? 'Group') : 'Your groups'}
-          </Text>
-          {pending && (
-            <View accessibilityLiveRegion="polite">
-              <ActivityIndicator />
-              <Text style={styles.body}>Saving…</Text>
-            </View>
-          )}
-          {error && (
+          {error && !createOpen && (
             <Text accessibilityRole="alert" style={styles.destructive}>
               {error}
             </Text>
           )}
+          {pending && !createOpen && (
+            <ActivityIndicator
+              accessibilityLabel="Salvando alterações"
+              color={theme.colors.primary}
+            />
+          )}
           {!selectedId ? (
             <>
-              <Text style={styles.body}>
-                Celebrate with family, friends, and your communities. Pull down
-                to refresh.
-              </Text>
+              <View style={styles.intro}>
+                <Text accessibilityRole="header" style={styles.title}>
+                  Meus grupos
+                </Text>
+                <Text style={styles.body}>
+                  Organize aniversários compartilhados com amigos, família e
+                  colegas.
+                </Text>
+                <BrandButton
+                  label="Criar grupo"
+                  onPress={showCreate}
+                  disabled={pending}
+                  icon={<Plus size={17} color="white" />}
+                  style={styles.start}
+                />
+              </View>
               {groups.loading && !groups.data && (
-                <ActivityIndicator accessibilityLabel="Loading groups" />
+                <ActivityIndicator
+                  accessibilityLabel="Carregando grupos"
+                  color={theme.colors.primary}
+                />
               )}
               {groups.error && (
                 <View style={styles.card}>
                   <Text accessibilityRole="alert" style={styles.body}>
                     {groups.error}
                   </Text>
-                  <Button
-                    label="Retry groups"
+                  <BrandButton
+                    label="Tentar novamente"
+                    variant="outline"
                     onPress={() => {
                       void groups.reload();
                     }}
@@ -234,152 +304,111 @@ function GroupContent({ userId }: { userId: string }) {
                 </View>
               )}
               {groups.data?.length === 0 && (
-                <Text style={styles.body}>
-                  No groups yet. Create a group or join with an invite code.
-                </Text>
-              )}
-              {groups.data?.map((item) => (
-                <View key={item.id} style={styles.card}>
-                  <Text style={styles.heading}>{item.name}</Text>
-                  <Text style={styles.body}>
-                    {item.member_count}{' '}
-                    {item.member_count === 1 ? 'member' : 'members'} ·{' '}
-                    {item.role === 'owner' ? 'Owner' : 'Member'}
+                <View style={[styles.card, styles.empty]}>
+                  <View style={styles.avatar}>
+                    <Users size={28} color={theme.colors.primary} />
+                  </View>
+                  <Text style={styles.heading}>
+                    Comemore junto de quem importa
                   </Text>
-                  <Button
-                    label={`Open ${item.name}`}
+                  <Text style={styles.body}>
+                    Crie um grupo e compartilhe aniversários com família, amigos
+                    ou colegas.
+                  </Text>
+                  <BrandButton
+                    label="Criar meu primeiro grupo"
+                    onPress={showCreate}
                     disabled={pending}
-                    onPress={() => open(item.id)}
                   />
                 </View>
+              )}
+              {groups.data?.map((item) => (
+                <GroupCard
+                  key={item.id}
+                  group={item}
+                  pending={pending}
+                  onOpen={() => open(item.id)}
+                  onInvite={() => share(item)}
+                />
               ))}
-              <Button
-                label="Criar grupo"
+              {!!groups.data?.length && (
+                <View style={styles.cta}>
+                  <Text style={styles.heading}>
+                    Mais pessoas, mais celebrações
+                  </Text>
+                  <Text style={styles.body}>
+                    Crie um novo grupo e convide quem faz parte da sua vida.
+                  </Text>
+                  <BrandButton
+                    label="Criar grupo"
+                    onPress={showCreate}
+                    disabled={pending}
+                    icon={<Plus size={16} color="white" />}
+                    style={styles.start}
+                  />
+                </View>
+              )}
+              <BrandButton
+                label={
+                  expandedJoin
+                    ? 'Fechar convite'
+                    : 'Já tem um código de convite?'
+                }
+                variant="outline"
+                onPress={() => setExpandedJoin((value) => !value)}
                 disabled={pending}
-                onPress={() => setCreateOpen(true)}
               />
-              <Modal
-                visible={createOpen}
-                animationType="slide"
-                onRequestClose={() => {
-                  if (!pending) setCreateOpen(false);
-                }}
-              >
-                <SafeAreaView style={styles.safeArea}>
-                  <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                  >
-                    <ScrollView
-                      keyboardShouldPersistTaps="handled"
-                      contentContainerStyle={styles.content}
-                    >
-                      <View style={styles.card}>
-                        <Text accessibilityRole="header" style={styles.heading}>
-                          Criar grupo
-                        </Text>
-                        {error && (
-                          <Text
-                            accessibilityRole="alert"
-                            style={styles.destructive}
-                          >
-                            {error}
-                          </Text>
-                        )}
-                        <TextInput
-                          style={styles.input}
-                          accessibilityLabel="Nome do novo grupo"
-                          placeholder="Nome do grupo"
-                          placeholderTextColor={theme.colors.muted}
-                          value={name}
-                          onChangeText={setName}
-                          editable={!pending}
-                          maxLength={100}
-                        />
-                        <Button
-                          label="Criar grupo"
-                          disabled={pending}
-                          onPress={() => {
-                            const validation = groupNameError(name);
-                            if (validation) {
-                              setError(validation);
-                              return;
-                            }
-                            void mutate(async () => {
-                              const created = await request<Group>(
-                                '/api/v1/groups',
-                                {
-                                  method: 'POST',
-                                  body: { name: name.trim() },
-                                },
-                              );
-                              if (!alive.current) return;
-                              setName('');
-                              setCreateOpen(false);
-                              setSelectedId(created.id);
-                              await groups.reload();
-                            });
-                          }}
-                        />
-                        <Button
-                          label="Cancelar"
-                          disabled={pending}
-                          onPress={() => setCreateOpen(false)}
-                        />
-                      </View>
-                    </ScrollView>
-                  </KeyboardAvoidingView>
-                </SafeAreaView>
-              </Modal>
-              <View style={styles.card}>
-                <Text accessibilityRole="header" style={styles.heading}>
-                  Join a group
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  accessibilityLabel="Invitation code"
-                  placeholder="Invitation code"
-                  placeholderTextColor={theme.colors.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={code}
-                  onChangeText={setCode}
-                  editable={!pending}
-                />
-                <Button
-                  label="Join group"
-                  disabled={pending}
-                  onPress={() => {
-                    if (!code.trim()) {
-                      setError('Enter an invitation code.');
-                      return;
-                    }
-                    void mutate(async () => {
-                      const joined = await request<Group>(
-                        '/api/v1/groups/join',
-                        { method: 'POST', body: { invite_code: code.trim() } },
-                      );
-                      if (!alive.current) return;
-                      setCode('');
-                      setSelectedId(joined.id);
-                      await groups.reload();
-                    });
-                  }}
-                />
-              </View>
+              {expandedJoin && (
+                <View style={styles.card}>
+                  <Text style={styles.heading}>Entrar em um grupo</Text>
+                  <TextInput
+                    style={styles.input}
+                    accessibilityLabel="Código de convite"
+                    placeholder="Código de convite"
+                    placeholderTextColor={theme.colors.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={code}
+                    onChangeText={setCode}
+                    editable={!pending}
+                  />
+                  <BrandButton
+                    label="Entrar no grupo"
+                    onPress={join}
+                    pending={pending}
+                  />
+                </View>
+              )}
             </>
           ) : (
             <>
+              <Pressable
+                accessibilityRole="button"
+                disabled={pending}
+                accessibilityState={{ disabled: pending }}
+                onPress={() => {
+                  setSelectedId(null);
+                  setError(null);
+                }}
+                style={styles.back}
+              >
+                <ArrowLeft size={16} color={theme.colors.muted} />
+                <Text style={styles.body}>Voltar para grupos</Text>
+              </Pressable>
               {detail.loading && !group && (
-                <ActivityIndicator accessibilityLabel="Loading group" />
+                <ActivityIndicator
+                  accessibilityLabel="Carregando grupo"
+                  color={theme.colors.primary}
+                />
               )}
               {detail.error && (
                 <View style={styles.card}>
                   <Text accessibilityRole="alert" style={styles.body}>
                     {detail.error}
                   </Text>
-                  <Button
-                    label="Retry group"
+                  <BrandButton
+                    label="Tentar novamente"
+                    variant="outline"
                     onPress={() => {
                       void refresh();
                     }}
@@ -389,162 +418,272 @@ function GroupContent({ userId }: { userId: string }) {
               {group && !detail.error && (
                 <>
                   <View style={styles.card}>
-                    <Text style={styles.body}>
-                      {group.member_count} members ·{' '}
-                      {group.role === 'owner'
-                        ? 'You own this group'
-                        : 'You are a member'}
-                    </Text>
-                    <Text selectable style={styles.body}>
-                      Invite code: {group.invite_code}
-                    </Text>
-                    <Button
-                      label="Share invitation"
+                    <View style={styles.largeAvatar}>
+                      <Users size={28} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.intro}>
+                      <Text
+                        accessibilityRole="header"
+                        style={styles.groupTitle}
+                      >
+                        {group.name}
+                      </Text>
+                      <Text style={styles.body}>
+                        {group.member_count}{' '}
+                        {group.member_count === 1 ? 'membro' : 'membros'}
+                        {createdDate
+                          ? ` · ${creatorLabel} em ${createdDate}`
+                          : ''}
+                      </Text>
+                    </View>
+                    <BrandButton
+                      label="Convidar"
+                      onPress={() => share(group)}
                       disabled={pending}
-                      onPress={() => {
-                        void Share.share({
-                          message: `Join ${group.name} on Rememberly: ${inviteUrl(apiConfiguration.apiOrigin, group.invite_code)}`,
-                        }).catch(() => {
-                          if (alive.current)
-                            setError(
-                              'Unable to share the invitation. Try again.',
-                            );
-                        });
-                      }}
+                      icon={<Share2 size={16} color="white" />}
+                      style={styles.start}
                     />
                   </View>
-                  <View style={styles.card}>
-                    <Text accessibilityRole="header" style={styles.heading}>
-                      Members and birthdays
-                    </Text>
-                    {members.loading && !members.data && (
-                      <ActivityIndicator accessibilityLabel="Loading members" />
-                    )}
-                    {members.error && (
-                      <>
-                        <Text accessibilityRole="alert" style={styles.body}>
-                          {members.error}
-                        </Text>
-                        <Button
-                          label="Retry members"
-                          onPress={() => {
-                            void members.reload();
-                          }}
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tabs}
+                  >
+                    {tabs.map(({ id, label, Icon }) => (
+                      <Pressable
+                        key={id}
+                        accessibilityRole="tab"
+                        accessibilityState={{ selected: tab === id }}
+                        onPress={() => {
+                          setTab(id);
+                          setError(null);
+                          setSaved(false);
+                        }}
+                        style={[styles.tab, tab === id && styles.activeTab]}
+                      >
+                        <Icon
+                          size={16}
+                          color={
+                            tab === id
+                              ? theme.colors.primary
+                              : theme.colors.muted
+                          }
                         />
-                      </>
-                    )}
-                    {members.data?.length === 0 && (
-                      <Text style={styles.body}>No members to display.</Text>
-                    )}
-                    {members.data?.map((member) => (
-                      <View key={member.id} style={styles.member}>
-                        <Text style={styles.heading}>
-                          {member.name}
-                          {member.id === userId ? ' (you)' : ''}
+                        <Text
+                          style={[
+                            styles.tabText,
+                            tab === id && styles.activeText,
+                          ]}
+                        >
+                          {label}
                         </Text>
-                        <Text style={styles.body}>
-                          {member.role === 'owner' ? 'Owner' : 'Member'} ·{' '}
-                          {birthdayLabel(member)}
-                        </Text>
-                        {canRemoveMember(group.role, userId, member) && (
-                          <Button
-                            label={`Remove ${member.name}`}
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                  {tab !== 'settings' && (
+                    <>
+                      {members.loading && !members.data && (
+                        <ActivityIndicator
+                          accessibilityLabel="Carregando aniversários e membros"
+                          color={theme.colors.primary}
+                        />
+                      )}
+                      {members.error && (
+                        <View style={styles.card}>
+                          <Text accessibilityRole="alert" style={styles.body}>
+                            {members.error}
+                          </Text>
+                          <BrandButton
+                            label="Tentar novamente"
+                            variant="outline"
+                            onPress={() => {
+                              void members.reload();
+                            }}
+                          />
+                        </View>
+                      )}
+                    </>
+                  )}
+                  {tab === 'dates' && members.data && !members.error && (
+                    <GroupDates
+                      key={group.id}
+                      members={members.data}
+                      userId={userId}
+                      currentMonth={
+                        group.current_month ??
+                        Number(
+                          new Intl.DateTimeFormat('en-US', {
+                            month: 'numeric',
+                            timeZone: 'America/Sao_Paulo',
+                          }).format(new Date()),
+                        )
+                      }
+                    />
+                  )}
+                  {tab === 'members' && members.data && !members.error && (
+                    <View style={styles.card}>
+                      <Text accessibilityRole="header" style={styles.heading}>
+                        Membros do grupo ({members.data.length})
+                      </Text>
+                      {orderedMembers(members.data).map((member) => (
+                        <View key={member.id} style={styles.member}>
+                          <View style={styles.row}>
+                            <View style={styles.smallAvatar}>
+                              <Text style={styles.initial}>
+                                {member.name.charAt(0).toUpperCase()}
+                              </Text>
+                            </View>
+                            <View style={styles.grow}>
+                              <Text style={styles.memberName}>
+                                {member.name}
+                                {member.id === userId ? ' (você)' : ''}
+                              </Text>
+                              <Text style={styles.caption}>
+                                {member.role === 'owner' ? 'Criador · ' : ''}
+                                {birthdayLabel(member)}
+                                {member.isNextYear
+                                  ? ' · Ano que vem'
+                                  : member.daysUntil !== null
+                                    ? ` · ${daysLabel(member.daysUntil)}`
+                                    : ''}
+                              </Text>
+                            </View>
+                          </View>
+                          {canRemoveMember(group.role, userId, member) && (
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityLabel={`Remover ${member.name}`}
+                              accessibilityState={{ disabled: pending }}
+                              style={styles.remove}
+                              disabled={pending}
+                              onPress={() =>
+                                confirm(
+                                  'Remover membro?',
+                                  `${member.name} perderá acesso a este grupo.`,
+                                  'Remover',
+                                  async () => {
+                                    await request(
+                                      `${path}/members/${encodeURIComponent(member.id)}`,
+                                      { method: 'DELETE' },
+                                    );
+                                    if (alive.current) await refresh();
+                                  },
+                                )
+                              }
+                            >
+                              <X size={18} color={theme.colors.muted} />
+                            </Pressable>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {tab === 'settings' && (
+                    <View style={styles.card}>
+                      {group.role === 'owner' ? (
+                        <>
+                          <Text style={styles.label}>Nome do grupo</Text>
+                          <TextInput
+                            style={styles.input}
+                            accessibilityLabel="Nome do grupo"
+                            value={rename}
+                            onChangeText={(value) => {
+                              setRename(value);
+                              setSaved(false);
+                            }}
+                            editable={!pending}
+                            maxLength={100}
+                          />
+                          <BrandButton
+                            label="Salvar"
+                            variant="solid"
+                            pending={pending}
+                            disabled={rename.trim() === group.name}
+                            onPress={() => {
+                              const validation = groupNameError(rename);
+                              if (validation) {
+                                setError(validation);
+                                return;
+                              }
+                              void mutate(async () => {
+                                await request(path!, {
+                                  method: 'PATCH',
+                                  body: { name: rename.trim() },
+                                });
+                                if (alive.current) {
+                                  await refresh();
+                                  setSaved(true);
+                                }
+                              });
+                            }}
+                          />
+                          {saved && (
+                            <Text
+                              accessibilityLiveRegion="polite"
+                              style={styles.body}
+                            >
+                              Nome do grupo atualizado.
+                            </Text>
+                          )}
+                          <View style={styles.danger}>
+                            <Text style={styles.dangerTitle}>
+                              Zona de perigo
+                            </Text>
+                            <Text style={styles.caption}>
+                              Deletar o grupo remove todos os membros
+                              permanentemente.
+                            </Text>
+                            <BrandButton
+                              label="Deletar grupo"
+                              variant="destructive"
+                              disabled={pending}
+                              onPress={() =>
+                                confirm(
+                                  'Deletar grupo?',
+                                  'Esta ação é permanente e remove o acesso de todos os membros.',
+                                  'Deletar',
+                                  async () => {
+                                    await request(path!, { method: 'DELETE' });
+                                    if (!alive.current) return;
+                                    setSelectedId(null);
+                                    await groups.reload();
+                                  },
+                                )
+                              }
+                            />
+                          </View>
+                        </>
+                      ) : (
+                        <>
+                          <Text style={styles.heading}>Sair do grupo</Text>
+                          <Text style={styles.body}>
+                            Você perde acesso aos aniversários compartilhados
+                            pelo grupo.
+                          </Text>
+                          <BrandButton
+                            label="Sair do grupo"
+                            variant="destructive"
                             disabled={pending}
-                            destructive
                             onPress={() =>
                               confirm(
-                                'Remove member?',
-                                `${member.name} will lose access to this group.`,
-                                'Remove',
+                                'Sair do grupo?',
+                                'Você perderá acesso. Para entrar novamente, use um convite.',
+                                'Sair',
                                 async () => {
                                   await request(
-                                    `${path}/members/${encodeURIComponent(member.id)}`,
+                                    `${path}/members/${encodeURIComponent(userId)}`,
                                     { method: 'DELETE' },
                                   );
-                                  if (alive.current) await refresh();
+                                  if (!alive.current) return;
+                                  setSelectedId(null);
+                                  await groups.reload();
                                 },
                               )
                             }
                           />
-                        )}
-                      </View>
-                    ))}
-                  </View>
-                  {group.role === 'owner' ? (
-                    <View style={styles.card}>
-                      <Text accessibilityRole="header" style={styles.heading}>
-                        Manage group
-                      </Text>
-                      <TextInput
-                        style={styles.input}
-                        accessibilityLabel="Rename group"
-                        value={rename}
-                        onChangeText={setRename}
-                        editable={!pending}
-                        maxLength={100}
-                      />
-                      <Button
-                        label="Save group name"
-                        disabled={pending}
-                        onPress={() => {
-                          const validation = groupNameError(rename);
-                          if (validation) {
-                            setError(validation);
-                            return;
-                          }
-                          void mutate(async () => {
-                            await request(path!, {
-                              method: 'PATCH',
-                              body: { name: rename.trim() },
-                            });
-                            if (alive.current) await refresh();
-                          });
-                        }}
-                      />
-                      <Text style={styles.body}>
-                        Owners must delete their group to close it.
-                      </Text>
-                      <Button
-                        label="Delete group"
-                        destructive
-                        disabled={pending}
-                        onPress={() =>
-                          confirm(
-                            'Delete group?',
-                            'This permanently deletes the group and removes access for every member.',
-                            'Delete',
-                            async () => {
-                              await request(path!, { method: 'DELETE' });
-                              if (!alive.current) return;
-                              setSelectedId(null);
-                              await groups.reload();
-                            },
-                          )
-                        }
-                      />
+                        </>
+                      )}
                     </View>
-                  ) : (
-                    <Button
-                      label="Leave group"
-                      destructive
-                      disabled={pending}
-                      onPress={() =>
-                        confirm(
-                          'Leave group?',
-                          'You will lose access. You can join again with an invitation code.',
-                          'Leave',
-                          async () => {
-                            await request(
-                              `${path}/members/${encodeURIComponent(userId)}`,
-                              { method: 'DELETE' },
-                            );
-                            if (!alive.current) return;
-                            setSelectedId(null);
-                            await groups.reload();
-                          },
-                        )
-                      }
-                    />
                   )}
                 </>
               )}
@@ -552,58 +691,176 @@ function GroupContent({ userId }: { userId: string }) {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <BottomSheet
+        title="Criar grupo"
+        visible={createOpen}
+        pending={pending}
+        onClose={() => {
+          setCreateOpen(false);
+          setError(null);
+        }}
+      >
+        <Text style={styles.label}>Nome do grupo</Text>
+        <TextInput
+          style={styles.input}
+          accessibilityLabel="Nome do novo grupo"
+          placeholder="Ex: Família Silva, Amigos do trabalho"
+          placeholderTextColor={theme.colors.muted}
+          value={name}
+          onChangeText={setName}
+          editable={!pending}
+          maxLength={100}
+          autoCapitalize="sentences"
+          returnKeyType="done"
+          onSubmitEditing={create}
+        />
+        {error && (
+          <Text accessibilityRole="alert" style={styles.destructive}>
+            {error}
+          </Text>
+        )}
+        <BrandButton label="Criar grupo" pending={pending} onPress={create} />
+      </BottomSheet>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  content: { padding: theme.spacing.large, gap: theme.spacing.medium },
-  brand: { color: theme.colors.primary, fontSize: 18, fontWeight: '700' },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 28,
+    paddingBottom: 32,
+    gap: 24,
+  },
+  intro: { gap: 8 },
+  start: { alignSelf: 'flex-start' },
   title: {
     color: theme.colors.foreground,
-    fontSize: 32,
+    fontSize: 30,
+    fontFamily: theme.fonts.headingBold,
+  },
+  groupTitle: {
+    color: theme.colors.foreground,
+    fontSize: 24,
+    fontFamily: theme.fonts.headingBold,
+  },
+  heading: {
+    color: theme.colors.foreground,
+    fontSize: 16,
     fontFamily: theme.fonts.heading,
   },
-  heading: { color: theme.colors.foreground, fontSize: 20, fontWeight: '600' },
-  body: { color: theme.colors.muted, fontSize: 16, lineHeight: 24 },
+  body: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
+  caption: { color: theme.colors.muted, fontSize: 12, lineHeight: 18 },
   card: {
     backgroundColor: theme.colors.card,
     borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: theme.radius,
-    padding: theme.spacing.medium,
-    gap: theme.spacing.medium,
+    borderRadius: 24,
+    padding: 20,
+    gap: 16,
   },
-  member: {
-    gap: theme.spacing.small,
-    paddingVertical: theme.spacing.small,
+  empty: { alignItems: 'center', paddingVertical: 28 },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: 'rgba(235, 109, 151, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  largeAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(235, 109, 151, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(235, 109, 151, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initial: {
+    color: theme.colors.primary,
+    fontSize: 18,
+    fontFamily: theme.fonts.heading,
+  },
+  cta: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: theme.colors.border,
+    borderRadius: 24,
+    padding: 20,
+    gap: 12,
+  },
+  back: { flexDirection: 'row', gap: 6, alignItems: 'center', minHeight: 44 },
+  tabs: {
+    flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+    flexGrow: 1,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: { borderBottomColor: theme.colors.primary },
+  tabText: { color: theme.colors.muted, fontSize: 13 },
+  activeText: { color: theme.colors.primary },
+  member: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(245, 239, 234, 0.45)',
+  },
+  remove: {
+    width: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  memberName: { fontSize: 14, color: theme.colors.foreground },
+  row: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  grow: { flex: 1 },
+  label: {
+    color: theme.colors.foreground,
+    fontSize: 14,
+    fontFamily: theme.fonts.bold,
   },
   input: {
     color: theme.colors.foreground,
-    fontSize: 17,
+    fontFamily: theme.fonts.body,
+    fontSize: 14,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 12,
-    padding: 14,
-    minHeight: 48,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
   },
-  button: {
-    minHeight: 48,
-    justifyContent: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 12,
-    backgroundColor: theme.colors.card,
+  destructive: { color: theme.colors.destructive, fontSize: 14 },
+  dangerTitle: {
+    color: theme.colors.destructive,
+    fontSize: 14,
+    fontFamily: theme.fonts.bold,
   },
-  buttonText: {
-    color: theme.colors.foreground,
-    fontWeight: '600',
-    fontSize: 16,
+  danger: {
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: 24,
+    gap: 12,
   },
-  disabled: { opacity: 0.45 },
-  destructive: { color: '#a62342', fontSize: 16 },
 });
