@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -31,6 +35,35 @@ export const BottomSheet = ({
 }: BottomSheetProps) => {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
+  const panelHeight = useRef(height);
+  const translation = useRef(new Animated.Value(height)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (active) setReduceMotion(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReduceMotion,
+    );
+    return () => {
+      active = false;
+      subscription.remove();
+      translation.stopAnimation();
+      backdropOpacity.stopAnimation();
+    };
+  }, [translation, backdropOpacity]);
+  useLayoutEffect(() => {
+    if (visible) {
+      translation.setValue(panelHeight.current);
+      backdropOpacity.setValue(0);
+    } else {
+      translation.stopAnimation();
+      backdropOpacity.stopAnimation();
+    }
+  }, [visible, translation, backdropOpacity]);
   const close = () => {
     if (!pending) onClose();
   };
@@ -38,14 +71,38 @@ export const BottomSheet = ({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="none"
       statusBarTranslucent
       onRequestClose={close}
+      onShow={() => {
+        translation.setValue(panelHeight.current);
+        Animated.parallel([
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            duration: reduceMotion ? 0 : 180,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translation, {
+            toValue: 0,
+            duration: reduceMotion ? 0 : 240,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }}
     >
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            styles.backdrop,
+            { opacity: backdropOpacity },
+          ]}
+        />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Fechar painel"
@@ -53,9 +110,18 @@ export const BottomSheet = ({
           onPress={close}
           style={StyleSheet.absoluteFill}
         />
-        <View
+        <Animated.View
           accessibilityViewIsModal
-          style={[styles.panel, { maxHeight: height - insets.top - 24 }]}
+          onLayout={(event) => {
+            panelHeight.current = event.nativeEvent.layout.height;
+          }}
+          style={[
+            styles.panel,
+            {
+              maxHeight: height - insets.top - 24,
+              transform: [{ translateY: translation }],
+            },
+          ]}
         >
           <View style={styles.handle} />
           <View style={styles.header}>
@@ -84,7 +150,7 @@ export const BottomSheet = ({
           >
             {children}
           </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -94,8 +160,8 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(36, 43, 92, 0.3)',
   },
+  backdrop: { backgroundColor: 'rgba(36, 43, 92, 0.3)' },
   panel: {
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: 28,

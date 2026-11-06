@@ -4,6 +4,10 @@ Reference: the current local web application at phone widths, as explicitly sele
 
 ## Status definitions
 
+### Bottom-sheet animation correction (2026-11-06)
+
+After approving the auth visuals, the user reported that opening sheets also slid the dark backdrop upward above the panel. The shared BottomSheet now disables the native whole-modal slide and animates two independent layers: a stationary backdrop fades in while only the panel translates upward. This applies to date/group/account sheets and selectors. Existing close/pending, keyboard and safe-area behavior is retained; reduced-motion preferences disable the entrance animation. Mobile types/formatting and the 94-test suite passed during this fix. The updated motion still requires the user's device check.
+
 ### Current round: Authentication (2026-11-06)
 
 The user validated Occasions and Profile in the physical-device Expo Go preview and approved the visual result. Login, signup, OTP verification, password recovery and reset are the next approved scope, with the current web as primary reference and the supplied screenshots as supporting examples.
