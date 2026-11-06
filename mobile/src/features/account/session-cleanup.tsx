@@ -4,9 +4,17 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import { ApiError, useAuthenticatedApi } from '../../data/hooks';
-import { theme } from '../../theme';
+import {
+  resolveAppearance,
+  type ComponentAppearance,
+  type ResolvedAppearance,
+} from '../../components/component-appearance';
 
-export function SessionCleanup() {
+export function SessionCleanup({
+  appearance,
+}: { appearance?: ComponentAppearance } = {}) {
+  const theme = resolveAppearance(appearance);
+  const styles = createStyles(theme);
   const { request } = useAuthenticatedApi();
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
@@ -122,6 +130,7 @@ export function SessionCleanup() {
         onSubmitEditing={confirm}
       />
       <BrandButton
+        appearance={appearance}
         label={pending ? 'Encerrando sessões...' : 'Encerrar outras sessões'}
         variant="outline"
         disabled={pending || !password}
@@ -137,31 +146,32 @@ export function SessionCleanup() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    gap: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 24,
-    backgroundColor: theme.colors.card,
-  },
-  label: {
-    fontSize: 16,
-    color: theme.colors.foreground,
-    fontFamily: theme.fonts.heading,
-  },
-  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
-  hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 44,
-    fontSize: 14,
-    fontFamily: theme.fonts.body,
-    color: theme.colors.foreground,
-  },
-});
+const createStyles = (theme: ResolvedAppearance) =>
+  StyleSheet.create({
+    section: {
+      gap: 12,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 24,
+      backgroundColor: theme.colors.card,
+    },
+    label: {
+      fontSize: 16,
+      color: theme.colors.foreground,
+      fontFamily: theme.fonts.heading,
+    },
+    text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
+    hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.controlBorder,
+      borderRadius: theme.controlRadius,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      minHeight: theme.controlMinHeight,
+      fontSize: 14,
+      fontFamily: theme.fonts.body,
+      color: theme.colors.foreground,
+    },
+  });

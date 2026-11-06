@@ -3,9 +3,14 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '../brand-text/brand-text';
-import { theme } from '../../theme';
+import {
+  resolveAppearance,
+  type ComponentAppearance,
+  type ResolvedAppearance,
+} from '../component-appearance';
 
 interface BrandButtonProps {
+  appearance?: ComponentAppearance;
   label: string;
   onPress: () => void;
   disabled?: boolean;
@@ -16,6 +21,7 @@ interface BrandButtonProps {
 }
 
 export const BrandButton = ({
+  appearance,
   label,
   onPress,
   disabled = false,
@@ -24,6 +30,8 @@ export const BrandButton = ({
   icon,
   style,
 }: BrandButtonProps) => {
+  const theme = resolveAppearance(appearance);
+  const styles = createStyles(theme);
   const inactive = disabled || pending;
   const color =
     variant === 'outline'
@@ -71,23 +79,28 @@ export const BrandButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  button: { borderRadius: 16, overflow: 'hidden', minHeight: 44 },
-  outline: { borderWidth: 1, borderColor: theme.colors.border },
-  solid: { backgroundColor: theme.colors.primary },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    minHeight: 44,
-  },
-  label: {
-    flexShrink: 1,
-    fontSize: 14,
-    fontFamily: theme.fonts.bold,
-    textAlign: 'center',
-  },
-});
+const createStyles = (theme: ResolvedAppearance) =>
+  StyleSheet.create({
+    button: {
+      borderRadius: theme.controlRadius,
+      overflow: 'hidden',
+      minHeight: theme.controlMinHeight,
+    },
+    outline: { borderWidth: 1, borderColor: theme.colors.border },
+    solid: { backgroundColor: theme.colors.primary },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 11,
+      minHeight: theme.controlMinHeight,
+    },
+    label: {
+      flexShrink: 1,
+      fontSize: 14,
+      fontFamily: theme.fonts.bold,
+      textAlign: 'center',
+    },
+  });

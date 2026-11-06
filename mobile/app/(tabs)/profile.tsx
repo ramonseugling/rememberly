@@ -1,20 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { ChevronDown, ChevronUp, LogOut, Mail } from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandButton } from '../../src/components/brand-button/brand-button';
-import { Text } from '../../src/components/brand-text/brand-text';
-import { SelectField } from '../../src/components/select-field/select-field';
+import {
+  DsText,
+  DsButton,
+  DsField,
+  DsCard,
+  DsSelect,
+  DsFeedback,
+  DsRow,
+} from '../../src/design-system';
+import {
+  appearance as pilotAppearance,
+  tokens,
+} from '../../src/design-system/tokens';
+import { isDesignCatalogEnabled } from '../../src/design-system/availability';
+import { apiConfiguration } from '../../src/config/environment';
 import { useAuthenticatedApi, useResource } from '../../src/data/hooks';
 import {
   profileForm,
@@ -31,7 +41,6 @@ import { SessionCleanup } from '../../src/features/account/session-cleanup';
 import { DeleteAccount } from '../../src/features/account/delete-account';
 import { NotificationSettings } from '../../src/features/notifications';
 import { useSession } from '../../src/session/provider';
-import { theme } from '../../src/theme';
 
 interface ProfileEditor {
   user: ProfileUser;
@@ -189,91 +198,84 @@ function ProfileContent() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.intro}>
-            <Text accessibilityRole="header" style={styles.heading}>
+            <DsText role="title" accessibilityRole="header">
               Meu perfil
-            </Text>
-            <Text style={styles.body}>Atualize suas informações pessoais.</Text>
+            </DsText>
+            <DsText style={styles.muted}>
+              Atualize suas informações pessoais.
+            </DsText>
           </View>
           {loading && !data && (
             <ActivityIndicator
               accessibilityLabel="Carregando perfil"
-              color={theme.colors.primary}
+              color={tokens.colors.primary}
             />
           )}
           {error && (
-            <View style={styles.card}>
-              <Text accessibilityRole="alert" style={styles.error}>
-                {error}
-              </Text>
-              <BrandButton
+            <DsCard>
+              <DsFeedback message={error} tone="error" />
+              <DsButton
                 label="Tentar novamente"
                 variant="outline"
                 onPress={() => {
                   void reload();
                 }}
               />
-            </View>
+            </DsCard>
           )}
           {data && editor && (
             <>
-              <View style={[styles.card, styles.identity]}>
+              <DsCard style={styles.identity}>
                 <View style={styles.avatar}>
-                  <Text style={styles.initial}>
+                  <DsText role="section" style={styles.initial}>
                     {editor.user.name.charAt(0).toUpperCase()}
-                  </Text>
+                  </DsText>
                 </View>
                 <View style={styles.identityText}>
-                  <Text style={styles.identityName}>{editor.user.name}</Text>
+                  <DsText role="section">{editor.user.name}</DsText>
                   <View style={styles.mailRow}>
-                    <Mail size={14} color={theme.colors.muted} />
-                    <Text selectable style={styles.email}>
+                    <Mail size={16} color={tokens.colors.textMuted} />
+                    <DsText selectable role="caption" style={styles.email}>
                       {editor.user.email}
-                    </Text>
+                    </DsText>
                   </View>
                 </View>
-              </View>
-              <View style={styles.card}>
+              </DsCard>
+              <DsCard style={styles.form}>
+                <DsField
+                  label="Nome"
+                  accessibilityLabel="Nome"
+                  autoComplete="name"
+                  value={editor.form.name}
+                  onChangeText={(value) => change('name', value)}
+                  editable={!pending}
+                  maxLength={100}
+                  autoCapitalize="words"
+                />
+                <DsField
+                  label="E-mail"
+                  accessibilityLabel="E-mail, não pode ser alterado"
+                  value={editor.user.email}
+                  editable={false}
+                  hint="O e-mail não pode ser alterado."
+                />
                 <View style={styles.field}>
-                  <Text style={styles.label}>Nome</Text>
-                  <TextInput
-                    accessibilityLabel="Nome"
-                    autoComplete="name"
-                    value={editor.form.name}
-                    onChangeText={(value) => change('name', value)}
-                    editable={!pending}
-                    style={styles.input}
-                    maxLength={100}
-                    autoCapitalize="words"
-                  />
-                </View>
-                <View style={styles.field}>
-                  <Text style={styles.label}>E-mail</Text>
-                  <TextInput
-                    accessibilityLabel="E-mail, não pode ser alterado"
-                    value={editor.user.email}
-                    editable={false}
-                    style={[styles.input, styles.disabledEmail]}
-                  />
-                  <Text style={styles.caption}>
-                    O e-mail não pode ser alterado.
-                  </Text>
-                </View>
-                <View style={styles.field}>
-                  <Text style={styles.label}>Data de nascimento</Text>
+                  <DsText role="label">Data de nascimento</DsText>
                   <View style={styles.birthday}>
-                    <TextInput
-                      accessibilityLabel="Dia de nascimento"
-                      value={editor.form.day}
-                      onChangeText={(value) => change('day', value)}
-                      editable={!pending}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      style={[styles.input, styles.day]}
-                      placeholder="Dia"
-                      placeholderTextColor={theme.colors.muted}
-                    />
+                    <View style={styles.day}>
+                      <DsField
+                        accessibilityLabel="Dia de nascimento"
+                        value={editor.form.day}
+                        onChangeText={(value) => change('day', value)}
+                        editable={!pending}
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        placeholder="Dia"
+                        style={styles.centeredInput}
+                      />
+                    </View>
                     <View style={styles.month}>
-                      <SelectField
+                      <DsSelect
                         label="Mês"
                         value={editor.form.month}
                         options={profileMonths}
@@ -282,7 +284,7 @@ function ProfileContent() {
                       />
                     </View>
                     <View style={styles.year}>
-                      <SelectField
+                      <DsSelect
                         label="Ano"
                         value={editor.form.year}
                         options={years}
@@ -292,17 +294,9 @@ function ProfileContent() {
                     </View>
                   </View>
                 </View>
-                {saveError && (
-                  <Text accessibilityRole="alert" style={styles.error}>
-                    {saveError}
-                  </Text>
-                )}
-                {message && (
-                  <Text accessibilityLiveRegion="polite" style={styles.body}>
-                    {message}
-                  </Text>
-                )}
-                <BrandButton
+                {saveError && <DsFeedback message={saveError} tone="error" />}
+                {message && <DsFeedback message={message} tone="success" />}
+                <DsButton
                   label={saving ? 'Salvando...' : 'Salvar alterações'}
                   pending={saving}
                   disabled={!dirty || loggingOut}
@@ -311,18 +305,18 @@ function ProfileContent() {
                   }}
                   style={styles.save}
                 />
-              </View>
+              </DsCard>
             </>
           )}
-          <View style={styles.card}>
+          <DsCard style={styles.logoutCard}>
             <View style={styles.field}>
-              <Text style={styles.label}>Sair da conta</Text>
-              <Text style={styles.caption}>
+              <DsText role="label">Sair da conta</DsText>
+              <DsText role="caption" style={styles.muted}>
                 Você será desconectado deste dispositivo. Pode entrar de novo a
                 qualquer momento.
-              </Text>
+              </DsText>
             </View>
-            <BrandButton
+            <DsButton
               label={loggingOut ? 'Saindo...' : 'Sair da conta'}
               variant="destructive"
               pending={loggingOut}
@@ -330,35 +324,41 @@ function ProfileContent() {
               onPress={() => {
                 void logout();
               }}
-              icon={<LogOut size={16} color={theme.colors.destructive} />}
-              style={styles.logout}
+              icon={<LogOut size={18} color={tokens.colors.danger} />}
+              style={styles.save}
             />
-          </View>
-          {state.message && (
-            <Text accessibilityRole="alert" style={styles.error}>
-              {state.message}
-            </Text>
-          )}
-          <DeleteAccount />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Mais opções da conta"
+          </DsCard>
+          {state.message && <DsFeedback message={state.message} tone="error" />}
+          <DeleteAccount appearance={pilotAppearance} />
+          <DsRow
+            title="Mais opções da conta"
             accessibilityState={{ expanded }}
+            subtitle={
+              expanded
+                ? 'Recolher segurança e notificações'
+                : 'Segurança e notificações'
+            }
             onPress={() => setExpanded((value) => !value)}
-            style={styles.expand}
-          >
-            <Text style={styles.body}>Mais opções da conta</Text>
-            {expanded ? (
-              <ChevronUp size={18} color={theme.colors.muted} />
-            ) : (
-              <ChevronDown size={18} color={theme.colors.muted} />
-            )}
-          </Pressable>
+            trailing={
+              expanded ? (
+                <ChevronUp size={20} color={tokens.colors.textMuted} />
+              ) : (
+                <ChevronDown size={20} color={tokens.colors.textMuted} />
+              )
+            }
+          />
           {expanded && (
             <View style={styles.secondary}>
-              <SessionCleanup />
-              <NotificationSettings />
+              <SessionCleanup appearance={pilotAppearance} />
+              <NotificationSettings appearance={pilotAppearance} />
             </View>
+          )}
+          {isDesignCatalogEnabled(apiConfiguration.environment, __DEV__) && (
+            <DsButton
+              label="Catálogo do design system"
+              variant="text"
+              onPress={() => router.push('/design-system')}
+            />
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -367,96 +367,41 @@ function ProfileContent() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.colors.background },
+  safe: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 32,
-    gap: 24,
-  },
-  intro: { gap: 4 },
-  heading: {
-    fontSize: 30,
-    color: theme.colors.foreground,
-    fontFamily: theme.fonts.headingBold,
-    lineHeight: 36,
-  },
-  body: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
-  caption: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
-  card: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 24,
-    backgroundColor: theme.colors.card,
-    padding: 20,
     gap: 20,
   },
+  intro: { gap: 8 },
+  muted: { color: tokens.colors.textMuted },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   avatar: {
-    width: 64,
-    height: 64,
+    width: 48,
+    height: 48,
     borderRadius: 16,
-    backgroundColor: 'rgba(235, 109, 151, 0.10)',
+    backgroundColor: tokens.colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  initial: {
-    color: theme.colors.primary,
-    fontSize: 28,
-    fontFamily: theme.fonts.headingBold,
-  },
+  initial: { color: tokens.colors.primary },
   identityText: { flex: 1, minWidth: 0, gap: 4 },
-  identityName: {
-    fontSize: 20,
-    fontFamily: theme.fonts.heading,
-    color: theme.colors.foreground,
-  },
   mailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  email: { flex: 1, fontSize: 14, color: theme.colors.muted },
-  field: { gap: 6 },
-  label: {
-    fontSize: 14,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.foreground,
-  },
-  input: {
-    backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 44,
-    fontSize: 14,
-    fontFamily: theme.fonts.body,
-    color: theme.colors.foreground,
-  },
-  disabledEmail: { opacity: 0.6 },
+  email: { flex: 1, color: tokens.colors.textMuted },
+  form: { gap: 20 },
+  field: { gap: 8 },
   birthday: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     alignItems: 'flex-start',
   },
-  day: { flexBasis: 60, flexGrow: 1, textAlign: 'center' },
+  day: { flexBasis: 60, flexGrow: 1 },
   month: { flexBasis: 112, flexGrow: 3 },
   year: { flexBasis: 88, flexGrow: 1 },
-  save: { alignSelf: 'flex-end', maxWidth: '100%' },
-  logout: {
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-    borderColor: theme.colors.destructive,
-  },
-  error: { fontSize: 14, lineHeight: 21, color: theme.colors.destructive },
-  expand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 44,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingTop: 12,
-  },
+  centeredInput: { textAlign: 'center' },
+  save: { alignSelf: 'flex-start', maxWidth: '100%' },
+  logoutCard: { gap: 16 },
   secondary: { gap: 16 },
 });

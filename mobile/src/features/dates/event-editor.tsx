@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { BottomSheet } from '../../components/bottom-sheet/bottom-sheet';
-import { BrandButton } from '../../components/brand-button/brand-button';
-import { Text } from '../../components/brand-text/brand-text';
-import { SelectField } from '../../components/select-field/select-field';
-import { theme } from '../../theme';
+import { StyleSheet, View } from 'react-native';
+import {
+  DsButton,
+  DsField,
+  DsFeedback,
+  DsSelect,
+  DsSheet,
+  DsText,
+} from '../../design-system';
+import { tokens } from '../../design-system/tokens';
 import { dayOptions } from './editor-options';
 import { eventPayload, eventTypes, formForEvent, reminderDays } from './model';
 import type { AgendaItem, EventForm, EventPayload } from './model';
@@ -43,7 +47,6 @@ export const EventEditor = ({
 }: EventEditorProps) => {
   const [form, setForm] = useState(() => formForEvent(item));
   const [validation, setValidation] = useState<string | null>(null);
-  const [focused, setFocused] = useState<string | null>(null);
   const initial = formForEvent(item);
   const dirty = (Object.keys(form) as (keyof EventForm)[]).some(
     (key) => form[key] !== initial[key],
@@ -58,32 +61,25 @@ export const EventEditor = ({
     setValidation(result.error);
     if (result.payload) onSave(result.payload);
   }
-
   return (
-    <BottomSheet
+    <DsSheet
       title={item ? 'Editar data especial' : 'Adicionar data especial'}
       pending={pending}
       onClose={onClose}
     >
+      <DsField
+        label="Título"
+        accessibilityLabel="Título da data"
+        placeholder="Ex: Aniversário da Ana"
+        value={form.title}
+        onChangeText={(value) => change('title', value)}
+        maxLength={200}
+        editable={!pending}
+        autoCapitalize="sentences"
+      />
       <View style={styles.field}>
-        <Text style={styles.label}>Título</Text>
-        <TextInput
-          accessibilityLabel="Título da data"
-          style={[styles.input, focused === 'title' && styles.focused]}
-          placeholder="Ex: Aniversário da Ana"
-          placeholderTextColor={theme.colors.muted}
-          value={form.title}
-          onChangeText={(value) => change('title', value)}
-          maxLength={200}
-          editable={!pending}
-          autoCapitalize="sentences"
-          onFocus={() => setFocused('title')}
-          onBlur={() => setFocused(null)}
-        />
-      </View>
-      <View style={styles.field}>
-        <Text style={styles.label}>Tipo de data</Text>
-        <SelectField
+        <DsText role="label">Tipo de data</DsText>
+        <DsSelect
           label="Tipo de data"
           value={form.type}
           options={eventTypes}
@@ -94,25 +90,22 @@ export const EventEditor = ({
           }}
         />
         {form.type === 'custom' && (
-          <TextInput
+          <DsField
+            label="Tipo personalizado"
             accessibilityLabel="Tipo personalizado"
-            style={[styles.input, focused === 'custom' && styles.focused]}
             placeholder="Ex: Formatura, Dia dos melhores amigos"
-            placeholderTextColor={theme.colors.muted}
             value={form.customType}
             onChangeText={(value) => change('customType', value)}
             maxLength={100}
             editable={!pending}
-            onFocus={() => setFocused('custom')}
-            onBlur={() => setFocused(null)}
           />
         )}
       </View>
       <View style={styles.field}>
-        <Text style={styles.label}>Data</Text>
+        <DsText role="label">Data</DsText>
         <View style={styles.row}>
           <View style={{ flex: 2 }}>
-            <SelectField
+            <DsSelect
               label="Mês"
               value={form.month}
               disabled={pending}
@@ -127,7 +120,7 @@ export const EventEditor = ({
             />
           </View>
           <View style={{ flex: 1 }}>
-            <SelectField
+            <DsSelect
               label="Dia"
               value={form.day}
               disabled={pending || !form.month}
@@ -138,8 +131,8 @@ export const EventEditor = ({
         </View>
       </View>
       <View style={styles.field}>
-        <Text style={styles.label}>Notificação antecipada</Text>
-        <SelectField
+        <DsText role="label">Notificação antecipada</DsText>
+        <DsSelect
           label="Notificação antecipada"
           value={String(form.reminder)}
           disabled={pending}
@@ -154,63 +147,39 @@ export const EventEditor = ({
           }))}
           onChange={(value) => change('reminder', Number(value))}
         />
-        <Text style={styles.description}>
+        <DsText role="caption" style={styles.description}>
           Você também receberá a notificação no dia do evento.
-        </Text>
+        </DsText>
       </View>
       {(validation || error) && (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {validation || error}
-        </Text>
+        <DsFeedback message={validation || error || ''} tone="error" />
       )}
       <View style={styles.actions}>
         {item && onDelete && (
-          <BrandButton
+          <DsButton
             label="Excluir"
             variant="destructive"
             disabled={pending}
             onPress={onDelete}
-            style={{ flex: 1 }}
+            style={styles.action}
           />
         )}
-        <BrandButton
+        <DsButton
           label={pending ? 'Salvando...' : item ? 'Salvar' : 'Adicionar data'}
           pending={pending}
           disabled={!!item && !dirty}
           onPress={submit}
-          style={{ flex: 1 }}
+          style={styles.action}
         />
       </View>
-    </BottomSheet>
+    </DsSheet>
   );
 };
 
 const styles = StyleSheet.create({
-  field: { gap: 6 },
-  label: {
-    color: theme.colors.foreground,
-    fontFamily: theme.fonts.bold,
-    fontSize: 14,
-  },
-  description: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: theme.colors.muted,
-    fontStyle: 'italic',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 44,
-    color: theme.colors.foreground,
-    fontSize: 14,
-    fontFamily: theme.fonts.body,
-  },
-  focused: { borderColor: theme.colors.primary },
+  field: { gap: 8 },
+  description: { color: tokens.colors.textMuted },
   row: { flexDirection: 'row', gap: 12 },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 8 },
-  error: { color: theme.colors.destructive, fontSize: 14 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8 },
+  action: { flexBasis: 120, flexGrow: 1 },
 });

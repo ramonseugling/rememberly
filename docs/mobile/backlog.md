@@ -1,5 +1,7 @@
 # Mobile backlog
 
+Current approved track (2026-11-06): the isolated minimal/warm design system is documented in [design-system.md](design-system.md), with development catalog and real Dates/Profile pilots. Their device acceptance is pending. Other screen migration and wishlist remain blocked on approval; see [product backlog](../product/BACKLOG.md). The historical web-parity records below remain preserved.
+
 Current visual-parity work is tracked in [VIS-001–012](visual-parity.md). On 2026-11-06 the user approved Dates, Groups, Occasions and Profile in the physical-device Expo Go preview. The current round implements web-aligned login, signup, OTP verification, password recovery/reset and shared authentication controls; source checks pass and the user's next device acceptance remains pending. The final interaction/accessibility review is still outstanding. Signed-build/provider/release validation is separate from Expo Go screen acceptance.
 
 This is the current implementation index. Task records contain detailed contracts and validation evidence. Implemented code still requires device and release validation.

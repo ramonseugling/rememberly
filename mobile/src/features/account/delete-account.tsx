@@ -6,13 +6,21 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ApiError, useAuthenticatedApi } from '../../data/hooks';
 import { useSession } from '../../session/provider';
-import { theme } from '../../theme';
+import {
+  resolveAppearance,
+  type ComponentAppearance,
+  type ResolvedAppearance,
+} from '../../components/component-appearance';
 import {
   canDeleteAccount,
   createDeletionConfirmation,
 } from './deletion-confirmation';
 
-export function DeleteAccount() {
+export function DeleteAccount({
+  appearance,
+}: { appearance?: ComponentAppearance } = {}) {
+  const theme = resolveAppearance(appearance);
+  const styles = createStyles(theme);
   const { controller, state } = useSession();
   const { request } = useAuthenticatedApi();
   const scope = state.status === 'authenticated' ? state.identity : null;
@@ -159,6 +167,7 @@ export function DeleteAccount() {
         <Text style={styles.linkText}>Excluir conta</Text>
       </Pressable>
       <BottomSheet
+        appearance={appearance}
         title="Excluir conta"
         visible={open}
         pending={pending}
@@ -214,6 +223,7 @@ export function DeleteAccount() {
             onSubmitEditing={confirm}
           />
           <BrandButton
+            appearance={appearance}
             label={
               pending ? 'Excluindo conta...' : 'Excluir conta permanentemente'
             }
@@ -233,25 +243,30 @@ export function DeleteAccount() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: { gap: 16 },
-  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
-  hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
-  input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 44,
-    fontSize: 14,
-    fontFamily: theme.fonts.body,
-    color: theme.colors.foreground,
-  },
-  link: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
-  linkText: {
-    fontSize: 14,
-    color: theme.colors.destructive,
-    textDecorationLine: 'underline',
-  },
-});
+const createStyles = (theme: ResolvedAppearance) =>
+  StyleSheet.create({
+    section: { gap: 16 },
+    text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
+    hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.controlBorder,
+      borderRadius: theme.controlRadius,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      minHeight: theme.controlMinHeight,
+      fontSize: 14,
+      fontFamily: theme.fonts.body,
+      color: theme.colors.foreground,
+    },
+    link: {
+      minHeight: theme.controlMinHeight,
+      justifyContent: 'center',
+      alignSelf: 'flex-start',
+    },
+    linkText: {
+      fontSize: 14,
+      color: theme.colors.destructive,
+      textDecorationLine: 'underline',
+    },
+  });

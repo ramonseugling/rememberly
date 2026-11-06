@@ -4,7 +4,7 @@
 
 A proposta amplia o Rememberly de lembretes de datas para **listas de desejos e organização de presentes entre pessoas dos mesmos grupos**.
 
-O primeiro marco será **wishlist com reservas secretas no mobile**, usando o backend atual. Compartilhamento público, experiência dedicada de aniversário e push ficam para etapas posteriores.
+Após o design system, o primeiro marco funcional novo será **wishlist com reservas secretas no mobile**, usando o backend atual. Compartilhamento público, experiência dedicada de aniversário e push ficam para etapas posteriores.
 
 Decisões confirmadas nesta conversa:
 
@@ -21,13 +21,13 @@ Atualizado em 06/11/2026. O web permanece fora desta rodada. Referências: docum
 
 Ordem: registrar este backlog → definir tokens e componentes → catálogo e pilotos → aprovação visual do usuário → padronizar demais telas → iniciar wishlist.
 
-| ID     | Prioridade | Estado inicial | Entrega / aceite                                                                                                                                                                      | Dependência             |
-| ------ | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| DS-001 | P0         | Planejado      | Especificação de cores semânticas, Quicksand, espaçamentos, dimensões, bordas, sombras, ícones e movimento em docs/mobile/design-system.md.                                           | Este registro           |
-| DS-002 | P0         | Planejado      | Base isolada em mobile/src/design-system/: texto, botões, campos, seletores, cards, linhas, badges, switches, checkbox, OTP, feedback e painéis. Nenhuma troca global do tema legado. | DS-001                  |
-| DS-003 | P0         | Planejado      | Catálogo apenas em desenvolvimento, com estados interativos e dados de demonstração identificados. Nenhum envio, cadastro ou exclusão real automático.                                | DS-002                  |
-| DS-004 | P0         | Planejado      | Datas e Perfil reais usando a nova base; preservar recursos, navegação e dados. Testes/tipos/bundles e validação visual no dispositivo.                                               | DS-002/003              |
-| DS-005 | P0         | Bloqueado      | Após aprovação dos pilotos, migrar Grupos, Especiais e autenticação; eliminar estilos duplicados substituídos e consolidar tokens.                                                    | Aprovação visual DS-004 |
+| ID     | Prioridade | Estado                                | Entrega / aceite                                                                                                                                                                      | Dependência             |
+| ------ | ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| DS-001 | P0         | Implementado; revisão visual pendente | Especificação de cores semânticas, Quicksand, espaçamentos, dimensões, bordas, sombras, ícones e movimento em docs/mobile/design-system.md.                                           | Este registro           |
+| DS-002 | P0         | Implementado; revisão visual pendente | Base isolada em mobile/src/design-system/: texto, botões, campos, seletores, cards, linhas, badges, switches, checkbox, OTP, feedback e painéis. Nenhuma troca global do tema legado. | DS-001                  |
+| DS-003 | P0         | Implementado; revisão visual pendente | Catálogo apenas em desenvolvimento, com estados interativos e dados de demonstração identificados. Nenhum envio, cadastro ou exclusão real automático.                                | DS-002                  |
+| DS-004 | P0         | Implementado; revisão visual pendente | Datas e Perfil reais usando a nova base; preservar recursos, navegação e dados. Testes/tipos/bundles e validação visual no dispositivo.                                               | DS-002/003              |
+| DS-005 | P0         | Bloqueado                             | Após aprovação dos pilotos, migrar Grupos, Especiais e autenticação; eliminar estilos duplicados substituídos e consolidar tokens.                                                    | Aprovação visual DS-004 |
 
 A aprovação visual é do usuário e não pode ser inferida de tipos, testes ou bundles. Registrar evidência por rodada. A primeira execução termina com catálogo e pilotos prontos para revisão; não migra outras telas nem inicia wishlist automaticamente.
 
@@ -133,3 +133,9 @@ Estas decisões não serão tomadas implicitamente durante a implementação:
 - Preservar autenticação, eventos, grupos, e-mails e fluxos já aprovados. Testes de push e links em builds instaladas permanecem separados dos testes no Expo Go.
 
 Este documento registra planejamento e decisões aprovadas. A wishlist não está implementada. O histórico original desta proposta foi preservado em whishlist4.md; este arquivo é o índice atualizado de execução.
+
+## Evidência da rodada DS-001–004 — 06/11/2026
+
+Planejamento versionado antes do código no commit 5d61a8a. Catálogo e pilotos reais de Datas/Perfil implementados com tokens isolados; navegação, tema legado, APIs e regras de negócio preservados. Verificação local: 97 testes mobile, TypeScript, formatação dos arquivos alterados e exports Hermes iOS/Android passaram. Testes novos verificam os pares de contraste e a disponibilidade do catálogo somente em ambiente/bundle de desenvolvimento. O preview usa o banco local existente, sem limpeza ou seed.
+
+Aprovação visual, texto ampliado, teclado, leitores de tela e movimento em dispositivo: pendentes da revisão do usuário. DS-005 e toda implementação da wishlist continuam bloqueadas até essa aprovação.

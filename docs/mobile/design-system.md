@@ -10,21 +10,22 @@ Reutilizar Quicksand já instalada: 500 para corpo e 700 para títulos/ênfase. 
 
 ## Tokens
 
-| Papel         | Valor             | Uso                                                     |
-| ------------- | ----------------- | ------------------------------------------------------- |
-| background    | #FCF8FA           | Fundo quente discreto                                   |
-| surface       | #FFFFFF           | Cards e painéis                                         |
-| surfaceMuted  | #F6EEF2           | Ícones, agrupamentos e desabilitados                    |
-| text          | #2B2026           | Conteúdo principal                                      |
-| textMuted     | #6F636B           | Conteúdo secundário                                     |
-| primary       | #BF2E5B           | Ação primária e foco                                    |
-| onPrimary     | #FFFFFF           | Texto sobre ação primária                               |
-| border        | #E8DDE2           | Separação de superfícies, não indicador único de campos |
-| controlBorder | #9C8791           | Limites de campos e seletores                           |
-| danger        | #B42335           | Erros e ações destrutivas                               |
-| success       | #176744           | Confirmações                                            |
-| accent        | #F08B51           | Detalhes decorativos de celebração                      |
-| celebration   | #F6BDD0 → #FAD9C3 | Destaque ocasional com texto escuro                     |
+| Papel          | Valor             | Uso                                                     |
+| -------------- | ----------------- | ------------------------------------------------------- |
+| background     | #FCF8FA           | Fundo quente discreto                                   |
+| surface        | #FFFFFF           | Cards e painéis                                         |
+| surfaceMuted   | #F6EEF2           | Ícones, agrupamentos e desabilitados                    |
+| text           | #2B2026           | Conteúdo principal                                      |
+| textMuted      | #6F636B           | Conteúdo secundário                                     |
+| primary        | #BF2E5B           | Ação primária e foco                                    |
+| primaryPressed | #A4224D           | Ação primária pressionada                               |
+| onPrimary      | #FFFFFF           | Texto sobre ação primária                               |
+| border         | #E8DDE2           | Separação de superfícies, não indicador único de campos |
+| controlBorder  | #9C8791           | Limites de campos e seletores                           |
+| danger         | #B42335           | Erros e ações destrutivas                               |
+| success        | #176744           | Confirmações                                            |
+| accent         | #F08B51           | Detalhes decorativos de celebração                      |
+| celebration    | #F6BDD0 → #FAD9C3 | Destaque ocasional com texto escuro                     |
 
 Não aplicar texto branco ao laranja claro. Ação primária sólida, secundária em contorno e ação textual sem superfície. Gradiente reservado ao destaque de datas próximas e demonstração no catálogo, não a todo botão/card.
 
@@ -51,3 +52,15 @@ Datas: hierarquia compacta, cards/linhas com distinção de origem, manutenção
 Verificar contraste, áreas de toque, texto ampliado, rótulos, erro/sucesso, teclado, safe areas e redução de movimento. Executar tipos, formatação, testes pertinentes e exports Hermes iOS/Android. Testes de contraste e disponibilidade do catálogo cobrem comportamentos novos; não criar testes que apenas espelham estilos.
 
 Registrar testes e limites reais após implementação. Aprovação visual dos pilotos: pendente. Build assinado, provider Google, push e associação HTTPS permanecem fora da aceitação visual no Expo Go.
+
+## Implementação e acesso ao catálogo
+
+A base e os pilotos de Datas e Perfil estão implementados e aguardam aprovação visual. Componentes antigos continuam usando sua aparência original quando o parâmetro opcional appearance não é fornecido. Seletores, OTP e painel compartilham o comportamento existente; apenas a aparência e as dimensões dos pilotos são parametrizadas. A área de toque dos controles da nova base é de pelo menos 48 pontos.
+
+Para revisar no Expo Go: iniciar o app com EXPO_PUBLIC_APP_ENV=development e API local alcançável, entrar na conta, abrir Perfil e tocar em **Catálogo do design system** no fim da página. A rota /design-system exige sessão autenticada, ambiente development e bundle **DEV**; staging/production e bundles de release não expõem o catálogo. Há bloqueio de rota além de ocultação do botão.
+
+A galeria contém texto, cores, ações, campos, seletores, switch, checkbox, OTP, linhas, badges, feedback e painel; estados de foco e pressionado são acionados pela interação. Nenhuma demonstração faz chamadas de mutação. Os pilotos reais continuam enviando alterações somente por suas ações explícitas de salvar/excluir, como antes.
+
+Evidência local: 97 testes mobile, TypeScript, formatação focada e exports Hermes Android/iOS aprovados. Contraste validado para texto normal (4,5:1), texto sobre o gradiente de celebração e limites de campos habilitados (3:1). Isso não substitui a inspeção de escalonamento, teclado, leitor de tela, safe areas e movimento em aparelho. Não foi executado teste visual automatizado nem declarado aceite de dispositivo.
+
+Próxima etapa depende da aprovação dos pilotos pelo usuário. Não migrar demais telas nem implementar wishlist automaticamente.

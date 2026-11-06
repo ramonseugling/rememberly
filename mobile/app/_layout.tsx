@@ -14,6 +14,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SessionProvider, useSession } from '../src/session/provider';
 import { IntentProvider } from '../src/navigation/provider';
 import { NotificationRuntime } from '../src/features/notifications';
+import { apiConfiguration } from '../src/config/environment';
+import { isDesignCatalogEnabled } from '../src/design-system/availability';
 
 function Navigation() {
   const { state } = useSession();
@@ -21,6 +23,14 @@ function Navigation() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={state.status === 'authenticated'}>
         <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected
+        guard={
+          state.status === 'authenticated' &&
+          isDesignCatalogEnabled(apiConfiguration.environment, __DEV__)
+        }
+      >
+        <Stack.Screen name="design-system" />
       </Stack.Protected>
       <Stack.Protected guard={state.status !== 'authenticated'}>
         <Stack.Screen name="login" />

@@ -4,7 +4,11 @@ import { Text } from '../../components/brand-text/brand-text';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
 import { useSession } from '../../session/provider';
-import { theme } from '../../theme';
+import {
+  resolveAppearance,
+  type ComponentAppearance,
+  type ResolvedAppearance,
+} from '../../components/component-appearance';
 import { nativeNotifications } from './native';
 import {
   updateNotifications,
@@ -12,7 +16,11 @@ import {
   type NotificationResult,
 } from './workflow';
 
-export function NotificationSettings() {
+export function NotificationSettings({
+  appearance,
+}: { appearance?: ComponentAppearance } = {}) {
+  const theme = resolveAppearance(appearance);
+  const styles = createStyles(theme);
   const { request } = useAuthenticatedApi();
   const { state, controller } = useSession();
   const preferences = useResource<NotificationPreferences>(
@@ -177,21 +185,22 @@ export function NotificationSettings() {
   );
 }
 
-const styles = StyleSheet.create({
-  section: {
-    gap: 12,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.card,
-  },
-  title: {
-    color: theme.colors.foreground,
-    fontSize: 16,
-    fontFamily: theme.fonts.heading,
-  },
-  text: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
-  button: { paddingVertical: 12, minHeight: 48 },
-  link: { color: theme.colors.foreground, fontFamily: theme.fonts.bold },
-});
+const createStyles = (theme: ResolvedAppearance) =>
+  StyleSheet.create({
+    section: {
+      gap: 12,
+      padding: 20,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+    },
+    title: {
+      color: theme.colors.foreground,
+      fontSize: 16,
+      fontFamily: theme.fonts.heading,
+    },
+    text: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
+    button: { paddingVertical: 12, minHeight: 48 },
+    link: { color: theme.colors.foreground, fontFamily: theme.fonts.bold },
+  });

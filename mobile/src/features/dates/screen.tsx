@@ -1,4 +1,3 @@
-import { Text } from '../../components/brand-text/brand-text';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,13 +20,13 @@ import {
   Bell,
   Star,
 } from 'lucide-react-native';
-import { BrandButton } from '../../components/brand-button/brand-button';
+import { DsButton, DsCard, DsFeedback, DsText } from '../../design-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
-import { DateCard } from '../../components/date-card/date-card';
+import { DsDateCard } from '../../design-system/date-card';
 import { dateSections } from './sections';
 import { useScreenAddAction } from '../../navigation/add-action';
-import { theme } from '../../theme';
+import { tokens } from '../../design-system/tokens';
 import { EventEditor } from './event-editor';
 import { editableEventId, monthNames } from './model';
 import type { Agenda, AgendaItem, EventPayload } from './model';
@@ -162,21 +161,16 @@ export function DatesScreen() {
               : section.title === 'Este mês'
                 ? Cake
                 : Clock;
-          const color =
-            section.title === 'Próximos 7 dias'
-              ? theme.colors.primary
-              : section.title === 'Este mês'
-                ? theme.colors.accent
-                : theme.colors.secondary;
           return (
             <View style={styles.sectionHeading}>
-              <Icon size={16} color={color} />
-              <Text
+              <Icon size={18} color={tokens.colors.textMuted} />
+              <DsText
                 accessibilityRole="header"
-                style={[styles.sectionTitle, { color }]}
+                role="label"
+                style={styles.sectionTitle}
               >
                 {section.title}
-              </Text>
+              </DsText>
             </View>
           );
         }}
@@ -189,13 +183,13 @@ export function DatesScreen() {
               style={styles.expand}
               onPress={() => setExpanded(!expanded)}
             >
-              <Text style={styles.expandText}>
+              <DsText role="label">
                 {expanded ? 'Ver menos datas' : 'Ver todas as datas'}
-              </Text>
+              </DsText>
               {expanded ? (
-                <ChevronUp color={theme.colors.foreground} size={16} />
+                <ChevronUp size={18} color={tokens.colors.text} />
               ) : (
-                <ChevronDown color={theme.colors.foreground} size={16} />
+                <ChevronDown size={18} color={tokens.colors.text} />
               )}
             </Pressable>
           ) : undefined
@@ -204,8 +198,8 @@ export function DatesScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor={tokens.colors.primary}
+            colors={[tokens.colors.primary]}
             refreshing={loading}
             onRefresh={() => {
               void reload();
@@ -216,16 +210,18 @@ export function DatesScreen() {
           <View>
             {(loading || error || !!data?.items.length) && (
               <View style={styles.header}>
-                <Text style={styles.eyebrow}>Minhas Datas</Text>
-                <Text accessibilityRole="header" style={styles.title}>
+                <DsText role="caption" style={styles.eyebrow}>
+                  Minhas Datas
+                </DsText>
+                <DsText accessibilityRole="header" role="title">
                   Próximas datas importantes
-                </Text>
+                </DsText>
                 {data && (
-                  <Text style={styles.description}>
+                  <DsText role="caption" style={styles.description}>
                     {monthName} • {grouped.upcomingCount}{' '}
                     {grouped.upcomingCount === 1 ? 'evento' : 'eventos'} nos
                     próximos 30 dias
-                  </Text>
+                  </DsText>
                 )}
               </View>
             )}
@@ -243,33 +239,34 @@ export function DatesScreen() {
                 }
               >
                 <View style={styles.bannerIcon}>
-                  <PartyPopper color={theme.colors.primary} size={20} />
+                  <PartyPopper size={20} color={tokens.colors.primary} />
                 </View>
                 <View style={styles.bannerCopy}>
-                  <Text style={styles.bannerTitle}>
+                  <DsText role="label">
                     Você tem {withinWeek} {withinWeek === 1 ? 'data' : 'datas'}{' '}
                     nos próximos 7 dias
-                  </Text>
-                  <Text style={styles.bannerDescription}>
+                  </DsText>
+                  <DsText role="caption" style={styles.description}>
                     Prepare-se para celebrar!
-                  </Text>
+                  </DsText>
                 </View>
-                <ChevronRight color={theme.colors.muted} size={16} />
+                <ChevronRight size={18} color={tokens.colors.textMuted} />
               </Pressable>
             )}
             {loading && !data && (
               <ActivityIndicator
                 accessibilityLabel="Carregando datas"
-                color={theme.colors.primary}
+                color={tokens.colors.primary}
               />
             )}
             {(error || (!editor && mutationError)) && (
               <View style={styles.errorCard}>
-                <Text accessibilityRole="alert" style={styles.description}>
-                  {error || mutationError}
-                </Text>
+                <DsFeedback
+                  message={error || mutationError || ''}
+                  tone="error"
+                />
                 {error && (
-                  <BrandButton
+                  <DsButton
                     variant="outline"
                     label="Tentar novamente"
                     onPress={() => {
@@ -284,27 +281,35 @@ export function DatesScreen() {
         ListEmptyComponent={
           !loading && !error ? (
             <View style={styles.emptyContainer}>
-              <View style={styles.empty}>
+              <DsCard style={styles.empty}>
                 <View style={styles.emptyIcon}>
-                  <Calendar size={64} color={theme.colors.primary} />
+                  <Calendar size={44} color={tokens.colors.primary} />
                 </View>
-                <Text accessibilityRole="header" style={styles.emptyTitle}>
+                <DsText
+                  accessibilityRole="header"
+                  role="section"
+                  style={styles.centered}
+                >
                   Nenhuma data por aqui ainda
-                </Text>
-                <Text style={styles.emptyDescription}>
+                </DsText>
+                <DsText style={[styles.description, styles.centered]}>
                   Adicione aniversários e outras datas importantes para receber
                   lembretes no momento certo.
-                </Text>
-                <BrandButton
+                </DsText>
+                <DsButton
                   label="Adicionar primeira data"
-                  icon={<Plus size={16} color="#fff" />}
+                  icon={<Plus size={18} color={tokens.colors.onPrimary} />}
                   onPress={() => openEditor()}
                   disabled={pending}
                 />
-              </View>
-              <Text accessibilityRole="header" style={styles.tipsTitle}>
+              </DsCard>
+              <DsText
+                accessibilityRole="header"
+                role="section"
+                style={styles.tipsTitle}
+              >
                 Dicas para aproveitar a Rememberly
-              </Text>
+              </DsText>
               {[
                 {
                   title: 'Aniversários',
@@ -323,22 +328,24 @@ export function DatesScreen() {
                   Icon: Bell,
                 },
               ].map(({ title, description, Icon }) => (
-                <View style={styles.tip} key={title}>
+                <DsCard style={styles.tip} key={title}>
                   <View style={styles.bannerIcon}>
-                    <Icon color={theme.colors.primary} size={20} />
+                    <Icon size={20} color={tokens.colors.primary} />
                   </View>
                   <View style={styles.bannerCopy}>
-                    <Text style={styles.tipTitle}>{title}</Text>
-                    <Text style={styles.description}>{description}</Text>
+                    <DsText role="label">{title}</DsText>
+                    <DsText role="caption" style={styles.description}>
+                      {description}
+                    </DsText>
                   </View>
-                </View>
+                </DsCard>
               ))}
             </View>
           ) : undefined
         }
         renderItem={({ item }) => (
           <View style={styles.cardSpacing}>
-            <DateCard
+            <DsDateCard
               item={item}
               disabled={pending}
               onEdit={
@@ -376,114 +383,62 @@ export function DatesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  content: { paddingHorizontal: 16, paddingTop: 32, paddingBottom: 32 },
-  header: { marginBottom: 24, gap: 4 },
-  eyebrow: {
-    color: theme.colors.primary,
-    fontSize: 14,
-    fontFamily: theme.fonts.bold,
-  },
-  title: {
-    color: theme.colors.foreground,
-    fontSize: 30,
-    lineHeight: 38,
-    fontFamily: theme.fonts.headingBold,
-  },
-  description: { color: theme.colors.muted, fontSize: 14, lineHeight: 20 },
+  safeArea: { flex: 1, backgroundColor: tokens.colors.background },
+  content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
+  header: { gap: 6, marginBottom: 24 },
+  eyebrow: { color: tokens.colors.primary },
+  description: { color: tokens.colors.textMuted },
   sectionHeading: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
   },
-  sectionTitle: { fontFamily: theme.fonts.heading, fontSize: 14 },
-  cardSpacing: { marginBottom: 16 },
+  sectionTitle: { fontFamily: tokens.fonts.bold },
+  cardSpacing: { marginBottom: 12 },
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'hsla(340, 75%, 68%, 0.2)',
-    backgroundColor: 'hsla(340, 75%, 68%, 0.05)',
-    borderRadius: 24,
+    backgroundColor: tokens.colors.surfaceMuted,
+    padding: 16,
+    borderRadius: tokens.radius.card,
     marginBottom: 24,
+    minHeight: tokens.controlMinHeight,
   },
   bannerIcon: {
-    width: 40,
     height: 40,
-    borderRadius: 16,
-    backgroundColor: 'hsla(340, 75%, 68%, 0.15)',
+    width: 40,
+    borderRadius: tokens.radius.row,
+    backgroundColor: tokens.colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bannerCopy: { flex: 1, gap: 2 },
-  bannerTitle: { fontFamily: theme.fonts.bold, fontSize: 14, lineHeight: 18 },
-  bannerDescription: {
-    color: theme.colors.muted,
-    fontSize: 12,
-    lineHeight: 16,
-  },
+  bannerCopy: { flex: 1, gap: 4 },
   expand: {
-    minHeight: 44,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 99,
     alignSelf: 'center',
+    minHeight: tokens.controlMinHeight,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: theme.colors.card,
-  },
-  expandText: { fontSize: 14 },
-  errorCard: {
-    backgroundColor: theme.colors.card,
-    padding: 20,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: tokens.radius.control,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 24,
-    marginBottom: 24,
+    borderColor: tokens.colors.controlBorder,
   },
-  emptyContainer: { gap: 16 },
-  empty: {
-    padding: 24,
-    borderRadius: 24,
-    backgroundColor: theme.colors.mutedBackground,
+  errorCard: { gap: 12, marginBottom: 24 },
+  emptyContainer: { gap: 12 },
+  empty: { alignItems: 'center', gap: 16 },
+  emptyIcon: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    backgroundColor: tokens.colors.surfaceMuted,
     alignItems: 'center',
-    gap: 20,
+    justifyContent: 'center',
   },
-  emptyIcon: { height: 144, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: {
-    fontFamily: theme.fonts.heading,
-    fontSize: 24,
-    lineHeight: 30,
-    textAlign: 'center',
-  },
-  emptyDescription: {
-    color: theme.colors.muted,
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tipsTitle: {
-    fontFamily: theme.fonts.heading,
-    fontSize: 22,
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  tip: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    backgroundColor: theme.colors.card,
-  },
-  tipTitle: { fontFamily: theme.fonts.heading, fontSize: 16 },
+  centered: { textAlign: 'center' },
+  tipsTitle: { marginTop: 16, marginBottom: 4 },
+  tip: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 });

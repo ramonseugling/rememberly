@@ -16,9 +16,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { Text } from '../brand-text/brand-text';
-import { theme } from '../../theme';
+import {
+  resolveAppearance,
+  type ComponentAppearance,
+  type ResolvedAppearance,
+} from '../component-appearance';
 
 interface BottomSheetProps {
+  appearance?: ComponentAppearance;
   title: string;
   visible?: boolean;
   pending?: boolean;
@@ -27,12 +32,15 @@ interface BottomSheetProps {
 }
 
 export const BottomSheet = ({
+  appearance,
   title,
   visible = true,
   pending = false,
   onClose,
   children,
 }: BottomSheetProps) => {
+  const theme = resolveAppearance(appearance);
+  const styles = createStyles(theme);
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const panelHeight = useRef(height);
@@ -156,50 +164,51 @@ export const BottomSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: { backgroundColor: 'rgba(36, 43, 92, 0.3)' },
-  panel: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    width: '100%',
-    alignSelf: 'center',
-    maxWidth: 640,
-    flexShrink: 1,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: theme.colors.border,
-    alignSelf: 'center',
-    marginTop: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 24,
-    paddingRight: 12,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  title: {
-    flex: 1,
-    fontFamily: theme.fonts.heading,
-    fontSize: 22,
-    color: theme.colors.foreground,
-  },
-  close: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
-});
+const createStyles = (theme: ResolvedAppearance) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: { backgroundColor: 'rgba(36, 43, 92, 0.3)' },
+    panel: {
+      backgroundColor: theme.colors.background,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      width: '100%',
+      alignSelf: 'center',
+      maxWidth: 640,
+      flexShrink: 1,
+    },
+    handle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: theme.colors.border,
+      alignSelf: 'center',
+      marginTop: 10,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingLeft: 24,
+      paddingRight: 12,
+      paddingVertical: 10,
+      gap: 8,
+    },
+    title: {
+      flex: 1,
+      fontFamily: theme.fonts.heading,
+      fontSize: 22,
+      color: theme.colors.foreground,
+    },
+    close: {
+      minWidth: theme.controlMinHeight,
+      minHeight: theme.controlMinHeight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    content: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
+  });
