@@ -89,10 +89,7 @@ export class SessionController {
     if (epoch !== this.epoch || token !== this.token) return;
     const rejectedEpoch = ++this.epoch;
     this.token = null;
-    this.update(
-      'signed-out',
-      'Your session is no longer valid. Please sign in again.',
-    );
+    this.update('signed-out', 'Sua sessão expirou. Entre novamente.');
     let removed = true;
     try {
       await this.stored(async () => {
@@ -104,7 +101,7 @@ export class SessionController {
     if (!removed && rejectedEpoch === this.epoch) {
       this.update(
         'signed-out',
-        'Your session is no longer valid. Saved sign-in cleanup failed; retry signing out.',
+        'Sua sessão expirou. Não foi possível remover o acesso salvo; tente sair novamente.',
         null,
         true,
       );
@@ -154,7 +151,7 @@ export class SessionController {
     if (!(await this.revoke(token)) && this.state.status === 'signed-out') {
       this.update(
         'signed-out',
-        'Server revocation could not be confirmed. Retry sign-out cleanup when connected.',
+        'Não foi possível confirmar o encerramento da sessão no servidor. Tente sair novamente quando estiver conectado.',
         null,
         true,
       );
@@ -192,10 +189,7 @@ export class SessionController {
       if (epoch !== this.epoch) return;
       if (error instanceof SessionApiError && error.status === 401) {
         this.token = null;
-        this.update(
-          'signed-out',
-          'Your session is no longer valid. Please sign in again.',
-        );
+        this.update('signed-out', 'Sua sessão expirou. Entre novamente.');
         let removed = true;
         try {
           await this.stored(async () => {
@@ -208,22 +202,22 @@ export class SessionController {
           this.update(
             'signed-out',
             removed
-              ? 'Your session is no longer valid. Please sign in again.'
-              : 'Your session is no longer valid. Saved sign-in cleanup failed; retry signing out.',
+              ? 'Sua sessão expirou. Entre novamente.'
+              : 'Sua sessão expirou. Não foi possível remover o acesso salvo; tente sair novamente.',
             null,
             !removed,
           );
       } else if (activeIdentity && this.token === activeToken) {
         this.update(
           'authenticated',
-          'We could not recheck your session. Your current screen has been kept. Try again when connected.',
+          'Não foi possível verificar sua sessão novamente. Sua tela atual foi mantida. Tente novamente quando estiver conectado.',
           activeIdentity,
           this.pendingRevocations.size > 0,
         );
       } else {
         this.update(
           'unavailable',
-          'We could not verify your saved session. Your saved sign-in has been kept. Try again when connected.',
+          'Não foi possível verificar sua sessão salva. Seu acesso foi mantido. Tente novamente quando estiver conectado.',
         );
       }
     }
@@ -280,7 +274,7 @@ export class SessionController {
       this.update(
         'authenticated',
         this.pendingRevocations.size
-          ? 'A previous session could not be revoked. Retry signing out when connected.'
+          ? 'Não foi possível encerrar uma sessão anterior. Tente sair novamente quando estiver conectado.'
           : null,
         { user: created.user, expires_at: created.expires_at },
       );
@@ -299,18 +293,18 @@ export class SessionController {
       this.update(
         'signed-out',
         !cleared
-          ? 'Saved sign-in could not be cleared. Retry sign-out cleanup before switching accounts.'
+          ? 'Não foi possível remover o acesso salvo. Tente sair novamente antes de trocar de conta.'
           : google
             ? 'Não foi possível entrar com Google. Tente novamente.'
             : error instanceof SessionApiError && error.status === 401
-              ? 'Invalid email or password. Google-only accounts cannot use password sign-in yet.'
+              ? 'E-mail ou senha inválidos. Se sua conta usa o Google, entre com Google.'
               : error instanceof SessionApiError && error.status === 400
-                ? 'Enter a valid email address and a nonempty password.'
+                ? 'Informe um e-mail válido e sua senha.'
                 : error instanceof SessionApiError && error.status === 429
-                  ? 'Too many sign-in attempts. Wait before trying again.'
+                  ? 'Muitas tentativas de login. Aguarde antes de tentar novamente.'
                   : issued
-                    ? 'We could not securely save your sign-in. Please retry sign-out cleanup, then sign in again.'
-                    : 'Sign-in is unavailable. Check your connection and try again.',
+                    ? 'Não foi possível salvar seu acesso com segurança. Tente sair e entrar novamente.'
+                    : 'O login está indisponível. Confira sua conexão e tente novamente.',
         null,
         !cleared || !!issued || this.pendingRevocations.size > 0,
       );
@@ -346,9 +340,9 @@ export class SessionController {
     this.update(
       'signed-out',
       !removed
-        ? 'Saved sign-in could not be removed. Retry signing out before leaving the app.'
+        ? 'Não foi possível remover o acesso salvo. Tente sair novamente antes de fechar o app.'
         : unconfirmed
-          ? 'Signed out on this device. Server revocation could not be confirmed; retry when connected.'
+          ? 'Você saiu deste dispositivo. Não foi possível confirmar o encerramento no servidor; tente novamente quando estiver conectado.'
           : null,
       null,
       !removed || unconfirmed,

@@ -6,6 +6,7 @@ import {
   passwordError,
   PublicAuthError,
   registrationError,
+  registrationDetailsError,
 } from '../src/features/auth/api.ts';
 import type {
   PublicTransport,
@@ -172,4 +173,33 @@ test('registration validates names, code, passwords and actual birth dates', () 
   assert.ok(passwordError('short', 'short'));
   assert.ok(passwordError('a'.repeat(73), 'a'.repeat(73)));
   assert.ok(passwordError('password1', 'password2'));
+});
+
+test('registration details are validated before requesting an email code', () => {
+  const { otp_code: _code, ...details } = input;
+  const today = new Date(2026, 10, 6);
+  assert.equal(
+    registrationDetailsError(details, details.password, today),
+    null,
+  );
+  assert.ok(
+    registrationDetailsError(
+      { ...details, email: 'invalid' },
+      details.password,
+      today,
+    ),
+  );
+  assert.ok(
+    registrationDetailsError(
+      { ...details, birth_year: 2001 },
+      details.password,
+      today,
+    ),
+  );
+  assert.ok(
+    registrationDetailsError({ ...details, password: 'short' }, 'short', today),
+  );
+  assert.ok(
+    registrationError({ ...details, otp_code: '' }, details.password, today),
+  );
 });

@@ -125,7 +125,10 @@ test('foreground revalidation preserves the current identity while pending and d
   await pending;
   assert.equal(controller.getSnapshot().status, 'authenticated');
   assert.equal(controller.getSnapshot().identity, activeIdentity);
-  assert.match(controller.getSnapshot().message ?? '', /recheck/);
+  assert.match(
+    controller.getSnapshot().message ?? '',
+    /verificar sua sessão novamente/,
+  );
   assert.equal(state.value, tokenA);
   check = deferred<SessionIdentity>();
   const rejected = controller.restore();
@@ -195,12 +198,12 @@ test('invalid login and outages remain distinct without persisting credentials',
     assert.match(
       controller.getSnapshot().message ?? '',
       status === 400
-        ? /valid email address/
+        ? /e-mail válido/
         : status === 401
-          ? /Invalid email/
+          ? /E-mail ou senha inválidos/
           : status === 429
-            ? /Too many sign-in attempts/
-            : /unavailable/,
+            ? /Muitas tentativas de login/
+            : /indisponível/,
     );
   }
 });
@@ -385,7 +388,10 @@ test('secure-storage deletion failure is not reported as successful local logout
   await controller.restore();
   await controller.logout();
   assert.equal(controller.getSnapshot().logoutUnconfirmed, true);
-  assert.match(controller.getSnapshot().message ?? '', /could not be removed/);
+  assert.match(
+    controller.getSnapshot().message ?? '',
+    /Não foi possível remover/,
+  );
 });
 
 test('HTTP client sends credentials only to its fixed origin with cookies and redirects disabled', async () => {

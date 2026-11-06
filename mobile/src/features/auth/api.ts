@@ -8,12 +8,12 @@ export class PublicAuthError extends Error {
   constructor(status = 0) {
     super(
       status === 400
-        ? 'Check your details. Verification codes and reset links may expire; request a new one if needed.'
+        ? 'Confira seus dados. O código ou link pode ter expirado; solicite um novo se necessário.'
         : status === 429
-          ? 'Too many attempts. Please wait before trying again.'
+          ? 'Muitas tentativas. Aguarde antes de tentar novamente.'
           : status >= 500
-            ? 'The service is unavailable. Please try again later.'
-            : 'Unable to complete this request. Check your connection and try again.',
+            ? 'O serviço está indisponível. Tente novamente mais tarde.'
+            : 'Não foi possível concluir a solicitação. Confira sua conexão e tente novamente.',
     );
     this.status = status;
   }
@@ -132,28 +132,39 @@ export function emailError(value: string): string | null {
   return value.trim().length <= 254 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
     ? null
-    : 'Enter a valid email address.';
+    : 'Informe um e-mail válido.';
 }
 export function passwordError(
   value: string,
   confirmation: string,
 ): string | null {
   if (value.length < 8 || value.length > 72)
-    return 'Use a password with 8 to 72 characters.';
-  return value === confirmation ? null : 'The passwords do not match.';
+    return 'Use uma senha entre 8 e 72 caracteres.';
+  return value === confirmation ? null : 'As senhas não coincidem.';
 }
 export function registrationError(
   input: Registration,
   confirmation: string,
   now = new Date(),
 ): string | null {
+  return (
+    registrationDetailsError(input, confirmation, now) ??
+    (/^\d{6}$/.test(input.otp_code)
+      ? null
+      : 'Informe o código de 6 dígitos enviado por e-mail.')
+  );
+}
+
+export function registrationDetailsError(
+  input: Omit<Registration, 'otp_code'>,
+  confirmation: string,
+  now = new Date(),
+): string | null {
   if (input.name.trim().length < 2 || input.name.trim().length > 100)
-    return 'Use a name with 2 to 100 characters.';
+    return 'Use um nome entre 2 e 100 caracteres.';
   const basic =
     emailError(input.email) ?? passwordError(input.password, confirmation);
   if (basic) return basic;
-  if (!/^\d{6}$/.test(input.otp_code))
-    return 'Enter the six-digit email verification code.';
   const { birth_day: day, birth_month: month, birth_year: year } = input;
   if (
     ![day, month, year].every(Number.isInteger) ||
@@ -164,7 +175,7 @@ export function registrationError(
     day < 1 ||
     day > 31
   )
-    return 'Enter your birth date using day, month, and year.';
+    return 'Informe sua data de nascimento com dia, mês e ano.';
   const date = new Date(year, month - 1, day);
   if (
     date.getFullYear() !== year ||
@@ -172,6 +183,6 @@ export function registrationError(
     date.getDate() !== day ||
     date > now
   )
-    return 'Enter a valid birth date in the past.';
+    return 'Informe uma data de nascimento válida no passado.';
   return null;
 }

@@ -3,8 +3,9 @@ import { useAuthenticatedApi } from '../src/data/hooks';
 import { useSession } from '../src/session/provider';
 import { useIntents } from '../src/navigation/provider';
 import { inviteCode, resourceId } from '../src/navigation/intents';
-import { AuthAction, styles, useAuthTask } from '../src/features/auth/ui';
-import { ScrollView, Text } from 'react-native';
+import { AuthAction, useAuthTask } from '../src/features/auth/ui';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { theme } from '../src/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function JoinGroupScreen() {
@@ -92,3 +93,14 @@ export default function JoinGroupScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: 24, gap: 16, flexGrow: 1 },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: 32,
+    fontFamily: theme.fonts.heading,
+  },
+  text: { color: theme.colors.foreground, fontSize: 16, lineHeight: 24 },
+});

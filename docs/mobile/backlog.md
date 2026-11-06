@@ -1,6 +1,6 @@
 # Mobile backlog
 
-Current visual-parity work is tracked in [VIS-001–012](visual-parity.md). On 2026-11-06 the user validated Dates and Groups on a physical device through Expo Go, confirming behavior and visual fidelity. The next approved round covers Occasions and Profile: their web layout, fields, cards, switches and account controls are implemented in source and awaiting the user's device validation. Login/signup visual parity and the final interaction/accessibility review remain pending. Signed-build/provider/release validation is separate from Expo Go screen acceptance.
+Current visual-parity work is tracked in [VIS-001–012](visual-parity.md). On 2026-11-06 the user approved Dates, Groups, Occasions and Profile in the physical-device Expo Go preview. The current round implements web-aligned login, signup, OTP verification, password recovery/reset and shared authentication controls; source checks pass and the user's next device acceptance remains pending. The final interaction/accessibility review is still outstanding. Signed-build/provider/release validation is separate from Expo Go screen acceptance.
 
 This is the current implementation index. Task records contain detailed contracts and validation evidence. Implemented code still requires device and release validation.
 
