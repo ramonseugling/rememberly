@@ -42,7 +42,7 @@ test('existing birthday values cannot silently be cleared through COALESCE write
     const existing = { ...user, [key]: field === 'year' ? 2000 : 1 };
     assert.throws(
       () => profileUpdate({ ...profileForm(existing), [field]: '' }, existing),
-      /cannot be removed/,
+      /não pode ser removida/,
     );
   }
 });
@@ -63,10 +63,7 @@ test('profile validates names and birthday ranges without permissive number pars
 });
 
 test('catalog localization retains unknown labels and does not use inherited object keys', () => {
-  assert.equal(
-    occasionLabel({ key: 'christmas', label: 'Natal' }),
-    'Christmas',
-  );
+  assert.equal(occasionLabel({ key: 'christmas', label: 'Natal' }), 'Natal');
   assert.equal(
     occasionLabel({ key: 'new_day', label: 'Future Day' }),
     'Future Day',
@@ -79,9 +76,9 @@ test('catalog localization retains unknown labels and does not use inherited obj
 });
 
 test('civil dates render their exact calendar components without timezone conversion', () => {
-  assert.equal(civilDateLabel('2026-01-01'), 'January 1, 2026');
-  assert.equal(civilDateLabel('2028-02-29'), 'February 29, 2028');
-  assert.equal(daysUntilLabel(0), 'Today');
-  assert.equal(daysUntilLabel(1), 'Tomorrow');
-  assert.equal(daysUntilLabel(51), 'In 51 days');
+  assert.equal(civilDateLabel('2026-01-01'), '01/01/2026');
+  assert.equal(civilDateLabel('2028-02-29'), '29/02/2028');
+  assert.equal(daysUntilLabel(0), 'Hoje! 🎉');
+  assert.equal(daysUntilLabel(1), 'Em 1 dia');
+  assert.equal(daysUntilLabel(51), 'Em 51 dias');
 });

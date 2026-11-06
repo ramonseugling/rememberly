@@ -82,7 +82,7 @@ export function useResource<T>(path: string | null): {
               ? null
               : error instanceof ApiError
                 ? error.message
-                : 'Unable to load this information. Please try again.',
+                : 'Não foi possível carregar estas informações. Tente novamente.',
         });
       }
     }

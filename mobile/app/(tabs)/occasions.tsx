@@ -1,15 +1,20 @@
-import { Text } from '../../src/components/brand-text/brand-text';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Switch,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthenticatedApi, useResource } from '../../src/data/hooks';
+import { BrandButton } from '../../src/components/brand-button/brand-button';
+import { Text } from '../../src/components/brand-text/brand-text';
+import {
+  ApiError,
+  useAuthenticatedApi,
+  useResource,
+} from '../../src/data/hooks';
 import {
   civilDateLabel,
   daysUntilLabel,
@@ -31,133 +36,166 @@ function OccasionsContent() {
   const { data, loading, error, reload } = useResource<Catalog>(
     '/api/v1/mobile/commemorative-dates',
   );
+  const busy = useRef(false);
+  const mounted = useRef(true);
   const [pending, setPending] = useState<string | null>(null);
   const [failure, setFailure] = useState<{
-    item: Occasion;
-    message: string;
+    key: string;
+    enabled: boolean;
   } | null>(null);
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (data) setConfirmed({});
   }, [data]);
 
-  async function toggle(item: Occasion) {
-    if (pending) return;
+  async function toggle(item: Occasion, desiredEnabled?: boolean) {
+    if (!mounted.current || busy.current) return;
+    busy.current = true;
     setPending(item.key);
     setFailure(null);
-    const enabled = confirmed[item.key] ?? item.enabled;
+    const enabled = desiredEnabled ?? !(confirmed[item.key] ?? item.enabled);
     try {
       await request(
         `/api/v1/commemorative-dates/${encodeURIComponent(item.key)}`,
-        { method: enabled ? 'DELETE' : 'PUT' },
+        { method: enabled ? 'PUT' : 'DELETE' },
       );
-      setConfirmed((current) => ({ ...current, [item.key]: !enabled }));
+      if (!mounted.current) return;
+      setConfirmed((current) => ({ ...current, [item.key]: enabled }));
       await reload();
     } catch (cause) {
-      setFailure({
-        item,
-        message:
-          cause instanceof Error
-            ? cause.message
-            : 'Unable to update this preference. Try again.',
-      });
+      if (
+        mounted.current &&
+        (!(cause instanceof ApiError) ||
+          !['stale', 'cancelled'].includes(cause.kind))
+      ) {
+        setFailure({ key: item.key, enabled });
+      }
     } finally {
-      setPending(null);
+      busy.current = false;
+      if (mounted.current) setPending(null);
     }
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text accessibilityRole="header" style={styles.heading}>
-          Datas comemorativas
-        </Text>
-        <Text style={styles.text}>
-          Choose the occasions you want to remember. Dates follow the Brazilian
-          calendar.
-        </Text>
-        <Text style={styles.hint}>
-          These are account reminder preferences. Push notifications are not
-          available in this app yet.
-        </Text>
-        {loading && (
-          <ActivityIndicator accessibilityLabel="Loading occasions" />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+            onRefresh={() => {
+              if (!busy.current) void reload();
+            }}
+          />
+        }
+      >
+        <View style={styles.header}>
+          <Text accessibilityRole="header" style={styles.heading}>
+            Datas comemorativas
+          </Text>
+          <Text style={styles.text}>
+            Ative os lembretes que deseja receber com 7 dias de antecedência.
+          </Text>
+        </View>
+        {loading && !data && (
+          <ActivityIndicator
+            accessibilityLabel="Carregando datas comemorativas"
+            color={theme.colors.primary}
+          />
         )}
         {error && (
-          <View style={styles.section}>
+          <View style={styles.feedback}>
             <Text accessibilityRole="alert" style={styles.text}>
-              {error}
+              Não foi possível carregar as datas comemorativas. Tente novamente.
             </Text>
-            <Pressable
-              accessibilityRole="button"
-              style={styles.button}
-              onPress={() => void reload()}
-            >
-              <Text style={styles.buttonText}>Retry loading occasions</Text>
-            </Pressable>
-          </View>
-        )}
-        {failure && (
-          <View style={styles.section}>
-            <Text accessibilityRole="alert" style={styles.text}>
-              {failure.message}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
+            <BrandButton
+              label="Tentar novamente"
+              variant="outline"
               disabled={pending !== null}
-              style={styles.button}
-              onPress={() => void toggle(failure.item)}
-            >
-              <Text style={styles.buttonText}>
-                Retry {occasionLabel(failure.item)}
-              </Text>
-            </Pressable>
+              onPress={() => {
+                if (!busy.current) void reload();
+              }}
+            />
           </View>
         )}
         {data?.items.length === 0 && (
-          <Text style={styles.text}>
-            No special occasions are available right now.
-          </Text>
-        )}
-        {data?.items.map((item) => (
-          <View key={item.key} style={styles.card}>
-            <Text accessibilityRole="header" style={styles.label}>
-              {item.emoji} {occasionLabel(item)}
-            </Text>
+          <View style={styles.feedback}>
             <Text style={styles.text}>
-              {civilDateLabel(item.next_date)} ·{' '}
-              {daysUntilLabel(item.days_until)}
+              Nenhuma data comemorativa disponível no momento.
             </Text>
-            <View style={styles.toggle}>
-              <Text style={styles.text}>
-                {pending === item.key
-                  ? 'Saving…'
-                  : (confirmed[item.key] ?? item.enabled)
-                    ? 'Reminder enabled'
-                    : 'Reminder disabled'}
-              </Text>
-              <Switch
-                accessibilityLabel={`Reminder for ${occasionLabel(item)}`}
-                accessibilityState={{ busy: pending === item.key }}
-                value={confirmed[item.key] ?? item.enabled}
-                disabled={pending !== null}
-                onValueChange={() => void toggle(item)}
-                trackColor={{ true: theme.colors.primary }}
-              />
-            </View>
           </View>
-        ))}
-        {data && (
-          <Text style={styles.hint}>Calendar time zone: {data.time_zone}.</Text>
         )}
-        <Pressable
-          accessibilityRole="button"
-          disabled={loading || pending !== null}
-          onPress={() => void reload()}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>Refresh</Text>
-        </Pressable>
+        {data?.items.map((item) => {
+          const enabled = confirmed[item.key] ?? item.enabled;
+          const label = occasionLabel(item);
+          const failed = failure?.key === item.key;
+          return (
+            <View key={item.key} style={styles.card}>
+              <View style={styles.cardRow}>
+                <Text accessible={false} style={styles.emoji}>
+                  {item.emoji}
+                </Text>
+                <View style={styles.cardCopy}>
+                  <Text style={styles.label}>{label}</Text>
+                  <Text style={styles.text}>
+                    {daysUntilLabel(item.days_until)} ·{' '}
+                    {civilDateLabel(item.next_date)}
+                  </Text>
+                  {pending === item.key && (
+                    <Text
+                      accessibilityLiveRegion="polite"
+                      style={styles.saving}
+                    >
+                      Salvando…
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.switchTarget}>
+                  <Switch
+                    accessibilityLabel={`${enabled ? 'Desativar' : 'Ativar'} lembrete para ${label}`}
+                    accessibilityState={{
+                      busy: pending === item.key,
+                      disabled: pending !== null,
+                    }}
+                    value={enabled}
+                    disabled={pending !== null}
+                    onValueChange={(nextEnabled) =>
+                      void toggle(item, nextEnabled)
+                    }
+                    trackColor={{
+                      false: theme.colors.border,
+                      true: theme.colors.primary,
+                    }}
+                    thumbColor="#ffffff"
+                    ios_backgroundColor={theme.colors.border}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                  />
+                </View>
+              </View>
+              {failed && (
+                <View style={styles.retry}>
+                  <Text accessibilityRole="alert" style={styles.error}>
+                    Não foi possível atualizar este lembrete. Tente novamente.
+                  </Text>
+                  <BrandButton
+                    label="Tentar novamente"
+                    variant="outline"
+                    disabled={pending !== null}
+                    onPress={() => void toggle(item, failure.enabled)}
+                  />
+                </View>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -165,33 +203,51 @@ function OccasionsContent() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
-  content: { padding: 24, gap: 20 },
-  section: { gap: 12 },
-  heading: { fontSize: 32, color: theme.colors.foreground, fontWeight: '700' },
-  label: { fontSize: 21, color: theme.colors.foreground, fontWeight: '600' },
-  text: { fontSize: 17, color: theme.colors.muted, lineHeight: 26 },
-  hint: { fontSize: 15, color: theme.colors.muted, lineHeight: 23 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 16,
+  },
+  header: { gap: 4, marginBottom: 8 },
+  heading: {
+    fontSize: 30,
+    lineHeight: 38,
+    color: theme.colors.foreground,
+    fontFamily: theme.fonts.headingBold,
+  },
+  label: {
+    fontSize: 16,
+    lineHeight: 20,
+    color: theme.colors.foreground,
+    fontFamily: theme.fonts.heading,
+  },
+  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 20 },
+  feedback: {
+    padding: 20,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 24,
+    backgroundColor: theme.colors.card,
+  },
   card: {
     backgroundColor: theme.colors.card,
     padding: 20,
-    gap: 12,
-    borderRadius: theme.radius,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  toggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  button: {
-    backgroundColor: theme.colors.primary,
-    padding: 16,
-    borderRadius: 14,
-    minHeight: 48,
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  emoji: { fontSize: 30 },
+  cardCopy: { flex: 1, minWidth: 0, gap: 2 },
+  switchTarget: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
+  saving: { color: theme.colors.muted, fontSize: 12, lineHeight: 16 },
+  retry: { marginTop: 12, gap: 12 },
+  error: { color: theme.colors.destructive, fontSize: 14, lineHeight: 20 },
 });

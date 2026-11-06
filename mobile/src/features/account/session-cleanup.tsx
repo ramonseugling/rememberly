@@ -1,7 +1,8 @@
+import { BrandButton } from '../../components/brand-button/brand-button';
 import { Text } from '../../components/brand-text/brand-text';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import { ApiError, useAuthenticatedApi } from '../../data/hooks';
 import { theme } from '../../theme';
 
@@ -49,17 +50,17 @@ export function SessionCleanup() {
       });
       if (focused.current && !abort.signal.aborted) {
         setMessage(
-          'Other sessions have been signed out. Your current session remains signed in.',
+          'As outras sessões foram encerradas. Você continua conectado neste dispositivo.',
         );
       }
     } catch (cause) {
       if (focused.current && !abort.signal.aborted) {
         setMessage(
           cause instanceof ApiError && cause.status === 403
-            ? 'Unable to confirm your password. Enter your current password and try again. Accounts without a password cannot use this action.'
+            ? 'Não foi possível confirmar sua senha. Digite sua senha atual novamente. Esta ação exige uma conta com senha.'
             : cause instanceof ApiError
               ? cause.message
-              : 'Unable to sign out other sessions. Please try again.',
+              : 'Não foi possível encerrar as outras sessões. Tente novamente.',
         );
       }
     } finally {
@@ -74,12 +75,12 @@ export function SessionCleanup() {
     if (!focused.current || activeRequest.current || !passwordRef.current)
       return;
     Alert.alert(
-      'Sign out other sessions?',
-      'All your other active Rememberly sessions will be signed out. Your current session will remain signed in.',
+      'Encerrar outras sessões?',
+      'Você será desconectado dos outros dispositivos. Sua sessão atual continuará ativa.',
       [
-        { text: 'Cancel', style: 'cancel', onPress: clearPassword },
+        { text: 'Cancelar', style: 'cancel', onPress: clearPassword },
         {
-          text: 'Sign out other sessions',
+          text: 'Encerrar outras sessões',
           style: 'destructive',
           onPress: () => void revokeOthers(),
         },
@@ -91,18 +92,17 @@ export function SessionCleanup() {
   return (
     <View style={styles.section}>
       <Text accessibilityRole="header" style={styles.label}>
-        Session security
+        Segurança da conta
       </Text>
       <Text style={styles.text}>
-        Lost access to another phone or computer? Sign out all your other active
-        Rememberly sessions.
+        Perdeu acesso a outro celular ou computador? Encerre suas outras sessões
+        do Rememberly.
       </Text>
       <Text style={styles.hint}>
-        Confirm your current password each time. This action requires an account
-        with a password.
+        Confirme sua senha atual. Esta ação exige uma conta com senha.
       </Text>
       <TextInput
-        accessibilityLabel="Current password for signing out other sessions"
+        accessibilityLabel="Senha atual para encerrar outras sessões"
         value={password}
         onChangeText={(value) => {
           passwordRef.current = value;
@@ -115,23 +115,19 @@ export function SessionCleanup() {
         autoCapitalize="none"
         autoCorrect={false}
         editable={!pending}
-        placeholder="Current password"
+        placeholder="Senha atual"
         placeholderTextColor={theme.colors.muted}
         style={styles.input}
         returnKeyType="done"
         onSubmitEditing={confirm}
       />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: pending || !password, busy: pending }}
+      <BrandButton
+        label={pending ? 'Encerrando sessões...' : 'Encerrar outras sessões'}
+        variant="outline"
         disabled={pending || !password}
+        pending={pending}
         onPress={confirm}
-        style={[styles.button, (pending || !password) && styles.disabled]}
-      >
-        <Text style={styles.buttonText}>
-          {pending ? 'Signing out other sessions…' : 'Sign out other sessions'}
-        </Text>
-      </Pressable>
+      />
       {message && (
         <Text accessibilityRole="alert" style={styles.text}>
           {message}
@@ -142,27 +138,30 @@ export function SessionCleanup() {
 }
 
 const styles = StyleSheet.create({
-  section: { gap: 12 },
-  label: { fontSize: 21, color: theme.colors.foreground, fontWeight: '600' },
-  text: { fontSize: 17, color: theme.colors.muted, lineHeight: 26 },
-  hint: { fontSize: 15, color: theme.colors.muted, lineHeight: 23 },
-  input: {
-    backgroundColor: theme.colors.card,
+  section: {
+    gap: 12,
+    padding: 20,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 48,
-    fontSize: 17,
+    borderRadius: 24,
+    backgroundColor: theme.colors.card,
+  },
+  label: {
+    fontSize: 16,
+    color: theme.colors.foreground,
+    fontFamily: theme.fonts.heading,
+  },
+  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
+  hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+  input: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
+    fontSize: 14,
+    fontFamily: theme.fonts.body,
     color: theme.colors.foreground,
   },
-  button: {
-    backgroundColor: theme.colors.foreground,
-    padding: 16,
-    borderRadius: 14,
-    minHeight: 48,
-    alignItems: 'center',
-  },
-  disabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
 });

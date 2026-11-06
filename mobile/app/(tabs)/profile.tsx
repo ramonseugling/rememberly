@@ -1,5 +1,6 @@
-import { Text } from '../../src/components/brand-text/brand-text';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { ChevronDown, ChevronUp, LogOut, Mail } from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,6 +12,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandButton } from '../../src/components/brand-button/brand-button';
+import { Text } from '../../src/components/brand-text/brand-text';
+import { SelectField } from '../../src/components/select-field/select-field';
 import { useAuthenticatedApi, useResource } from '../../src/data/hooks';
 import {
   profileForm,
@@ -18,58 +22,161 @@ import {
   type ProfileForm,
   type ProfileUser,
 } from '../../src/features/account/forms';
+import {
+  profileFieldChange,
+  profileHasChanges,
+  profileMonths,
+} from '../../src/features/account/profile-presentation';
 import { SessionCleanup } from '../../src/features/account/session-cleanup';
 import { DeleteAccount } from '../../src/features/account/delete-account';
 import { NotificationSettings } from '../../src/features/notifications';
 import { useSession } from '../../src/session/provider';
 import { theme } from '../../src/theme';
 
+interface ProfileEditor {
+  user: ProfileUser;
+  form: ProfileForm;
+}
+
 export default function ProfileScreen() {
   const { state } = useSession();
   return <ProfileContent key={state.identity?.user.id ?? 'signed-out'} />;
 }
 
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: currentYear - 1900 + 1 }, (_, index) => ({
+  value: String(currentYear - index),
+  label: String(currentYear - index),
+}));
+
 function ProfileContent() {
   const { state, controller } = useSession();
+  const scope = state.status === 'authenticated' ? state.identity : null;
   const { request } = useAuthenticatedApi();
   const { data, loading, error, reload } = useResource<{ user: ProfileUser }>(
     '/api/v1/mobile/me',
   );
-  const [form, setForm] = useState<ProfileForm | null>(null);
-  const [dirty, setDirty] = useState(false);
+  const [editor, setEditor] = useState<ProfileEditor | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const focused = useRef(false);
+  const action = useRef<AbortController | null>(null);
+  const signingOut = useRef(false);
+
   useEffect(() => {
-    if (data && !dirty && !saving) setForm(profileForm(data.user));
-  }, [data, dirty, saving]);
-
-  function change(field: keyof ProfileForm, value: string) {
-    setForm((current) => current && { ...current, [field]: value });
-    setDirty(true);
-    setMessage(null);
+    if (data)
+      setEditor((current) => ({
+        user: data.user,
+        form:
+          current && profileHasChanges(current.form, current.user)
+            ? current.form
+            : profileForm(data.user),
+      }));
+  }, [data]);
+  useFocusEffect(
+    useCallback(() => {
+      focused.current = true;
+      return () => {
+        focused.current = false;
+        action.current?.abort();
+        action.current = null;
+        signingOut.current = false;
+        setSaving(false);
+        setLoggingOut(false);
+        setMessage(null);
+        setSaveError(null);
+      };
+    }, [scope]),
+  );
+  function isCurrent(abort: AbortController) {
+    const snapshot = controller.getSnapshot();
+    return (
+      focused.current &&
+      !abort.signal.aborted &&
+      action.current === abort &&
+      snapshot.status === 'authenticated' &&
+      snapshot.identity === scope
+    );
   }
-
-  async function save() {
-    if (!form || !data || saving) return;
+  function change(field: keyof ProfileForm, value: string) {
+    if (action.current || signingOut.current) return;
+    setEditor(
+      (current) =>
+        current && {
+          ...current,
+          form: profileFieldChange(current.form, field, value),
+        },
+    );
     setMessage(null);
+    setSaveError(null);
+  }
+  async function save() {
+    if (
+      !editor ||
+      !data ||
+      !scope ||
+      !focused.current ||
+      action.current ||
+      signingOut.current ||
+      !profileHasChanges(editor.form, editor.user)
+    )
+      return;
+    setMessage(null);
+    setSaveError(null);
+    let body: ReturnType<typeof profileUpdate>;
     try {
-      const body = profileUpdate(form, data.user);
-      setSaving(true);
-      await request('/api/v1/users', { method: 'PATCH', body });
-      // Keep the submitted values until the canonical profile has been reread.
-      await reload();
-      setDirty(false);
-      setMessage('Profile saved.');
+      body = profileUpdate(editor.form, editor.user);
     } catch (cause) {
-      setMessage(
-        cause instanceof Error
-          ? cause.message
-          : 'Unable to save your profile. Try again.',
+      setSaveError(
+        cause instanceof Error ? cause.message : 'Confira os dados do perfil.',
       );
+      return;
+    }
+    const abort = new AbortController();
+    action.current = abort;
+    setSaving(true);
+    try {
+      const updated = await request<ProfileUser>('/api/v1/users', {
+        method: 'PATCH',
+        body,
+        signal: abort.signal,
+      });
+      if (!isCurrent(abort)) return;
+      setEditor({ user: updated, form: profileForm(updated) });
+      setMessage('Perfil atualizado com sucesso.');
+      await reload();
+    } catch (cause) {
+      if (isCurrent(abort))
+        setSaveError(
+          cause instanceof Error
+            ? cause.message
+            : 'Não foi possível salvar seu perfil. Tente novamente.',
+        );
     } finally {
-      setSaving(false);
+      if (isCurrent(abort)) {
+        action.current = null;
+        setSaving(false);
+      }
     }
   }
+  async function logout() {
+    if (signingOut.current || action.current || !focused.current) return;
+    signingOut.current = true;
+    setLoggingOut(true);
+    try {
+      await controller.logout();
+    } finally {
+      if (focused.current) {
+        signingOut.current = false;
+        setLoggingOut(false);
+      }
+    }
+  }
+  const pending = saving || loggingOut;
+  const dirty = editor ? profileHasChanges(editor.form, editor.user) : false;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -81,107 +188,178 @@ function ProfileContent() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Text accessibilityRole="header" style={styles.heading}>
-            Your profile
-          </Text>
-          {loading && (
-            <ActivityIndicator accessibilityLabel="Loading profile" />
+          <View style={styles.intro}>
+            <Text accessibilityRole="header" style={styles.heading}>
+              Meu perfil
+            </Text>
+            <Text style={styles.body}>Atualize suas informações pessoais.</Text>
+          </View>
+          {loading && !data && (
+            <ActivityIndicator
+              accessibilityLabel="Carregando perfil"
+              color={theme.colors.primary}
+            />
           )}
           {error && (
-            <View style={styles.section}>
-              <Text accessibilityRole="alert" style={styles.text}>
+            <View style={styles.card}>
+              <Text accessibilityRole="alert" style={styles.error}>
                 {error}
               </Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => void reload()}
-                style={styles.button}
-              >
-                <Text style={styles.buttonText}>Retry loading profile</Text>
-              </Pressable>
+              <BrandButton
+                label="Tentar novamente"
+                variant="outline"
+                onPress={() => {
+                  void reload();
+                }}
+              />
             </View>
           )}
-          {data && form && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Email</Text>
-              <Text selectable style={styles.text}>
-                {data.user.email}
-              </Text>
-              <Text style={styles.hint}>
-                Your email cannot be changed here.
-              </Text>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                accessibilityLabel="Name"
-                autoComplete="name"
-                value={form.name}
-                onChangeText={(value) => change('name', value)}
-                editable={!saving}
-                style={styles.input}
-                maxLength={100}
-              />
-              <Text accessibilityRole="header" style={styles.label}>
-                Birthday
-              </Text>
-              <Text style={styles.hint}>
-                Optional fields may be left blank. Existing birthday values
-                cannot be removed yet.
-              </Text>
-              {(['day', 'month', 'year'] as const).map((field) => (
-                <View key={field} style={styles.section}>
-                  <Text style={styles.label}>Birth {field}</Text>
+          {data && editor && (
+            <>
+              <View style={[styles.card, styles.identity]}>
+                <View style={styles.avatar}>
+                  <Text style={styles.initial}>
+                    {editor.user.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.identityText}>
+                  <Text style={styles.identityName}>{editor.user.name}</Text>
+                  <View style={styles.mailRow}>
+                    <Mail size={14} color={theme.colors.muted} />
+                    <Text selectable style={styles.email}>
+                      {editor.user.email}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.card}>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Nome</Text>
                   <TextInput
-                    accessibilityLabel={`Birth ${field}`}
-                    value={form[field]}
-                    onChangeText={(value) => change(field, value)}
-                    editable={!saving}
-                    keyboardType="number-pad"
-                    maxLength={field === 'year' ? 4 : 2}
+                    accessibilityLabel="Nome"
+                    autoComplete="name"
+                    value={editor.form.name}
+                    onChangeText={(value) => change('name', value)}
+                    editable={!pending}
                     style={styles.input}
-                    placeholder={
-                      field === 'year'
-                        ? 'YYYY'
-                        : field === 'month'
-                          ? 'MM'
-                          : 'DD'
-                    }
-                    placeholderTextColor={theme.colors.muted}
+                    maxLength={100}
+                    autoCapitalize="words"
                   />
                 </View>
-              ))}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: saving || !dirty }}
-                disabled={saving || !dirty}
-                onPress={() => void save()}
-                style={[styles.button, (saving || !dirty) && styles.disabled]}
-              >
-                <Text style={styles.buttonText}>
-                  {saving ? 'Saving…' : 'Save profile'}
-                </Text>
-              </Pressable>
+                <View style={styles.field}>
+                  <Text style={styles.label}>E-mail</Text>
+                  <TextInput
+                    accessibilityLabel="E-mail, não pode ser alterado"
+                    value={editor.user.email}
+                    editable={false}
+                    style={[styles.input, styles.disabledEmail]}
+                  />
+                  <Text style={styles.caption}>
+                    O e-mail não pode ser alterado.
+                  </Text>
+                </View>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Data de nascimento</Text>
+                  <View style={styles.birthday}>
+                    <TextInput
+                      accessibilityLabel="Dia de nascimento"
+                      value={editor.form.day}
+                      onChangeText={(value) => change('day', value)}
+                      editable={!pending}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      style={[styles.input, styles.day]}
+                      placeholder="Dia"
+                      placeholderTextColor={theme.colors.muted}
+                    />
+                    <View style={styles.month}>
+                      <SelectField
+                        label="Mês"
+                        value={editor.form.month}
+                        options={profileMonths}
+                        onChange={(value) => change('month', value)}
+                        disabled={pending}
+                      />
+                    </View>
+                    <View style={styles.year}>
+                      <SelectField
+                        label="Ano"
+                        value={editor.form.year}
+                        options={years}
+                        onChange={(value) => change('year', value)}
+                        disabled={pending}
+                      />
+                    </View>
+                  </View>
+                </View>
+                {saveError && (
+                  <Text accessibilityRole="alert" style={styles.error}>
+                    {saveError}
+                  </Text>
+                )}
+                {message && (
+                  <Text accessibilityLiveRegion="polite" style={styles.body}>
+                    {message}
+                  </Text>
+                )}
+                <BrandButton
+                  label={saving ? 'Salvando...' : 'Salvar alterações'}
+                  pending={saving}
+                  disabled={!dirty || loggingOut}
+                  onPress={() => {
+                    void save();
+                  }}
+                  style={styles.save}
+                />
+              </View>
+            </>
+          )}
+          <View style={styles.card}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Sair da conta</Text>
+              <Text style={styles.caption}>
+                Você será desconectado deste dispositivo. Pode entrar de novo a
+                qualquer momento.
+              </Text>
             </View>
-          )}
-          {message && (
-            <Text accessibilityRole="alert" style={styles.text}>
-              {message}
-            </Text>
-          )}
-          <SessionCleanup />
-          <NotificationSettings />
+            <BrandButton
+              label={loggingOut ? 'Saindo...' : 'Sair da conta'}
+              variant="destructive"
+              pending={loggingOut}
+              disabled={saving}
+              onPress={() => {
+                void logout();
+              }}
+              icon={<LogOut size={16} color={theme.colors.destructive} />}
+              style={styles.logout}
+            />
+          </View>
           {state.message && (
-            <Text accessibilityRole="alert" style={styles.text}>
+            <Text accessibilityRole="alert" style={styles.error}>
               {state.message}
             </Text>
           )}
+          <DeleteAccount />
           <Pressable
             accessibilityRole="button"
-            onPress={() => void controller.logout()}
-            style={styles.button}
+            accessibilityLabel="Mais opções da conta"
+            accessibilityState={{ expanded }}
+            onPress={() => setExpanded((value) => !value)}
+            style={styles.expand}
           >
-            <Text style={styles.buttonText}>Sign out</Text>
+            <Text style={styles.body}>Mais opções da conta</Text>
+            {expanded ? (
+              <ChevronUp size={18} color={theme.colors.muted} />
+            ) : (
+              <ChevronDown size={18} color={theme.colors.muted} />
+            )}
           </Pressable>
-          <DeleteAccount />
+          {expanded && (
+            <View style={styles.secondary}>
+              <SessionCleanup />
+              <NotificationSettings />
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -190,29 +368,95 @@ function ProfileContent() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
-  content: { padding: 24, gap: 20 },
-  section: { gap: 12 },
-  heading: { fontSize: 32, color: theme.colors.foreground, fontWeight: '700' },
-  label: { fontSize: 17, color: theme.colors.foreground, fontWeight: '600' },
-  text: { fontSize: 17, color: theme.colors.muted, lineHeight: 26 },
-  hint: { fontSize: 15, color: theme.colors.muted, lineHeight: 23 },
-  input: {
-    backgroundColor: theme.colors.card,
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 24,
+  },
+  intro: { gap: 4 },
+  heading: {
+    fontSize: 30,
+    color: theme.colors.foreground,
+    fontFamily: theme.fonts.headingBold,
+    lineHeight: 36,
+  },
+  body: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
+  caption: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+  card: {
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 48,
-    fontSize: 17,
+    borderRadius: 24,
+    backgroundColor: theme.colors.card,
+    padding: 20,
+    gap: 20,
+  },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: 'rgba(235, 109, 151, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initial: {
+    color: theme.colors.primary,
+    fontSize: 28,
+    fontFamily: theme.fonts.headingBold,
+  },
+  identityText: { flex: 1, minWidth: 0, gap: 4 },
+  identityName: {
+    fontSize: 20,
+    fontFamily: theme.fonts.heading,
     color: theme.colors.foreground,
   },
-  button: {
-    backgroundColor: theme.colors.primary,
-    padding: 16,
-    borderRadius: 14,
-    minHeight: 48,
-    alignItems: 'center',
+  mailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  email: { flex: 1, fontSize: 14, color: theme.colors.muted },
+  field: { gap: 6 },
+  label: {
+    fontSize: 14,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.foreground,
   },
-  disabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
+  input: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
+    fontSize: 14,
+    fontFamily: theme.fonts.body,
+    color: theme.colors.foreground,
+  },
+  disabledEmail: { opacity: 0.6 },
+  birthday: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  day: { flexBasis: 60, flexGrow: 1, textAlign: 'center' },
+  month: { flexBasis: 112, flexGrow: 3 },
+  year: { flexBasis: 88, flexGrow: 1 },
+  save: { alignSelf: 'flex-end', maxWidth: '100%' },
+  logout: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    borderColor: theme.colors.destructive,
+  },
+  error: { fontSize: 14, lineHeight: 21, color: theme.colors.destructive },
+  expand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    minHeight: 44,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingTop: 12,
+  },
+  secondary: { gap: 16 },
 });

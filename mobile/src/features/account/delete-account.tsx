@@ -1,3 +1,5 @@
+import { BottomSheet } from '../../components/bottom-sheet/bottom-sheet';
+import { BrandButton } from '../../components/brand-button/brand-button';
 import { Text } from '../../components/brand-text/brand-text';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -14,6 +16,7 @@ export function DeleteAccount() {
   const { controller, state } = useSession();
   const { request } = useAuthenticatedApi();
   const scope = state.status === 'authenticated' ? state.identity : null;
+  const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [pending, setPending] = useState(false);
@@ -35,6 +38,7 @@ export function DeleteAccount() {
       setMessage(null);
       return () => {
         focused.current = false;
+        setOpen(false);
         gate.current.invalidate();
         activeRequest.current?.abort();
         activeRequest.current = null;
@@ -89,12 +93,12 @@ export function DeleteAccount() {
       ) {
         setMessage(
           cause instanceof ApiError && cause.status === 403
-            ? 'Unable to confirm your current password. Enter it again and try again. This action requires an account with a password.'
+            ? 'Não foi possível confirmar sua senha atual. Digite-a novamente. Esta ação exige uma conta com senha.'
             : cause instanceof ApiError && cause.status === 409
-              ? 'You own one or more groups. Open Groups and delete each group you own before deleting your account. Your account has not been deleted.'
+              ? 'Você é responsável por um ou mais grupos. Exclua seus grupos antes de excluir a conta. Sua conta não foi excluída.'
               : cause instanceof ApiError
                 ? cause.message
-                : 'Unable to delete your account. Please try again.',
+                : 'Não foi possível excluir sua conta. Tente novamente.',
         );
       }
     } finally {
@@ -126,12 +130,12 @@ export function DeleteAccount() {
       setPending(false);
     };
     Alert.alert(
-      'Permanently delete your account?',
-      'Your account, personal data, and group memberships will be permanently deleted. This cannot be undone. Groups you own must be deleted first.',
+      'Excluir sua conta permanentemente?',
+      'Sua conta, seus dados pessoais e suas participações em grupos serão excluídos permanentemente. Esta ação não pode ser desfeita. Exclua primeiro os grupos que você criou.',
       [
-        { text: 'Cancel', style: 'cancel', onPress: cancel },
+        { text: 'Cancelar', style: 'cancel', onPress: cancel },
         {
-          text: 'Delete account permanently',
+          text: 'Excluir conta permanentemente',
           style: 'destructive',
           onPress: () => void removeAccount(ticket),
         },
@@ -142,95 +146,112 @@ export function DeleteAccount() {
 
   const disabled = pending || !canDeleteAccount(password, confirmation);
   return (
-    <View style={styles.section}>
-      <Text accessibilityRole="header" style={styles.label}>
-        Delete account
-      </Text>
-      <Text style={styles.text}>
-        Permanently delete your account, personal data, and group memberships.
-        This cannot be undone. Delete any groups you own in Groups first.
-      </Text>
-      <Text style={styles.hint}>
-        This action requires your current password. Type DELETE exactly to
-        continue.
-      </Text>
-      <TextInput
-        accessibilityLabel="Current password for deleting your account"
-        value={password}
-        onChangeText={(value) => {
-          inputs.current.password = value;
-          setPassword(value);
-          setMessage(null);
-        }}
-        secureTextEntry
-        textContentType="password"
-        autoComplete="current-password"
-        autoCapitalize="none"
-        autoCorrect={false}
-        editable={!pending}
-        placeholder="Current password"
-        placeholderTextColor={theme.colors.muted}
-        style={styles.input}
-      />
-      <TextInput
-        accessibilityLabel="Type DELETE to confirm account deletion"
-        value={confirmation}
-        onChangeText={(value) => {
-          inputs.current.confirmation = value;
-          setConfirmation(value);
-          setMessage(null);
-        }}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        editable={!pending}
-        placeholder="Type DELETE"
-        placeholderTextColor={theme.colors.muted}
-        style={styles.input}
-        returnKeyType="done"
-        onSubmitEditing={confirm}
-      />
+    <>
       <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled, busy: pending }}
-        disabled={disabled}
-        onPress={confirm}
-        style={[styles.button, disabled && styles.disabled]}
+        accessibilityLabel="Excluir conta"
+        onPress={() => {
+          setMessage(null);
+          setOpen(true);
+        }}
+        style={styles.link}
       >
-        <Text style={styles.buttonText}>
-          {pending ? 'Confirming account deletion…' : 'Delete account'}
-        </Text>
+        <Text style={styles.linkText}>Excluir conta</Text>
       </Pressable>
-      {message && (
-        <Text accessibilityRole="alert" style={styles.text}>
-          {message}
-        </Text>
-      )}
-    </View>
+      <BottomSheet
+        title="Excluir conta"
+        visible={open}
+        pending={pending}
+        onClose={() => {
+          gate.current.invalidate();
+          clearInputs();
+          setMessage(null);
+          setOpen(false);
+        }}
+      >
+        <View style={styles.section}>
+          <Text style={styles.text}>
+            Exclua permanentemente sua conta, seus dados pessoais e suas
+            participações em grupos. Esta ação não pode ser desfeita. Antes,
+            exclua os grupos que você criou.
+          </Text>
+          <Text style={styles.hint}>
+            Informe sua senha atual e digite DELETE exatamente para continuar.
+          </Text>
+          <TextInput
+            accessibilityLabel="Senha atual para excluir sua conta"
+            value={password}
+            onChangeText={(value) => {
+              inputs.current.password = value;
+              setPassword(value);
+              setMessage(null);
+            }}
+            secureTextEntry
+            textContentType="password"
+            autoComplete="current-password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!pending}
+            placeholder="Senha atual"
+            placeholderTextColor={theme.colors.muted}
+            style={styles.input}
+          />
+          <TextInput
+            accessibilityLabel="Digite DELETE para confirmar a exclusão da conta"
+            value={confirmation}
+            onChangeText={(value) => {
+              inputs.current.confirmation = value;
+              setConfirmation(value);
+              setMessage(null);
+            }}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!pending}
+            placeholder="Digite DELETE"
+            placeholderTextColor={theme.colors.muted}
+            style={styles.input}
+            returnKeyType="done"
+            onSubmitEditing={confirm}
+          />
+          <BrandButton
+            label={
+              pending ? 'Excluindo conta...' : 'Excluir conta permanentemente'
+            }
+            variant="destructive"
+            disabled={disabled}
+            pending={pending}
+            onPress={confirm}
+          />
+          {message && (
+            <Text accessibilityRole="alert" style={styles.text}>
+              {message}
+            </Text>
+          )}
+        </View>
+      </BottomSheet>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  section: { gap: 12 },
-  label: { fontSize: 21, color: theme.colors.foreground, fontWeight: '600' },
-  text: { fontSize: 17, color: theme.colors.muted, lineHeight: 26 },
-  hint: { fontSize: 15, color: theme.colors.muted, lineHeight: 23 },
+  section: { gap: 16 },
+  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
+  hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
   input: {
-    backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 48,
-    fontSize: 17,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
+    fontSize: 14,
+    fontFamily: theme.fonts.body,
     color: theme.colors.foreground,
   },
-  button: {
-    backgroundColor: '#a52136',
-    padding: 16,
-    borderRadius: 14,
-    minHeight: 48,
-    alignItems: 'center',
+  link: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+  linkText: {
+    fontSize: 14,
+    color: theme.colors.destructive,
+    textDecorationLine: 'underline',
   },
-  disabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
 });

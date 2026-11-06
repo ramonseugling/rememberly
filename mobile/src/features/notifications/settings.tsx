@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from '../../components/brand-text/brand-text';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
 import { useSession } from '../../session/provider';
 import { theme } from '../../theme';
@@ -68,8 +69,8 @@ export function NotificationSettings() {
             : !enabled &&
                 cause instanceof Error &&
                 cause.message.startsWith('Push is disabled')
-              ? cause.message
-              : 'Unable to complete push registration. Check your connection and retry. Native push credentials must be configured in the installed build.',
+              ? 'Os lembretes foram desativados, mas não foi possível concluir a remoção deste dispositivo. Tente desativar novamente.'
+              : 'Não foi possível atualizar os lembretes neste dispositivo. Confira sua conexão e tente novamente.',
         );
         await preferences.reload();
       }
@@ -85,22 +86,25 @@ export function NotificationSettings() {
   return (
     <View style={styles.section}>
       <Text accessibilityRole="header" style={styles.title}>
-        Push reminders
+        Lembretes no dispositivo
       </Text>
       <Text style={styles.text}>
         {preferences.loading
-          ? 'Loading notification preferences…'
+          ? 'Carregando preferências...'
           : preferences.data
-            ? `Account preference: ${preferences.data.push_enabled ? 'enabled' : 'disabled'}. Daily reminders: ${preferences.data.daily_time} (${preferences.data.time_zone}).`
-            : 'Notification preferences are unavailable.'}
+            ? `Lembretes ${preferences.data.push_enabled ? 'ativados' : 'desativados'} para sua conta.`
+            : 'Não foi possível carregar suas preferências.'}
       </Text>
       <Text style={styles.text}>
-        Enabling registers this device. Delivery also requires the server
-        notification service to be enabled and configured; saving a preference
-        does not confirm delivery. Turning off disables push for your account on
-        all devices.
+        Ative para receber lembretes neste dispositivo. Desativar interrompe os
+        lembretes no dispositivo em toda a sua conta.
       </Text>
-      {unsupported ? <Text style={styles.text}>{unsupported}</Text> : null}
+      {unsupported ? (
+        <Text style={styles.text}>
+          Os lembretes no dispositivo não estão disponíveis neste ambiente de
+          visualização.
+        </Text>
+      ) : null}
       {preferences.error ? (
         <>
           <Text accessibilityRole="alert" style={styles.text}>
@@ -110,13 +114,21 @@ export function NotificationSettings() {
             accessibilityRole="button"
             onPress={() => void preferences.reload()}
           >
-            <Text style={styles.link}>Retry loading preferences</Text>
+            <Text style={styles.link}>Tentar novamente</Text>
           </Pressable>
         </>
       ) : null}
       {result?.message ? (
         <Text accessibilityLiveRegion="polite" style={styles.text}>
-          {result.message}
+          {result.kind === 'registered'
+            ? 'Dispositivo registrado. O recebimento dos lembretes depende da disponibilidade do serviço, das permissões e da conexão.'
+            : result.kind === 'disabled'
+              ? 'Lembretes desativados para sua conta.'
+              : result.kind === 'denied'
+                ? 'Permita as notificações nas configurações do dispositivo e tente novamente.'
+                : result.kind === 'unsupported'
+                  ? 'Os lembretes não estão disponíveis neste ambiente de visualização.'
+                  : ''}
         </Text>
       ) : null}
       {error ? (
@@ -134,7 +146,7 @@ export function NotificationSettings() {
         onPress={() => void change(true)}
       >
         <Text style={styles.link}>
-          {pending ? 'Updating…' : 'Enable / retry on this device'}
+          {pending ? 'Atualizando...' : 'Ativar neste dispositivo'}
         </Text>
       </Pressable>
       <Pressable
@@ -144,7 +156,7 @@ export function NotificationSettings() {
         style={styles.button}
         onPress={() => void change(false)}
       >
-        <Text style={styles.link}>Turn off push / retry cleanup</Text>
+        <Text style={styles.link}>Desativar lembretes</Text>
       </Pressable>
       {result?.kind === 'denied' ? (
         <Pressable
@@ -153,12 +165,12 @@ export function NotificationSettings() {
           onPress={() =>
             void Linking.openSettings().catch(() =>
               setError(
-                'Unable to open Settings. Open device Settings manually.',
+                'Não foi possível abrir as configurações. Abra-as manualmente no dispositivo.',
               ),
             )
           }
         >
-          <Text style={styles.link}>Open device Settings</Text>
+          <Text style={styles.link}>Abrir configurações do dispositivo</Text>
         </Pressable>
       ) : null}
     </View>
@@ -168,12 +180,18 @@ export function NotificationSettings() {
 const styles = StyleSheet.create({
   section: {
     gap: 12,
-    padding: 16,
-    borderRadius: 16,
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     backgroundColor: theme.colors.card,
   },
-  title: { color: theme.colors.foreground, fontSize: 20, fontWeight: '600' },
-  text: { color: theme.colors.foreground, lineHeight: 22 },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: 16,
+    fontFamily: theme.fonts.heading,
+  },
+  text: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
   button: { paddingVertical: 12, minHeight: 48 },
-  link: { color: theme.colors.foreground, fontWeight: '600' },
+  link: { color: theme.colors.foreground, fontFamily: theme.fonts.bold },
 });

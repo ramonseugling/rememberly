@@ -35,7 +35,7 @@ export function profileUpdate(
 } {
   const name = form.name.trim();
   if (name.length < 2 || name.length > 100) {
-    throw new Error('Enter a name between 2 and 100 characters.');
+    throw new Error('Informe um nome entre 2 e 100 caracteres.');
   }
   const body: ReturnType<typeof profileUpdate> = { name };
   const fields = [
@@ -47,12 +47,17 @@ export function profileUpdate(
     const raw = form[field].trim();
     if (!raw) {
       if (original[key] !== null) {
-        throw new Error(`An existing birth ${field} cannot be removed yet.`);
+        throw new Error(
+          'A data de nascimento já cadastrada não pode ser removida.',
+        );
       }
       continue;
     }
     if (!/^\d+$/.test(raw) || Number(raw) < min || Number(raw) > max) {
-      throw new Error(`Enter a birth ${field} between ${min} and ${max}.`);
+      const label = field === 'day' ? 'dia' : field === 'month' ? 'mês' : 'ano';
+      throw new Error(
+        `Informe um ${label} de nascimento entre ${min} e ${max}.`,
+      );
     }
     body[key] = Number(raw);
   }
@@ -69,11 +74,11 @@ export type Occasion = {
 };
 
 const occasionNames: Record<string, string> = {
-  mothers_day: "Mother's Day",
-  fathers_day: "Father's Day",
-  valentines_day: "Valentine's Day",
-  childrens_day: "Children's Day",
-  christmas: 'Christmas',
+  mothers_day: 'Dia das Mães',
+  fathers_day: 'Dia dos Pais',
+  valentines_day: 'Dia dos Namorados',
+  childrens_day: 'Dia das Crianças',
+  christmas: 'Natal',
 };
 
 export function occasionLabel(item: Pick<Occasion, 'key' | 'label'>): string {
@@ -85,24 +90,12 @@ export function occasionLabel(item: Pick<Occasion, 'key' | 'label'>): string {
 export function civilDateLabel(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return value;
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  const month = months[Number(match[2]) - 1];
-  return month ? `${month} ${Number(match[3])}, ${match[1]}` : value;
+  const month = Number(match[2]);
+  return month >= 1 && month <= 12
+    ? `${match[3]}/${match[2]}/${match[1]}`
+    : value;
 }
 
 export function daysUntilLabel(days: number): string {
-  return days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+  return days === 0 ? 'Hoje! 🎉' : `Em ${days} ${days === 1 ? 'dia' : 'dias'}`;
 }

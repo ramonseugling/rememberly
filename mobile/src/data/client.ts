@@ -14,22 +14,22 @@ export class ApiError extends Error {
 
   constructor(kind: ApiErrorKind, status = 0) {
     const messages: Record<number, string> = {
-      400: 'Check the information you entered and try again.',
-      401: 'Your session is no longer valid. Please sign in again.',
-      403: 'You do not have permission to perform this action.',
-      404: 'This item is no longer available.',
-      409: 'This item has changed. Refresh and try again.',
-      429: 'Too many requests. Please try again later.',
+      400: 'Confira os dados informados e tente novamente.',
+      401: 'Sua sessão expirou. Entre novamente.',
+      403: 'Você não tem permissão para realizar esta ação.',
+      404: 'Este item não está mais disponível.',
+      409: 'Este item foi alterado. Atualize e tente novamente.',
+      429: 'Muitas tentativas. Tente novamente mais tarde.',
     };
     super(
       kind === 'cancelled'
-        ? 'Request cancelled.'
+        ? 'Solicitação cancelada.'
         : kind === 'stale'
-          ? 'The active session has changed.'
+          ? 'A sessão ativa foi alterada.'
           : kind === 'http'
             ? (messages[status] ??
-              'The service is unavailable. Please try again.')
-            : 'Unable to connect. Check your connection and try again.',
+              'O serviço está indisponível. Tente novamente.')
+            : 'Não foi possível conectar. Confira sua conexão e tente novamente.',
     );
     this.name = 'ApiError';
     this.status = status;
