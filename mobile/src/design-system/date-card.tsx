@@ -1,4 +1,3 @@
-import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Cake,
@@ -6,20 +5,32 @@ import {
   Gift,
   Heart,
   PartyPopper,
-  Users,
 } from 'lucide-react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { DsBadge, DsText } from './index';
 import { tokens } from './tokens';
-import { daysLabel, eventTypeLabel } from '../features/dates/model';
+import { eventTypeLabel } from '../features/dates/model';
 import type { AgendaItem } from '../features/dates/model';
-
+const shortMonths = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+];
 interface DsDateCardProps {
   item: AgendaItem;
-  onEdit?: () => void;
+  onView: () => void;
   disabled?: boolean;
 }
-
-export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
+export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
   const today = item.days_until === 0;
   const Icon =
     item.type === 'birthday'
@@ -29,15 +40,13 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
         : item.type === 'celebration'
           ? PartyPopper
           : Gift;
+  const badge = today
+    ? 'Hoje 🎉'
+    : item.days_until <= 7
+      ? `Em ${item.days_until} ${item.days_until === 1 ? 'dia' : 'dias'}`
+      : `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`;
   const group =
-    item.source.kind === 'group_birthday'
-      ? item.source.group_count > 1
-        ? item.source.group_count + ' grupos'
-        : item.source.group_name
-      : null;
-  const countdown = item.is_next_year
-    ? item.days_until + ' dias'
-    : daysLabel(item.days_until);
+    item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
     <View style={styles.content}>
       <View style={styles.avatar}>
@@ -46,67 +55,42 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
         </DsText>
       </View>
       <View style={styles.copy}>
-        <View style={styles.titleRow}>
-          <DsText style={styles.title}>{item.title}</DsText>
-          <DsBadge
-            label={today ? 'Hoje 🎉' : countdown}
-            tone={today ? 'today' : 'neutral'}
-          />
-        </View>
-        <View style={styles.detail}>
-          <Icon size={14} color={tokens.colors.brand} />
-          <DsText role="caption" style={styles.secondary}>
-            {eventTypeLabel(item)} · {item.event_day}/
-            {String(item.event_month).padStart(2, '0')}
+        <DsText style={styles.title} numberOfLines={2}>
+          {item.title}
+        </DsText>
+        <View style={styles.type}>
+          <Icon size={16} color={tokens.colors.brand} />
+          <DsText style={styles.subtitle} numberOfLines={2}>
+            {eventTypeLabel(item)}
+            {group ? ` · ${group}` : ''}
           </DsText>
         </View>
-        {group && (
-          <View style={styles.detail}>
-            <Users size={12} color={tokens.colors.textMuted} />
-            <DsText role="caption" style={[styles.secondary, styles.group]}>
-              {group}
-            </DsText>
-          </View>
-        )}
-        {today && onEdit && (
-          <View style={styles.todayAction}>
-            <DsText role="caption" style={{ color: tokens.colors.primary }}>
-              Editar data
-            </DsText>
-            <ChevronRight size={14} color={tokens.colors.primary} />
-          </View>
-        )}
       </View>
+      <DsBadge label={badge} tone={today ? 'today' : 'neutral'} />
+      <ChevronRight size={20} color={tokens.colors.textMuted} />
     </View>
   );
   return (
     <Pressable
-      accessibilityRole={onEdit ? 'button' : undefined}
-      accessibilityLabel={onEdit ? 'Editar ' + item.title : undefined}
-      accessibilityState={onEdit ? { disabled: !!disabled } : undefined}
-      disabled={!onEdit || disabled}
-      onPress={onEdit}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver ${eventTypeLabel(item)} de ${item.title}, ${badge}`}
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
+      onPress={onView}
       style={({ pressed }) => [
         styles.row,
         today && styles.today,
-        pressed && styles.pressed,
+        pressed && { opacity: 0.75 },
       ]}
     >
       {today ? (
-        <LinearGradient
-          colors={tokens.celebration}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {content}
-        </LinearGradient>
+        <LinearGradient colors={tokens.celebration}>{content}</LinearGradient>
       ) : (
         content
       )}
     </Pressable>
   );
 };
-
 const styles = StyleSheet.create({
   row: {
     borderWidth: 1,
@@ -114,22 +98,17 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.row,
     backgroundColor: tokens.colors.surface,
     boxShadow: tokens.shadows.card,
-    minHeight: tokens.controlMinHeight,
+    minHeight: 80,
     overflow: 'hidden',
   },
-  today: {
-    borderWidth: 1,
-    borderRadius: tokens.radius.row,
-    borderColor: tokens.colors.outlineBorder,
-  },
-  pressed: { opacity: 0.85 },
+  today: { borderColor: tokens.colors.outlineBorder },
   content: {
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 8,
     minHeight: 80,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   avatar: {
     width: 56,
@@ -139,43 +118,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  initial: {
-    color: tokens.colors.primary,
-    fontWeight: '700',
-    fontSize: 18,
-    lineHeight: 24,
-  },
-  copy: { flex: 1, minWidth: 0, gap: 3 },
-  titleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: 8,
-    rowGap: 4,
-    justifyContent: 'space-between',
-  },
-  title: {
-    fontWeight: '700',
-    fontSize: 16,
-    lineHeight: 22,
-    flexShrink: 1,
-  },
-  secondary: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 17 },
-  detail: {
-    flexDirection: 'row',
-    gap: 5,
-    alignItems: 'center',
-    maxWidth: '100%',
-  },
-  group: { flexShrink: 1 },
-  todayAction: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: tokens.colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginTop: 4,
-  },
+  initial: { color: tokens.colors.primary, fontWeight: '700', fontSize: 22 },
+  copy: { flex: 1, minWidth: 0, gap: 4 },
+  title: { fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  type: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  subtitle: { fontSize: 14, color: tokens.colors.textMuted, flexShrink: 1 },
 });

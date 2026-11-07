@@ -167,3 +167,10 @@ O usuário antecipou explicitamente esta mudança de navegação e a criação d
 Aceite visual em dispositivo pendente. Exploração visual das demais telas fica para a próxima rodada; implementação da wishlist continua bloqueada.
 
 Verificação da entrega Início: 101 testes mobile, TypeScript, formatação e bundles Hermes iOS/Android aprovados. Smoke autenticado de leitura de perfil, agenda e grupos passou; sessão do smoke revogada. Validação visual e navegação manual no aparelho permanecem pendentes.
+
+## Eventos — referência visual de 07/11/2026
+
+A tela Eventos foi revisada segundo o [mock enviado](../mobile/references/events-reference.png): título e descrição no topo, ícone de calendário como ação de adicionar, seções “Próximos 7 dias”, “Este mês” e “Mais pra frente”, cards compactos com avatar por inicial, nome, tipo, badge de hoje ou data abreviada e seta de detalhes. Ao tocar, o usuário vê o evento; eventos pessoais continuam editáveis no painel existente. Não há fotos cadastradas atualmente.
+
+“Este mês” passou a significar o mês civil da data local retornada pela agenda; uma data dos próximos sete dias permanece na primeira seção mesmo quando cruza a virada do mês. As demais datas aparecem em ordem cronológica, com expansão para listas longas. Estados vazio, erro, atualização e CRUD permanecem disponíveis. Validação visual no aparelho: pendente.
+`nVerificação da rodada Eventos: 102 testes mobile, TypeScript, formatação e exports Hermes iOS/Android aprovados. Aprovação visual no dispositivo pendente.

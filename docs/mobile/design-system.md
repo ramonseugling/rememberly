@@ -112,3 +112,8 @@ Em 07/11 o usuário solicitou aplicar a composição do recorte à nova tela In�
 Validação funcional: TypeScript e 101 testes mobile aprovados, incluindo seleção cronológica de aniversários, limite de dois grupos, nomes e destino atualizado de notificações. A aparência ainda depende de comparação no dispositivo.
 
 Verificação final da rodada Início: formatação completa e exports Hermes iOS/Android aprovados. Leitura autenticada das APIs de perfil, agenda e grupos retornou 200 com os formatos esperados; a sessão temporária do teste foi revogada. Expo Go permanece disponível no preview local. Isso não substitui validação visual ou interação em dispositivo.
+
+## Piloto Eventos
+
+Referência: [mock da tela Eventos](references/events-reference.png). A composição usa títulos escuros, fundo rosa suave, cards com contorno e sombra discreta, avatares circulares com iniciais, badge pêssego para hoje e lilás para datas futuras. O ícone de calendário no cabeçalho abre a criação de evento. As seções usam o mês civil da agenda, com prioridade para os próximos sete dias.
+`nVerificação da rodada Eventos: 102 testes mobile, TypeScript, formatação e exports Hermes iOS/Android aprovados. A inspeção visual no dispositivo permanece pendente.

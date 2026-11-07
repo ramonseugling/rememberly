@@ -43,7 +43,7 @@ export const ReferenceComposition = ({
     </DsText>
     <View style={{ gap: 6 }}>
       {exampleDates.map((item) => (
-        <DsDateCard key={item.id} item={item} onEdit={onOpenExample} />
+        <DsDateCard key={item.id} item={item} onView={onOpenExample} />
       ))}
     </View>
     <DsText role="section" style={styles.section}>

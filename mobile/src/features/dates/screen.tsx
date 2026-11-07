@@ -12,14 +12,9 @@ import {
 import {
   Cake,
   Calendar,
-  Clock,
   ChevronDown,
-  ChevronRight,
   ChevronUp,
-  PartyPopper,
   Plus,
-  Bell,
-  Star,
 } from 'lucide-react-native';
 import {
   DsButton,
@@ -167,36 +162,24 @@ export function DatesScreen() {
     }
   }
 
-  const grouped = dateSections(data?.items ?? [], expanded);
-  const withinWeek =
-    data?.items.filter((item) => item.days_until <= 7).length ?? 0;
-  const monthName = data ? monthNames[Number(data.today.slice(5, 7)) - 1] : '';
+  const grouped = dateSections(data?.items ?? [], expanded, data?.today);
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <SectionList
         ref={listRef}
         sections={grouped.sections}
         stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => {
-          const Icon =
-            section.title === 'Próximos 7 dias'
-              ? Calendar
-              : section.title === 'Este mês'
-                ? Cake
-                : Clock;
-          return (
-            <View style={styles.sectionHeading}>
-              <Icon size={18} color={tokens.colors.textMuted} />
-              <DsText
-                accessibilityRole="header"
-                role="label"
-                style={styles.sectionTitle}
-              >
-                {section.title}
-              </DsText>
-            </View>
-          );
-        }}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeading}>
+            <DsText
+              accessibilityRole="header"
+              role="section"
+              style={styles.sectionTitle}
+            >
+              {section.title}
+            </DsText>
+          </View>
+        )}
         renderSectionFooter={() => <View style={{ height: 16 }} />}
         ListFooterComponent={
           grouped.laterCount > 3 ? (
@@ -231,8 +214,8 @@ export function DatesScreen() {
         }
         ListHeaderComponent={
           <View>
-            {(loading || error || !!data?.items.length) && (
-              <View style={styles.header}>
+            <View style={styles.header}>
+              <View style={styles.headerTop}>
                 <DsText
                   accessibilityRole="header"
                   role="title"
@@ -240,50 +223,21 @@ export function DatesScreen() {
                 >
                   Eventos
                 </DsText>
-                {data && (
-                  <DsText role="caption" style={styles.description}>
-                    {monthName} • {grouped.upcomingCount}{' '}
-                    {grouped.upcomingCount === 1 ? 'evento' : 'eventos'} nos
-                    próximos 30 dias
-                  </DsText>
-                )}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Adicionar evento"
+                  accessibilityState={{ disabled: pending }}
+                  disabled={pending}
+                  onPress={() => openEditor()}
+                  style={styles.addIcon}
+                >
+                  <Calendar size={26} color={tokens.colors.text} />
+                </Pressable>
               </View>
-            )}
-            <DsButton
-              label="Adicionar evento"
-              icon={<Plus size={18} color={tokens.colors.onPrimary} />}
-              onPress={() => openEditor()}
-              disabled={pending}
-              style={{ alignSelf: 'flex-start', marginBottom: 20 }}
-            />
-            {withinWeek > 0 && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Ver datas dos próximos 7 dias"
-                style={styles.banner}
-                onPress={() =>
-                  listRef.current?.scrollToLocation({
-                    sectionIndex: 0,
-                    itemIndex: 0,
-                    viewPosition: 0,
-                  })
-                }
-              >
-                <View style={styles.bannerIcon}>
-                  <PartyPopper size={20} color={tokens.colors.primary} />
-                </View>
-                <View style={styles.bannerCopy}>
-                  <DsText role="label">
-                    Você tem {withinWeek} {withinWeek === 1 ? 'data' : 'datas'}{' '}
-                    nos próximos 7 dias
-                  </DsText>
-                  <DsText role="caption" style={styles.description}>
-                    Prepare-se para celebrar!
-                  </DsText>
-                </View>
-                <ChevronRight size={18} color={tokens.colors.textMuted} />
-              </Pressable>
-            )}
+              <DsText style={styles.description}>
+                Acompanhe suas celebrações em ordem cronológica.
+              </DsText>
+            </View>
             {loading && !data && (
               <ActivityIndicator
                 accessibilityLabel="Carregando datas"
@@ -334,43 +288,6 @@ export function DatesScreen() {
                   disabled={pending}
                 />
               </DsCard>
-              <DsText
-                accessibilityRole="header"
-                role="section"
-                style={styles.tipsTitle}
-              >
-                Dicas para aproveitar a Rememberly
-              </DsText>
-              {[
-                {
-                  title: 'Aniversários',
-                  description:
-                    'Adicione a data e lembre todos os anos, sem esforço.',
-                  Icon: Cake,
-                },
-                {
-                  title: 'Datas especiais',
-                  description: 'Adicione casamentos, formaturas e muito mais.',
-                  Icon: Star,
-                },
-                {
-                  title: 'Lembretes automáticos',
-                  description: 'Receba lembretes no e-mail no momento certo.',
-                  Icon: Bell,
-                },
-              ].map(({ title, description, Icon }) => (
-                <DsCard style={styles.tip} key={title}>
-                  <View style={styles.bannerIcon}>
-                    <Icon size={20} color={tokens.colors.primary} />
-                  </View>
-                  <View style={styles.bannerCopy}>
-                    <DsText role="label">{title}</DsText>
-                    <DsText role="caption" style={styles.description}>
-                      {description}
-                    </DsText>
-                  </View>
-                </DsCard>
-              ))}
             </View>
           ) : undefined
         }
@@ -379,9 +296,7 @@ export function DatesScreen() {
             <DsDateCard
               item={item}
               disabled={pending}
-              onEdit={
-                editableEventId(item) ? () => openEditor(item) : undefined
-              }
+              onView={() => setViewedId(item.id)}
             />
           </View>
         )}
@@ -436,44 +351,31 @@ export function DatesScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
-  header: { gap: 4, marginBottom: 20 },
+  header: { gap: 6, marginBottom: 24 },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  addIcon: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
     fontSize: tokens.typography.title.fontSize,
     lineHeight: tokens.typography.title.lineHeight,
     fontWeight: '700',
   },
-  description: { color: tokens.colors.textMuted },
-  sectionHeading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
+  description: { color: tokens.colors.textMuted, fontSize: 16, lineHeight: 23 },
+  sectionHeading: { marginBottom: 10, marginTop: 8 },
   sectionTitle: {
     fontWeight: '700',
     fontSize: 20,
     lineHeight: 26,
   },
-  cardSpacing: { marginBottom: 6 },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: tokens.colors.surfaceMuted,
-    padding: 12,
-    borderRadius: tokens.radius.card,
-    marginBottom: 20,
-    minHeight: tokens.controlMinHeight,
-  },
-  bannerIcon: {
-    height: 40,
-    width: 40,
-    borderRadius: tokens.radius.row,
-    backgroundColor: tokens.colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bannerCopy: { flex: 1, gap: 4 },
+  cardSpacing: { marginBottom: 8 },
   expand: {
     alignSelf: 'center',
     minHeight: tokens.controlMinHeight,
@@ -498,6 +400,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   centered: { textAlign: 'center' },
-  tipsTitle: { marginTop: 16, marginBottom: 4 },
-  tip: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 });
