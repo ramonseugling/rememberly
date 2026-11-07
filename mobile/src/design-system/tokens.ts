@@ -1,8 +1,8 @@
 const fonts = {
-  body: 'System',
-  bold: 'System',
-  heading: 'System',
-  headingBold: 'System',
+  body: 'Quicksand_500Medium',
+  bold: 'Quicksand_700Bold',
+  heading: 'Fredoka_600SemiBold',
+  headingBold: 'Fredoka_700Bold',
 } as const;
 
 export const tokens = {
@@ -32,17 +32,18 @@ export const tokens = {
     dangerSurface: '#FDECF0',
     accent: '#D05126',
     iconSurface: '#FEE6E8',
+    overlay: 'rgba(35, 26, 34, 0.5)',
   },
   fonts,
   typography: {
     title: {
-      fontFamily: fonts.bold,
+      fontFamily: fonts.headingBold,
       fontWeight: '700',
       fontSize: 24,
       lineHeight: 30,
     },
     section: {
-      fontFamily: fonts.bold,
+      fontFamily: fonts.headingBold,
       fontWeight: '700',
       fontSize: 20,
       lineHeight: 26,
@@ -91,5 +92,5 @@ export const appearance = {
     surfaceMuted: tokens.colors.surfaceMuted,
     destructive: tokens.colors.danger,
   },
-  fonts: { heading: fonts.bold, body: fonts.body, bold: fonts.bold },
+  fonts: { heading: fonts.heading, body: fonts.body, bold: fonts.bold },
 };

@@ -54,7 +54,7 @@ export const AppTabBar = ({
               style={{
                 fontSize: 11,
                 color: selected
-                  ? tokens.colors.actionText
+                  ? tokens.colors.brand
                   : tokens.colors.textMuted,
               }}
             >
@@ -71,15 +71,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingTop: 8,
     paddingHorizontal: 4,
-    borderTopWidth: 1,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.background,
+    backgroundColor: '#FFFFFF',
+    shadowColor: 'rgb(108, 39, 77)',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 8,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 2,
     minHeight: 48,
   },
 });

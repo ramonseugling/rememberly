@@ -4,7 +4,6 @@ import type { TextInputProps } from 'react-native';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react-native';
 import { DsText } from '../text/text';
 import { tokens } from '../tokens';
-import { nativeFontFamily } from '../native-typography';
 
 interface DsFieldProps extends TextInputProps {
   label?: string;
@@ -112,7 +111,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 0,
     ...tokens.typography.body,
-    fontFamily: nativeFontFamily,
+    fontFamily: tokens.fonts.body,
     color: tokens.colors.text,
   },
   focused: {
