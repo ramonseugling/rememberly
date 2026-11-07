@@ -43,6 +43,11 @@ test('design system text pairs meet normal-text contrast across supported surfac
   assert.ok(contrast(colors.onPrimary, colors.primaryPressed) >= 4.5);
   for (const background of tokens.celebration)
     assert.ok(contrast(colors.text, background) >= 4.5);
+  for (const background of [
+    ...tokens.actionGradient,
+    ...tokens.actionPressedGradient,
+  ])
+    assert.ok(contrast(colors.onPrimary, background) >= 4.5);
 });
 
 test('enabled control boundaries remain distinguishable from input surfaces', () => {

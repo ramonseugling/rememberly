@@ -1,8 +1,11 @@
 import { theme } from '../theme';
+import { Platform } from 'react-native';
 
 export interface ComponentAppearance {
   controlMinHeight?: number;
   controlRadius?: number;
+  buttonRadius?: number;
+  gradient?: readonly [string, string, ...string[]];
   colors: {
     background: string;
     foreground: string;
@@ -17,10 +20,13 @@ export interface ComponentAppearance {
 }
 
 export function resolveAppearance(appearance?: ComponentAppearance) {
+  const fonts = { ...theme.fonts, ...appearance?.fonts };
+  const nativeFamily = Platform.OS === 'ios' ? 'System' : 'sans-serif';
   return {
     controlMinHeight: appearance?.controlMinHeight ?? 44,
     controlRadius: appearance?.controlRadius ?? 16,
-    gradient: theme.gradient,
+    buttonRadius: appearance?.buttonRadius ?? appearance?.controlRadius ?? 16,
+    gradient: appearance?.gradient ?? theme.gradient,
     colors: {
       ...theme.colors,
       ...appearance?.colors,
@@ -30,7 +36,17 @@ export function resolveAppearance(appearance?: ComponentAppearance) {
         appearance?.colors.surfaceMuted ?? 'hsla(340, 75%, 68%, 0.1)',
       destructive: appearance?.colors.destructive ?? theme.colors.destructive,
     },
-    fonts: { ...theme.fonts, ...appearance?.fonts },
+    fonts: {
+      ...fonts,
+      body: fonts.body === 'System' ? nativeFamily : fonts.body,
+      heading: fonts.heading === 'System' ? nativeFamily : fonts.heading,
+      bold: fonts.bold === 'System' ? nativeFamily : fonts.bold,
+    },
+    fontWeights: {
+      body: fonts.body === 'System' ? ('400' as const) : undefined,
+      heading: fonts.heading === 'System' ? ('700' as const) : undefined,
+      bold: fonts.bold === 'System' ? ('600' as const) : undefined,
+    },
   };
 }
 

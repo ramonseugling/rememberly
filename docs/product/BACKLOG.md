@@ -17,17 +17,17 @@ Decisões confirmadas nesta conversa:
 
 ## Etapa atual — Design system antes da wishlist
 
-Atualizado em 06/11/2026. O web permanece fora desta rodada. Referências: documentos de contexto recebidos e plano aprovado nesta conversa; eles não substituem os AGENTS.md existentes.
+Atualizado em 07/11/2026. O web permanece fora desta rodada. A primeira proposta visual foi rejeitada; a revisão deve seguir o [novo mock de referência](../mobile/references/rememberly-visual-reference.png), com fonte nativa, fundos rosados e listas compactas. Referências e plano não substituem os AGENTS.md existentes.
 
 Ordem: registrar este backlog → definir tokens e componentes → catálogo e pilotos → aprovação visual do usuário → padronizar demais telas → iniciar wishlist.
 
-| ID     | Prioridade | Estado                                | Entrega / aceite                                                                                                                                                                      | Dependência             |
-| ------ | ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| DS-001 | P0         | Implementado; revisão visual pendente | Especificação de cores semânticas, Quicksand, espaçamentos, dimensões, bordas, sombras, ícones e movimento em docs/mobile/design-system.md.                                           | Este registro           |
-| DS-002 | P0         | Implementado; revisão visual pendente | Base isolada em mobile/src/design-system/: texto, botões, campos, seletores, cards, linhas, badges, switches, checkbox, OTP, feedback e painéis. Nenhuma troca global do tema legado. | DS-001                  |
-| DS-003 | P0         | Implementado; revisão visual pendente | Catálogo apenas em desenvolvimento, com estados interativos e dados de demonstração identificados. Nenhum envio, cadastro ou exclusão real automático.                                | DS-002                  |
-| DS-004 | P0         | Implementado; revisão visual pendente | Datas e Perfil reais usando a nova base; preservar recursos, navegação e dados. Testes/tipos/bundles e validação visual no dispositivo.                                               | DS-002/003              |
-| DS-005 | P0         | Bloqueado                             | Após aprovação dos pilotos, migrar Grupos, Especiais e autenticação; eliminar estilos duplicados substituídos e consolidar tokens.                                                    | Aprovação visual DS-004 |
+| ID     | Prioridade | Estado                                     | Entrega / aceite                                                                                                                                                                      | Dependência             |
+| ------ | ---------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| DS-001 | P0         | Implementado; nova revisão visual pendente | Especificação alinhada ao mock: cores semânticas, fonte nativa, espaçamentos, dimensões, bordas, sombras, ícones e movimento em docs/mobile/design-system.md.                         | Este registro           |
+| DS-002 | P0         | Implementado; revisão visual pendente      | Base isolada em mobile/src/design-system/: texto, botões, campos, seletores, cards, linhas, badges, switches, checkbox, OTP, feedback e painéis. Nenhuma troca global do tema legado. | DS-001                  |
+| DS-003 | P0         | Implementado; revisão visual pendente      | Catálogo apenas em desenvolvimento, com estados interativos e dados de demonstração identificados. Nenhum envio, cadastro ou exclusão real automático.                                | DS-002                  |
+| DS-004 | P0         | Implementado; revisão visual pendente      | Datas e Perfil reais usando a nova base; preservar recursos, navegação e dados. Testes/tipos/bundles e validação visual no dispositivo.                                               | DS-002/003              |
+| DS-005 | P0         | Bloqueado                                  | Após aprovação dos pilotos, migrar Grupos, Especiais e autenticação; eliminar estilos duplicados substituídos e consolidar tokens.                                                    | Aprovação visual DS-004 |
 
 A aprovação visual é do usuário e não pode ser inferida de tipos, testes ou bundles. Registrar evidência por rodada. A primeira execução termina com catálogo e pilotos prontos para revisão; não migra outras telas nem inicia wishlist automaticamente.
 
@@ -139,3 +139,11 @@ Este documento registra planejamento e decisões aprovadas. A wishlist não est�
 Planejamento versionado antes do código no commit 5d61a8a. Catálogo e pilotos reais de Datas/Perfil implementados com tokens isolados; navegação, tema legado, APIs e regras de negócio preservados. Verificação local: 97 testes mobile, TypeScript, formatação dos arquivos alterados e exports Hermes iOS/Android passaram. Testes novos verificam os pares de contraste e a disponibilidade do catálogo somente em ambiente/bundle de desenvolvimento. O preview usa o banco local existente, sem limpeza ou seed.
 
 Aprovação visual, texto ampliado, teclado, leitores de tela e movimento em dispositivo: pendentes da revisão do usuário. DS-005 e toda implementação da wishlist continuam bloqueadas até essa aprovação.
+
+## Revisão visual pelo mock — 07/11/2026
+
+O usuário rejeitou a aparência da primeira proposta e indicou um mock específico. A revisão substitui a tipografia Quicksand dos pilotos por fonte nativa, aproxima a paleta do rosa suave da imagem, usa ações principais em gradiente rosa e torna as linhas de Datas e os painéis de Perfil mais compactos. O catálogo inclui uma composição visual de demonstração. A imagem foi preservada em docs/mobile/references/rememberly-visual-reference.png.
+
+O escopo continua em catálogo, base e pilotos de Datas/Perfil. Desejos, reservas, fotos, navegação futura e demais telas do mock permanecem nos marcos correspondentes. A nova aparência ainda requer aprovação visual no dispositivo; DS-005 e wishlist permanecem bloqueados.
+
+Validação desta revisão: TypeScript, 97 testes mobile, formatação completa de mobile e exports Hermes iOS/Android aprovados. Preview do Expo Go e API local alcançáveis; banco preservado, sem seed. Isso não representa aprovação visual nem teste de dispositivo.

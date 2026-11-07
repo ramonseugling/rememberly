@@ -82,7 +82,7 @@ export const BrandButton = ({
 const createStyles = (theme: ResolvedAppearance) =>
   StyleSheet.create({
     button: {
-      borderRadius: theme.controlRadius,
+      borderRadius: theme.buttonRadius,
       overflow: 'hidden',
       minHeight: theme.controlMinHeight,
     },
@@ -101,6 +101,7 @@ const createStyles = (theme: ResolvedAppearance) =>
       flexShrink: 1,
       fontSize: 14,
       fontFamily: theme.fonts.bold,
+      fontWeight: theme.fontWeights.bold,
       textAlign: 'center',
     },
   });

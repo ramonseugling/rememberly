@@ -18,6 +18,7 @@ import {
   DsText,
 } from './index';
 import { tokens } from './tokens';
+import { ReferenceComposition } from './reference-composition';
 
 export const DesignSystemCatalog = () => {
   const [field, setField] = useState('');
@@ -51,10 +52,13 @@ export const DesignSystemCatalog = () => {
         <DsText role="title">Design system</DsText>
         <DsBadge label="DESENVOLVIMENTO · DEMONSTRAÇÃO" />
         <DsText>
-          Minimalista acolhedor. Toque nos controles, mantenha os botões
-          pressionados e amplie o texto nas configurações do dispositivo. Todos
-          os valores abaixo são exemplos locais.
+          Referência visual: fundos rosados, listas compactas e ações em rosa.
+          Toque nos controles, mantenha os botões pressionados e amplie o texto
+          nas configurações do dispositivo. Todos os valores abaixo são exemplos
+          locais.
         </DsText>
+
+        <ReferenceComposition />
 
         <DsText role="section">Cores e tipografia</DsText>
         <DsCard>
@@ -81,10 +85,9 @@ export const DesignSystemCatalog = () => {
           <DsText role="title">Datas que importam</DsText>
           <DsText role="section">Perto de quem você gosta</DsText>
           <DsText>
-            Texto de leitura com Quicksand, hierarquia clara e espaço para
-            respirar.
+            Fonte nativa, títulos compactos e hierarquia próxima à referência.
           </DsText>
-          <DsText role="caption">Legenda de apoio · 12/18</DsText>
+          <DsText role="caption">Legenda de apoio · 12/17</DsText>
         </DsCard>
 
         <DsText role="section">Ações</DsText>

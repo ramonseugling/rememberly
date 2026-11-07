@@ -210,11 +210,12 @@ export function DatesScreen() {
           <View>
             {(loading || error || !!data?.items.length) && (
               <View style={styles.header}>
-                <DsText role="caption" style={styles.eyebrow}>
-                  Minhas Datas
-                </DsText>
-                <DsText accessibilityRole="header" role="title">
-                  Próximas datas importantes
+                <DsText
+                  accessibilityRole="header"
+                  role="title"
+                  style={styles.title}
+                >
+                  Minhas datas
                 </DsText>
                 {data && (
                   <DsText role="caption" style={styles.description}>
@@ -385,25 +386,29 @@ export function DatesScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
-  header: { gap: 6, marginBottom: 24 },
-  eyebrow: { color: tokens.colors.primary },
+  header: { gap: 4, marginBottom: 20 },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
   description: { color: tokens.colors.textMuted },
   sectionHeading: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  sectionTitle: { fontFamily: tokens.fonts.bold },
-  cardSpacing: { marginBottom: 12 },
+  sectionTitle: {
+    fontWeight: '700',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  cardSpacing: { marginBottom: 0 },
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     backgroundColor: tokens.colors.surfaceMuted,
-    padding: 16,
+    padding: 12,
     borderRadius: tokens.radius.card,
-    marginBottom: 24,
+    marginBottom: 20,
     minHeight: tokens.controlMinHeight,
   },
   bannerIcon: {

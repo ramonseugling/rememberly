@@ -98,6 +98,7 @@ const createStyles = (theme: ResolvedAppearance) =>
     disabled: { opacity: 0.5 },
     digit: {
       fontFamily: theme.fonts.bold,
+      fontWeight: theme.fontWeights.bold,
       fontSize: 22,
       color: theme.colors.foreground,
     },

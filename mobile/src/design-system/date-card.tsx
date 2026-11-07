@@ -3,10 +3,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   Cake,
   Calendar,
+  ChevronRight,
   Clock,
   Gift,
   Heart,
-  MoreVertical,
   PartyPopper,
   Users,
 } from 'lucide-react-native';
@@ -22,7 +22,7 @@ interface DsDateCardProps {
 }
 
 export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
-  const urgent = !item.is_next_year && item.days_until <= 2;
+  const today = item.days_until === 0;
   const Icon =
     item.type === 'birthday'
       ? Cake
@@ -34,66 +34,66 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
   const group =
     item.source.kind === 'group_birthday'
       ? item.source.group_count > 1
-        ? `${item.source.group_count} grupos`
+        ? item.source.group_count + ' grupos'
         : item.source.group_name
       : null;
   const countdown = item.is_next_year
-    ? `${item.days_until} dias`
+    ? item.days_until + ' dias'
     : daysLabel(item.days_until);
   const content = (
     <View style={styles.content}>
-      <View style={styles.identity}>
-        <View style={styles.icon}>
-          <Icon size={20} color={tokens.colors.primary} />
+      <View style={styles.avatar}>
+        <DsText style={styles.initial}>
+          {item.title.trim().charAt(0).toUpperCase()}
+        </DsText>
+      </View>
+      <View style={styles.copy}>
+        <View style={styles.titleRow}>
+          <DsText style={styles.title}>{item.title}</DsText>
+          <DsBadge label={countdown} tone={today ? 'primary' : 'neutral'} />
         </View>
-        <View style={styles.copy}>
-          <DsText role="section" style={styles.title}>
-            {item.title}
-          </DsText>
+        <View style={styles.detail}>
+          <Icon size={12} color={tokens.colors.primary} />
           <DsText role="caption" style={styles.secondary}>
             {eventTypeLabel(item)}
           </DsText>
         </View>
-        {onEdit && <MoreVertical size={18} color={tokens.colors.textMuted} />}
-      </View>
-      <View style={styles.metadata}>
         <View style={styles.detail}>
-          <Calendar size={15} color={tokens.colors.textMuted} />
+          {item.is_next_year ? (
+            <Clock size={12} color={tokens.colors.textMuted} />
+          ) : (
+            <Calendar size={12} color={tokens.colors.textMuted} />
+          )}
           <DsText role="caption" style={styles.secondary}>
             {item.event_day} de {monthNames[item.event_month - 1]}
           </DsText>
         </View>
         {group && (
           <View style={styles.detail}>
-            <Users size={15} color={tokens.colors.textMuted} />
+            <Users size={12} color={tokens.colors.textMuted} />
             <DsText role="caption" style={[styles.secondary, styles.group]}>
               {group}
             </DsText>
           </View>
         )}
-        <View style={styles.countdown}>
-          {item.is_next_year && (
-            <Clock size={14} color={tokens.colors.textMuted} />
-          )}
-          <DsBadge label={countdown} tone={urgent ? 'primary' : 'neutral'} />
-        </View>
       </View>
+      {onEdit && <ChevronRight size={16} color={tokens.colors.textMuted} />}
     </View>
   );
   return (
     <Pressable
       accessibilityRole={onEdit ? 'button' : undefined}
-      accessibilityLabel={onEdit ? `Editar ${item.title}` : undefined}
+      accessibilityLabel={onEdit ? 'Editar ' + item.title : undefined}
       accessibilityState={onEdit ? { disabled: !!disabled } : undefined}
       disabled={!onEdit || disabled}
       onPress={onEdit}
       style={({ pressed }) => [
-        styles.card,
-        item.is_next_year && styles.nextYear,
+        styles.row,
+        today && styles.today,
         pressed && styles.pressed,
       ]}
     >
-      {urgent ? (
+      {today ? (
         <LinearGradient
           colors={tokens.celebration}
           start={{ x: 0, y: 0 }}
@@ -109,46 +109,60 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
 };
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: tokens.radius.card,
-    overflow: 'hidden',
-    borderWidth: 1,
+  row: {
+    borderBottomWidth: 1,
     borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.surface,
     minHeight: tokens.controlMinHeight,
+    overflow: 'hidden',
   },
-  nextYear: { backgroundColor: tokens.colors.surfaceMuted },
-  pressed: { opacity: 0.85 },
-  content: { padding: 20, gap: 16 },
-  identity: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  icon: {
-    width: 44,
-    height: 44,
+  today: {
+    borderWidth: 1,
     borderRadius: 16,
+    borderColor: tokens.colors.border,
+  },
+  pressed: { opacity: 0.85 },
+  content: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: tokens.colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  copy: { flex: 1, minWidth: 0, gap: 2 },
-  title: { fontSize: 16, lineHeight: 23 },
-  secondary: { color: tokens.colors.textMuted },
-  metadata: {
+  initial: {
+    color: tokens.colors.primary,
+    fontWeight: '700',
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  copy: { flex: 1, minWidth: 0, gap: 3 },
+  titleRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
     alignItems: 'center',
+    columnGap: 8,
+    rowGap: 4,
+    justifyContent: 'space-between',
   },
+  title: {
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 20,
+    flexShrink: 1,
+  },
+  secondary: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 17 },
   detail: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 5,
     alignItems: 'center',
     maxWidth: '100%',
   },
   group: { flexShrink: 1 },
-  countdown: {
-    marginLeft: 'auto',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
 });

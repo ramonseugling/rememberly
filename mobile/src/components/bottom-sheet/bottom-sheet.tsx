@@ -201,6 +201,7 @@ const createStyles = (theme: ResolvedAppearance) =>
     title: {
       flex: 1,
       fontFamily: theme.fonts.heading,
+      fontWeight: theme.fontWeights.heading,
       fontSize: 22,
       color: theme.colors.foreground,
     },

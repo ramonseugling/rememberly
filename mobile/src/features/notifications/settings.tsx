@@ -199,8 +199,15 @@ const createStyles = (theme: ResolvedAppearance) =>
       color: theme.colors.foreground,
       fontSize: 16,
       fontFamily: theme.fonts.heading,
+      fontWeight: theme.fontWeights.heading,
     },
-    text: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
+    text: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
+      color: theme.colors.muted,
+      fontSize: 14,
+      lineHeight: 21,
+    },
     button: { paddingVertical: 12, minHeight: 48 },
     link: { color: theme.colors.foreground, fontFamily: theme.fonts.bold },
   });

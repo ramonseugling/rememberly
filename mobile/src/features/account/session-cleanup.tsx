@@ -160,9 +160,22 @@ const createStyles = (theme: ResolvedAppearance) =>
       fontSize: 16,
       color: theme.colors.foreground,
       fontFamily: theme.fonts.heading,
+      fontWeight: theme.fontWeights.heading,
     },
-    text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
-    hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+    text: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
+      fontSize: 14,
+      color: theme.colors.muted,
+      lineHeight: 21,
+    },
+    hint: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
+      fontSize: 12,
+      color: theme.colors.muted,
+      lineHeight: 18,
+    },
     input: {
       borderWidth: 1,
       borderColor: theme.colors.controlBorder,
@@ -172,6 +185,7 @@ const createStyles = (theme: ResolvedAppearance) =>
       minHeight: theme.controlMinHeight,
       fontSize: 14,
       fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
       color: theme.colors.foreground,
     },
   });

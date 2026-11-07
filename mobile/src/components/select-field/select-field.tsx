@@ -102,6 +102,7 @@ const createStyles = (theme: ResolvedAppearance) =>
       fontSize: 14,
       color: theme.colors.foreground,
       fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
     },
     option: {
       minHeight: 48,

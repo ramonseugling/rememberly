@@ -246,8 +246,20 @@ export function DeleteAccount({
 const createStyles = (theme: ResolvedAppearance) =>
   StyleSheet.create({
     section: { gap: 16 },
-    text: { fontSize: 14, color: theme.colors.muted, lineHeight: 21 },
-    hint: { fontSize: 12, color: theme.colors.muted, lineHeight: 18 },
+    text: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
+      fontSize: 14,
+      color: theme.colors.muted,
+      lineHeight: 21,
+    },
+    hint: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
+      fontSize: 12,
+      color: theme.colors.muted,
+      lineHeight: 18,
+    },
     input: {
       borderWidth: 1,
       borderColor: theme.colors.controlBorder,
@@ -257,6 +269,7 @@ const createStyles = (theme: ResolvedAppearance) =>
       minHeight: theme.controlMinHeight,
       fontSize: 14,
       fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
       color: theme.colors.foreground,
     },
     link: {
@@ -265,6 +278,8 @@ const createStyles = (theme: ResolvedAppearance) =>
       alignSelf: 'flex-start',
     },
     linkText: {
+      fontFamily: theme.fonts.body,
+      fontWeight: theme.fontWeights.body,
       fontSize: 14,
       color: theme.colors.destructive,
       textDecorationLine: 'underline',

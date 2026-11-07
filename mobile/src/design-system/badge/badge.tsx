@@ -16,7 +16,21 @@ export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
           ? tokens.colors.danger
           : tokens.colors.textMuted;
   return (
-    <View style={styles.badge}>
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor:
+            tone === 'success'
+              ? tokens.colors.successSurface
+              : tone === 'danger'
+                ? tokens.colors.dangerSurface
+                : tone === 'primary'
+                  ? tokens.colors.iconSurface
+                  : tokens.colors.surfaceMuted,
+        },
+      ]}
+    >
       <DsText role="caption" style={{ color }}>
         {label}
       </DsText>

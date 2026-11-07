@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronDown, ChevronUp, LogOut, Mail } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, LogOut } from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,11 +18,9 @@ import {
   DsSelect,
   DsFeedback,
   DsRow,
-} from '../../src/design-system';
-import {
   appearance as pilotAppearance,
   tokens,
-} from '../../src/design-system/tokens';
+} from '../../src/design-system';
 import { isDesignCatalogEnabled } from '../../src/design-system/availability';
 import { apiConfiguration } from '../../src/config/environment';
 import { useAuthenticatedApi, useResource } from '../../src/data/hooks';
@@ -201,7 +199,7 @@ function ProfileContent() {
             <DsText role="title" accessibilityRole="header">
               Meu perfil
             </DsText>
-            <DsText style={styles.muted}>
+            <DsText role="caption" style={styles.muted}>
               Atualize suas informações pessoais.
             </DsText>
           </View>
@@ -225,22 +223,21 @@ function ProfileContent() {
           )}
           {data && editor && (
             <>
-              <DsCard style={styles.identity}>
-                <View style={styles.avatar}>
-                  <DsText role="section" style={styles.initial}>
+              <View style={styles.identity}>
+                <View accessible={false} style={styles.avatar}>
+                  <DsText accessible={false} style={styles.initial}>
                     {editor.user.name.charAt(0).toUpperCase()}
                   </DsText>
                 </View>
                 <View style={styles.identityText}>
-                  <DsText role="section">{editor.user.name}</DsText>
-                  <View style={styles.mailRow}>
-                    <Mail size={16} color={tokens.colors.textMuted} />
-                    <DsText selectable role="caption" style={styles.email}>
-                      {editor.user.email}
-                    </DsText>
-                  </View>
+                  <DsText role="section" style={styles.identityName}>
+                    {editor.user.name}
+                  </DsText>
+                  <DsText selectable role="caption" style={styles.email}>
+                    {editor.user.email}
+                  </DsText>
                 </View>
-              </DsCard>
+              </View>
               <DsCard style={styles.form}>
                 <DsField
                   label="Nome"
@@ -370,26 +367,38 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 20,
     paddingBottom: 32,
-    gap: 20,
+    gap: 16,
   },
-  intro: { gap: 8 },
+  intro: { gap: 4 },
   muted: { color: tokens.colors.textMuted },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  identity: {
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: tokens.colors.surfaceMuted,
+    borderWidth: 3,
+    borderColor: tokens.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  initial: { color: tokens.colors.primary },
-  identityText: { flex: 1, minWidth: 0, gap: 4 },
-  mailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  email: { flex: 1, color: tokens.colors.textMuted },
-  form: { gap: 20 },
+  initial: {
+    color: tokens.colors.primary,
+    fontWeight: '700',
+    fontSize: 32,
+    lineHeight: 40,
+  },
+  identityText: { alignItems: 'center', gap: 4, width: '100%' },
+  identityName: { textAlign: 'center' },
+  email: { textAlign: 'center', color: tokens.colors.textMuted },
+  form: { gap: 16, padding: 16, borderRadius: 16 },
   field: { gap: 8 },
   birthday: {
     flexDirection: 'row',
@@ -402,6 +411,6 @@ const styles = StyleSheet.create({
   year: { flexBasis: 88, flexGrow: 1 },
   centeredInput: { textAlign: 'center' },
   save: { alignSelf: 'flex-start', maxWidth: '100%' },
-  logoutCard: { gap: 16 },
+  logoutCard: { gap: 12, padding: 16, borderRadius: 16 },
   secondary: { gap: 16 },
 });
