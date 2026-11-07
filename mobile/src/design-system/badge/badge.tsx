@@ -4,30 +4,34 @@ import { tokens } from '../tokens';
 
 interface DsBadgeProps {
   label: string;
-  tone?: 'neutral' | 'primary' | 'success' | 'danger';
+  tone?: 'neutral' | 'primary' | 'success' | 'danger' | 'today';
 }
 export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
   const color =
-    tone === 'primary'
-      ? tokens.colors.primary
-      : tone === 'success'
-        ? tokens.colors.success
-        : tone === 'danger'
-          ? tokens.colors.danger
-          : tokens.colors.textMuted;
+    tone === 'today'
+      ? tokens.colors.todayText
+      : tone === 'primary'
+        ? tokens.colors.actionText
+        : tone === 'success'
+          ? tokens.colors.success
+          : tone === 'danger'
+            ? tokens.colors.danger
+            : tokens.colors.textMuted;
   return (
     <View
       style={[
         styles.badge,
         {
           backgroundColor:
-            tone === 'success'
-              ? tokens.colors.successSurface
-              : tone === 'danger'
-                ? tokens.colors.dangerSurface
-                : tone === 'primary'
-                  ? tokens.colors.iconSurface
-                  : tokens.colors.surfaceMuted,
+            tone === 'today'
+              ? tokens.colors.todaySurface
+              : tone === 'success'
+                ? tokens.colors.successSurface
+                : tone === 'danger'
+                  ? tokens.colors.dangerSurface
+                  : tone === 'primary'
+                    ? tokens.colors.iconSurface
+                    : tokens.colors.surfaceMuted,
         },
       ]}
     >
@@ -42,7 +46,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 99,
+    borderRadius: 10,
     backgroundColor: tokens.colors.surfaceMuted,
   },
 });

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   ActivityIndicator,
   Alert,
@@ -20,18 +21,25 @@ import {
   Bell,
   Star,
 } from 'lucide-react-native';
-import { DsButton, DsCard, DsFeedback, DsText } from '../../design-system';
+import {
+  DsButton,
+  DsCard,
+  DsFeedback,
+  DsSheet,
+  DsText,
+} from '../../design-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
 import { DsDateCard } from '../../design-system/date-card';
 import { dateSections } from './sections';
-import { useScreenAddAction } from '../../navigation/add-action';
 import { tokens } from '../../design-system/tokens';
 import { EventEditor } from './event-editor';
-import { editableEventId, monthNames } from './model';
+import { editableEventId, eventTypeLabel, monthNames } from './model';
 import type { Agenda, AgendaItem, EventPayload } from './model';
 
 export function DatesScreen() {
+  const params = useLocalSearchParams<{ eventId?: string | string[] }>();
+  const [viewedId, setViewedId] = useState<string | null>(null);
   const listRef = useRef<SectionList<AgendaItem>>(null);
   const [expanded, setExpanded] = useState(false);
   const { data, loading, error, reload } = useResource<Agenda>(
@@ -56,7 +64,22 @@ export function DatesScreen() {
     setEditor({ item });
   }
 
-  useScreenAddAction('Adicionar data', () => openEditor());
+  useEffect(() => {
+    if (!data || typeof params.eventId !== 'string') return;
+    const item = data.items.find((item) => item.id === params.eventId);
+    setViewedId(item?.id ?? null);
+    if (!item) setMutationError('Este evento não está mais disponível.');
+    router.setParams({ eventId: undefined });
+  }, [data, params.eventId]);
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        setViewedId(null);
+      },
+      [],
+    ),
+  );
+  const viewed = data?.items.find((item) => item.id === viewedId);
 
   async function save(payload: EventPayload) {
     if (!mounted.current || busy.current) return;
@@ -215,7 +238,7 @@ export function DatesScreen() {
                   role="title"
                   style={styles.title}
                 >
-                  Minhas datas
+                  Eventos
                 </DsText>
                 {data && (
                   <DsText role="caption" style={styles.description}>
@@ -226,6 +249,13 @@ export function DatesScreen() {
                 )}
               </View>
             )}
+            <DsButton
+              label="Adicionar evento"
+              icon={<Plus size={18} color={tokens.colors.onPrimary} />}
+              onPress={() => openEditor()}
+              disabled={pending}
+              style={{ alignSelf: 'flex-start', marginBottom: 20 }}
+            />
             {withinWeek > 0 && (
               <Pressable
                 accessibilityRole="button"
@@ -356,6 +386,26 @@ export function DatesScreen() {
           </View>
         )}
       />
+      {viewed && !editor && (
+        <DsSheet visible title={viewed.title} onClose={() => setViewedId(null)}>
+          <DsText>{eventTypeLabel(viewed)}</DsText>
+          <DsText>
+            {viewed.event_day} de {monthNames[viewed.event_month - 1]}
+          </DsText>
+          {viewed.source.kind === 'group_birthday' && (
+            <DsText>{viewed.source.group_name}</DsText>
+          )}
+          {editableEventId(viewed) && (
+            <DsButton
+              label="Editar evento"
+              onPress={() => {
+                setViewedId(null);
+                openEditor(viewed);
+              }}
+            />
+          )}
+        </DsSheet>
+      )}
       {editor && (
         <EventEditor
           item={editor.item}
@@ -387,7 +437,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
   header: { gap: 4, marginBottom: 20 },
-  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  title: {
+    fontSize: tokens.typography.title.fontSize,
+    lineHeight: tokens.typography.title.lineHeight,
+    fontWeight: '700',
+  },
   description: { color: tokens.colors.textMuted },
   sectionHeading: {
     flexDirection: 'row',
@@ -397,10 +451,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: '700',
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 26,
   },
-  cardSpacing: { marginBottom: 0 },
+  cardSpacing: { marginBottom: 6 },
   banner: {
     flexDirection: 'row',
     alignItems: 'center',

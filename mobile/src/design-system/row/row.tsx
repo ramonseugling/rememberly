@@ -70,7 +70,7 @@ export const DsRow = ({
 };
 const styles = StyleSheet.create({
   row: {
-    minHeight: 56,
+    minHeight: 68,
     padding: 12,
     borderRadius: tokens.radius.row,
     flexDirection: 'row',

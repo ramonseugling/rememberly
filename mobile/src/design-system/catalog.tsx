@@ -58,13 +58,20 @@ export const DesignSystemCatalog = () => {
           locais.
         </DsText>
 
-        <ReferenceComposition />
+        <DsText role="section">Composição do mock · demonstração</DsText>
+        <ReferenceComposition onOpenExample={() => setSheet(true)} />
 
         <DsText role="section">Cores e tipografia</DsText>
         <DsCard>
           <View style={styles.swatches}>
             {[
               ['Ação', tokens.colors.primary],
+              ['Rosa da marca', tokens.colors.brand],
+              ['Fundo', tokens.colors.background],
+              ['Hoje', tokens.colors.todaySurface],
+              ['Badge', tokens.colors.surfaceMuted],
+              ['Família', tokens.colors.familySurface],
+              ['Amigos', tokens.colors.friends],
               ['Texto', tokens.colors.text],
               ['Secundário', tokens.colors.textMuted],
               ['Superfície', tokens.colors.surface],

@@ -328,6 +328,11 @@ function ProfileContent() {
           {state.message && <DsFeedback message={state.message} tone="error" />}
           <DeleteAccount appearance={pilotAppearance} />
           <DsRow
+            title="Datas especiais"
+            subtitle="Seus lembretes de datas comemorativas"
+            onPress={() => router.navigate('/(tabs)/occasions')}
+          />
+          <DsRow
             title="Mais opções da conta"
             accessibilityState={{ expanded }}
             subtitle={

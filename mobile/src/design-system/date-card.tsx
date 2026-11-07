@@ -2,9 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Cake,
-  Calendar,
   ChevronRight,
-  Clock,
   Gift,
   Heart,
   PartyPopper,
@@ -12,7 +10,7 @@ import {
 } from 'lucide-react-native';
 import { DsBadge, DsText } from './index';
 import { tokens } from './tokens';
-import { daysLabel, eventTypeLabel, monthNames } from '../features/dates/model';
+import { daysLabel, eventTypeLabel } from '../features/dates/model';
 import type { AgendaItem } from '../features/dates/model';
 
 interface DsDateCardProps {
@@ -50,22 +48,16 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
       <View style={styles.copy}>
         <View style={styles.titleRow}>
           <DsText style={styles.title}>{item.title}</DsText>
-          <DsBadge label={countdown} tone={today ? 'primary' : 'neutral'} />
+          <DsBadge
+            label={today ? 'Hoje 🎉' : countdown}
+            tone={today ? 'today' : 'neutral'}
+          />
         </View>
         <View style={styles.detail}>
-          <Icon size={12} color={tokens.colors.primary} />
+          <Icon size={14} color={tokens.colors.brand} />
           <DsText role="caption" style={styles.secondary}>
-            {eventTypeLabel(item)}
-          </DsText>
-        </View>
-        <View style={styles.detail}>
-          {item.is_next_year ? (
-            <Clock size={12} color={tokens.colors.textMuted} />
-          ) : (
-            <Calendar size={12} color={tokens.colors.textMuted} />
-          )}
-          <DsText role="caption" style={styles.secondary}>
-            {item.event_day} de {monthNames[item.event_month - 1]}
+            {eventTypeLabel(item)} · {item.event_day}/
+            {String(item.event_month).padStart(2, '0')}
           </DsText>
         </View>
         {group && (
@@ -76,8 +68,15 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
             </DsText>
           </View>
         )}
+        {today && onEdit && (
+          <View style={styles.todayAction}>
+            <DsText role="caption" style={{ color: tokens.colors.primary }}>
+              Editar data
+            </DsText>
+            <ChevronRight size={14} color={tokens.colors.primary} />
+          </View>
+        )}
       </View>
-      {onEdit && <ChevronRight size={16} color={tokens.colors.textMuted} />}
     </View>
   );
   return (
@@ -110,28 +109,32 @@ export const DsDateCard = ({ item, onEdit, disabled }: DsDateCardProps) => {
 
 const styles = StyleSheet.create({
   row: {
-    borderBottomWidth: 1,
+    borderWidth: 1,
     borderColor: tokens.colors.border,
+    borderRadius: tokens.radius.row,
+    backgroundColor: tokens.colors.surface,
+    boxShadow: tokens.shadows.card,
     minHeight: tokens.controlMinHeight,
     overflow: 'hidden',
   },
   today: {
     borderWidth: 1,
-    borderRadius: 16,
-    borderColor: tokens.colors.border,
+    borderRadius: tokens.radius.row,
+    borderColor: tokens.colors.outlineBorder,
   },
   pressed: { opacity: 0.85 },
   content: {
     paddingHorizontal: 12,
     paddingVertical: 12,
+    minHeight: 80,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: tokens.colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
@@ -153,8 +156,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: '700',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
     flexShrink: 1,
   },
   secondary: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 17 },
@@ -165,4 +168,14 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   group: { flexShrink: 1 },
+  todayAction: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: tokens.colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 4,
+  },
 });

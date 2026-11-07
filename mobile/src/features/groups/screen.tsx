@@ -31,7 +31,6 @@ import { GroupCard } from '../../components/group-card/group-card';
 import { GroupDates } from '../../components/group-dates/group-dates';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
-import { useScreenAddAction } from '../../navigation/add-action';
 import { resourceId } from '../../navigation/intents';
 import { useSession } from '../../session/provider';
 import { theme } from '../../theme';
@@ -60,7 +59,10 @@ export function GroupsScreen() {
 
 function GroupContent({ userId }: { userId: string }) {
   const { request } = useAuthenticatedApi();
-  const params = useLocalSearchParams<{ groupId?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    overview?: string;
+    groupId?: string | string[];
+  }>();
   const groups = useResource<Group[]>('/api/v1/groups');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<GroupTab>('dates');
@@ -82,6 +84,13 @@ function GroupContent({ userId }: { userId: string }) {
   const group = detail.data;
 
   useEffect(() => {
+    if (params.overview === '1') {
+      setSelectedId(null);
+      setError(null);
+      router.setParams({ overview: undefined });
+    }
+  }, [params.overview]);
+  useEffect(() => {
     if (resourceId(params.groupId)) {
       setSelectedId(params.groupId);
       setTab('dates');
@@ -97,13 +106,6 @@ function GroupContent({ userId }: { userId: string }) {
   useEffect(() => {
     setRename(detail.data?.name ?? '');
   }, [detail.data?.name]);
-  useScreenAddAction('Criar grupo', () => {
-    if (!busy.current) {
-      setError(null);
-      setSaved(false);
-      setCreateOpen(true);
-    }
-  });
   useFocusEffect(
     useCallback(() => {
       if (!selectedId) return;

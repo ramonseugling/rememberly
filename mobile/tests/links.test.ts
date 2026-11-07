@@ -74,7 +74,7 @@ test('development origin must be explicitly passed and exact', () => {
 });
 test('notification destinations only use validated payload kinds and resources', () => {
   for (const [data, path] of [
-    [{ kind: 'event', event_id: id }, '/(tabs)'],
+    [{ kind: 'event', event_id: id }, '/(tabs)/events'],
     [{ kind: 'birthday', user_id: id }, '/(tabs)/groups'],
     [{ kind: 'commemorative', date_key: 'christmas' }, '/(tabs)/occasions'],
   ] as const) {

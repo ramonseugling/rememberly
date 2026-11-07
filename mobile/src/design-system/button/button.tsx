@@ -31,7 +31,7 @@ export const DsButton = ({
       ? tokens.colors.onPrimary
       : variant === 'destructive'
         ? tokens.colors.danger
-        : tokens.colors.primary;
+        : tokens.colors.actionText;
   const content = (
     <>
       {pending ? (

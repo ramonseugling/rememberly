@@ -10,14 +10,14 @@ Decisões confirmadas nesta conversa:
 
 - Mobile primeiro; wishlist no web será uma entrega posterior.
 - Compartilhamento inicialmente restrito a grupos autorizados.
-- Navegação futura da wishlist: **Datas · Grupos · Desejos · Perfil**. Durante o design system, preservar Datas · Grupos · Especiais · Perfil e o botão central atual.
+- Navegação aprovada em 07/11: **Início · Eventos · Grupos · Desejos · Perfil**, sem botão central. Substitui a proposta anterior de quatro abas. Desejos exibe somente “Em breve” até a implementação da wishlist.
 - Datas comemorativas continuam disponíveis pelo Perfil.
 - A refatoração anterior e o calendário permanecem descartados. A nova etapa aprovada é um design system minimalista acolhedor, com catálogo e pilotos reais de Datas e Perfil.
 - Decisões de negócio ainda abertas serão registradas como bloqueios antes das respectivas implementações.
 
 ## Etapa atual — Design system antes da wishlist
 
-Atualizado em 07/11/2026. O web permanece fora desta rodada. A primeira proposta visual foi rejeitada; a revisão deve seguir o [novo mock de referência](../mobile/references/rememberly-visual-reference.png), com fonte nativa, fundos rosados e listas compactas. Referências e plano não substituem os AGENTS.md existentes.
+Atualizado em 07/11/2026. O web permanece fora desta rodada. As duas primeiras propostas visuais foram rejeitadas; a referência vigente é o [recorte da tela inicial](../mobile/references/home-color-reference.png), com extração de pixels documentada no design system. Referências e plano não substituem os AGENTS.md existentes.
 
 Ordem: registrar este backlog → definir tokens e componentes → catálogo e pilotos → aprovação visual do usuário → padronizar demais telas → iniciar wishlist.
 
@@ -147,3 +147,23 @@ O usuário rejeitou a aparência da primeira proposta e indicou um mock específ
 O escopo continua em catálogo, base e pilotos de Datas/Perfil. Desejos, reservas, fotos, navegação futura e demais telas do mock permanecem nos marcos correspondentes. A nova aparência ainda requer aprovação visual no dispositivo; DS-005 e wishlist permanecem bloqueados.
 
 Validação desta revisão: TypeScript, 97 testes mobile, formatação completa de mobile e exports Hermes iOS/Android aprovados. Preview do Expo Go e API local alcançáveis; banco preservado, sem seed. Isso não representa aprovação visual nem teste de dispositivo.
+
+## Correção da referência — 07/11/2026
+
+A revisão d3e9d28 também foi rejeitada. A referência vigente passa a ser o recorte home-color-reference.png, com cores amostradas dos pixels e proporções corrigidas para viewport mobile. DS-001–004 continuam em revisão visual; DS-005 e wishlist permanecem bloqueados. Ver método e medidas no documento do design system.
+
+## Início e navegação aprovados — 07/11/2026
+
+O usuário antecipou explicitamente esta mudança de navegação e a criação do Início durante a revisão visual. Isso substitui a restrição anterior de aguardar a wishlist para alterar as abas; não libera a funcionalidade de desejos.
+
+- Saudação com primeiro nome, emoji 👋, texto “Aqui estão suas próximas celebrações” e avatar com inicial que abre Perfil.
+- Próximos eventos: até três aniversários reais da agenda (pessoais e de grupos), ordenados por dias até a próxima ocorrência. Inclui hoje e a virada do ano; exclui outros tipos de evento. Empates usam título e ID para estabilidade, sem fundir pessoas pelo nome.
+- “Ver todos” abre Eventos. Cada aniversário abre seus dados atuais em Eventos; edição disponível somente para eventos pessoais autorizados.
+- Meus grupos: até dois grupos, na ordem atual da API. “Ver todos” retorna à listagem de Grupos mesmo após uma visita aos detalhes. Cada card abre seu grupo.
+- Abas: Início, Eventos, Grupos, Desejos e Perfil. A aba Desejos apresenta “Em breve”, sem ações de wishlist.
+- Adicionar evento fica em Eventos; Criar grupo permanece em Grupos. Especiais fica acessível pelo Perfil. Notificações de evento agora direcionam a Eventos.
+- Estados de carregamento, erro com tentativa novamente, vazio e atualização por gesto usam as APIs e as proteções de sessão existentes.
+
+Aceite visual em dispositivo pendente. Exploração visual das demais telas fica para a próxima rodada; implementação da wishlist continua bloqueada.
+
+Verificação da entrega Início: 101 testes mobile, TypeScript, formatação e bundles Hermes iOS/Android aprovados. Smoke autenticado de leitura de perfil, agenda e grupos passou; sessão do smoke revogada. Validação visual e navegação manual no aparelho permanecem pendentes.

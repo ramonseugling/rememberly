@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Users } from 'lucide-react-native';
+import { ChevronRight, Users } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { DsDateCard } from './date-card';
 import { DsRow } from './row/row';
@@ -26,53 +26,58 @@ const exampleDates: AgendaItem[] = [
   can_edit: false,
 }));
 
-export const ReferenceComposition = () => (
+interface ReferenceCompositionProps {
+  onOpenExample: () => void;
+}
+
+export const ReferenceComposition = ({
+  onOpenExample,
+}: ReferenceCompositionProps) => (
   <LinearGradient colors={tokens.backgroundGradient} style={styles.preview}>
-    <DsText role="title">Perto de quem importa</DsText>
+    <DsText role="title">Olá, Ana! 👋</DsText>
     <DsText role="caption" style={styles.muted}>
-      Composição de demonstração inspirada no mock.
+      Aqui estão suas próximas celebrações.
     </DsText>
     <DsText role="section" style={styles.section}>
       Próximos eventos
     </DsText>
-    <View>
+    <View style={{ gap: 6 }}>
       {exampleDates.map((item) => (
-        <DsDateCard key={item.id} item={item} />
+        <DsDateCard key={item.id} item={item} onEdit={onOpenExample} />
       ))}
     </View>
     <DsText role="section" style={styles.section}>
-      Grupos de exemplo
+      Meus grupos
     </DsText>
     <DsRow
       title="Família"
-      subtitle="8 membros · demonstração"
+      subtitle="8 membros"
       leading={
         <View style={[styles.icon, styles.peach]}>
-          <Home size={24} color={tokens.colors.primary} />
+          <Users size={24} color={tokens.colors.family} />
         </View>
       }
       style={styles.group}
+      trailing={<ChevronRight size={18} color={tokens.colors.textMuted} />}
     />
     <DsRow
       title="Amigos da faculdade"
-      subtitle="12 membros · demonstração"
+      subtitle="12 membros"
       leading={
         <View style={styles.icon}>
-          <Users size={24} color={tokens.colors.primary} />
+          <Users size={24} color={tokens.colors.friends} />
         </View>
       }
       style={styles.group}
+      trailing={<ChevronRight size={18} color={tokens.colors.textMuted} />}
     />
   </LinearGradient>
 );
 
 const styles = StyleSheet.create({
   preview: {
-    padding: 16,
+    padding: 0,
     gap: 8,
-    borderRadius: tokens.radius.sheet,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
   },
   muted: { color: tokens.colors.textMuted },
   section: { marginTop: 12, marginBottom: 4 },
@@ -85,9 +90,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 16,
-    backgroundColor: tokens.colors.iconSurface,
+    backgroundColor: tokens.colors.friendsSurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  peach: { backgroundColor: tokens.celebration[0] },
+  peach: { backgroundColor: tokens.colors.familySurface },
 });

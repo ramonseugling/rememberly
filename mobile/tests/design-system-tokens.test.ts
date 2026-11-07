@@ -24,7 +24,7 @@ test('design system text pairs meet normal-text contrast across supported surfac
   for (const foreground of [
     colors.text,
     colors.textMuted,
-    colors.primary,
+    colors.actionText,
     colors.danger,
     colors.success,
   ]) {
@@ -41,6 +41,8 @@ test('design system text pairs meet normal-text contrast across supported surfac
   }
   assert.ok(contrast(colors.onPrimary, colors.primary) >= 4.5);
   assert.ok(contrast(colors.onPrimary, colors.primaryPressed) >= 4.5);
+  assert.ok(contrast(colors.todayText, colors.todaySurface) >= 4.5);
+  assert.ok(contrast(colors.textMuted, colors.surfaceMuted) >= 4.5);
   for (const background of tokens.celebration)
     assert.ok(contrast(colors.text, background) >= 4.5);
   for (const background of [

@@ -99,7 +99,7 @@ export function parseNotification(data: unknown): NotificationIntent | null {
 
 export function notificationPath(intent: NotificationIntent) {
   return intent.tab === 'dates'
-    ? '/(tabs)'
+    ? '/(tabs)/events'
     : intent.tab === 'groups'
       ? '/(tabs)/groups'
       : '/(tabs)/occasions';
