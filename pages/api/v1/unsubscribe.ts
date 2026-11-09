@@ -3,6 +3,7 @@ import { verifyUnsubscribeToken } from '@/lib/unsubscribe-token';
 import controller from 'infra/controller';
 import database from 'infra/database';
 import { ValidationError } from 'infra/errors';
+import { setEmailMarketing } from 'models/notification-preferences';
 
 export default controller({ GET: handleGet });
 
@@ -22,6 +23,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     `UPDATE users SET marketing_consent = false WHERE id = $1`,
     [userId],
   );
+  await setEmailMarketing(userId, false);
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.status(200).send(`<!doctype html>

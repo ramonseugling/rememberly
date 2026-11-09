@@ -17,7 +17,8 @@ interface Recipient {
 async function getRecipients(announcementKey: string): Promise<Recipient[]> {
   const result = await database.query(
     `SELECT u.id, u.name, u.email FROM users u
-     WHERE u.marketing_consent = true
+     LEFT JOIN notification_preferences np ON np.user_id = u.id
+     WHERE COALESCE(np.email_marketing, u.marketing_consent)
        AND NOT EXISTS (
          SELECT 1 FROM broadcast_deliveries d
          WHERE d.user_id = u.id AND d.announcement_key = $1
@@ -31,7 +32,8 @@ async function getRecipients(announcementKey: string): Promise<Recipient[]> {
 async function countRecipients(announcementKey: string): Promise<number> {
   const result = await database.query(
     `SELECT COUNT(*)::int AS count FROM users u
-     WHERE u.marketing_consent = true
+     LEFT JOIN notification_preferences np ON np.user_id = u.id
+     WHERE COALESCE(np.email_marketing, u.marketing_consent)
        AND NOT EXISTS (
          SELECT 1 FROM broadcast_deliveries d
          WHERE d.user_id = u.id AND d.announcement_key = $1

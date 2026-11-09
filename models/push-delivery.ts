@@ -9,7 +9,7 @@ import {
 import database from 'infra/database';
 import { type PushProvider, expoProvider } from 'models/push-provider';
 
-const eligible = `d.disabled_at IS NULL AND p.push_enabled=true AND s.user_id=d.user_id
+const eligible = `d.disabled_at IS NULL AND p.push_events=true AND s.user_id=d.user_id
  AND (s.expires_at IS NULL OR s.expires_at>now())`;
 export async function enqueuePushReminders(today = referenceDay()) {
   const day = dateOnly(today);
@@ -66,7 +66,7 @@ export async function enqueuePushReminders(today = referenceDay()) {
     const result = await database.query(
       `INSERT INTO push_deliveries(device_id,user_id,session_id,dedup_key,data)
       SELECT d.id,d.user_id,d.session_id,$2,$3::jsonb FROM push_devices d
-      JOIN push_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
+      JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
       WHERE d.user_id=$1 AND ${eligible} ON CONFLICT(device_id,dedup_key) DO NOTHING`,
       [reminder.user_id, reminder.key, JSON.stringify(reminder.data)],
     );
@@ -84,7 +84,7 @@ async function claim(limit: number) {
     await client.query(`UPDATE push_attempts a SET finished_at=now(),outcome='UnknownOutcome'
       FROM push_deliveries q WHERE q.id=a.delivery_id AND q.last_error='UnknownOutcome' AND a.finished_at IS NULL`);
     await client.query(`UPDATE push_deliveries q SET status='cancelled',updated_at=now() WHERE q.status='pending' AND NOT EXISTS(
-      SELECT 1 FROM push_devices d JOIN push_preferences p ON p.user_id=d.user_id
+      SELECT 1 FROM push_devices d JOIN notification_preferences p ON p.user_id=d.user_id
       JOIN sessions s ON s.id=d.session_id WHERE d.id=q.device_id AND d.session_id=q.session_id
       AND d.user_id=q.user_id AND ${eligible})`);
     await client.query(`UPDATE push_deliveries SET status='failed',last_error='Expired',updated_at=now()
@@ -124,7 +124,7 @@ async function deliverBatch(provider: PushProvider) {
   const current = await database.query(
     `SELECT q.*,d.expo_push_token FROM push_deliveries q
     JOIN push_devices d ON d.id=q.device_id AND d.user_id=q.user_id AND d.session_id=q.session_id
-    JOIN push_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
+    JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
     WHERE q.id=ANY($1::uuid[]) AND q.status='sending' AND ${eligible}`,
     [claimed.map((row) => row.id)],
   );

@@ -1,42 +1,10 @@
 import database from 'infra/database';
 
 export class PushSessionError extends Error {}
-export const preferenceDefaults = {
-  time_zone: 'America/Sao_Paulo',
-  daily_time: '09:00',
-} as const;
-export async function preferences(userId: string, enabled?: boolean) {
-  const client = await database.getNewClient();
-  try {
-    await client.query('BEGIN');
-    if (enabled !== undefined)
-      await client.query(
-        `INSERT INTO push_preferences(user_id,push_enabled) VALUES($1,$2)
-        ON CONFLICT(user_id) DO UPDATE SET push_enabled=excluded.push_enabled`,
-        [userId, enabled],
-      );
-    if (enabled === false)
-      await client.query(
-        `UPDATE push_deliveries SET status='cancelled',updated_at=now()
-        WHERE user_id=$1 AND status IN ('pending','sending')`,
-        [userId],
-      );
-    const result = await client.query(
-      'SELECT push_enabled FROM push_preferences WHERE user_id=$1',
-      [userId],
-    );
-    await client.query('COMMIT');
-    return {
-      push_enabled: result.rows[0]?.push_enabled ?? false,
-      ...preferenceDefaults,
-    };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    await client.end();
-  }
-}
+export {
+  preferenceDefaults,
+  preferences,
+} from 'models/notification-preferences';
 export async function registerDevice(
   userId: string,
   sessionId: string,

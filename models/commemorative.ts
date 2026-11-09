@@ -102,7 +102,9 @@ async function findSubscribersForDate(
     `SELECT u.email, u.name
      FROM commemorative_subscriptions s
      JOIN users u ON u.id = s.user_id
-     WHERE s.date_key = $1`,
+     LEFT JOIN notification_preferences np ON np.user_id = u.id
+     WHERE s.date_key = $1
+       AND COALESCE(np.email_events, true)`,
     [dateKey],
   );
   return result.rows;

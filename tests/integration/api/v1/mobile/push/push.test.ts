@@ -80,9 +80,11 @@ describe.each(routes)('%s transport', (path, method) => {
     expect(response.headers.get('allow')).toBeTruthy();
   });
 });
-test('preference default is off; PATCH accepts only push_enabled and preserves fixed time fields', async () => {
+test('preference defaults; PATCH accepts only the three boolean preferences and preserves fixed time fields', async () => {
   expect(await (await request('/notification-preferences')).json()).toEqual({
     push_enabled: false,
+    email_events: true,
+    email_marketing: true,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -101,6 +103,8 @@ test('preference default is off; PATCH accepts only push_enabled and preserves f
   expect(response.status).toBe(200);
   expect(await response.json()).toEqual({
     push_enabled: true,
+    email_events: true,
+    email_marketing: true,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -183,4 +187,29 @@ test('cron route rejects public/session credentials without invoking the provide
   );
   expect(response.status).toBe(401);
   expect(response.headers.get('cache-control')).toBe('no-store');
+});
+test('e-mail preferences can be changed independently and persist', async () => {
+  const response = await request('/notification-preferences', 'PATCH', {
+    email_events: false,
+    email_marketing: false,
+  });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({
+    push_enabled: true,
+    email_events: false,
+    email_marketing: false,
+    time_zone: 'America/Sao_Paulo',
+    daily_time: '09:00',
+  });
+  expect(
+    await (await request('/notification-preferences', 'GET')).json(),
+  ).toMatchObject({ email_events: false, email_marketing: false });
+  const back = await request('/notification-preferences', 'PATCH', {
+    email_events: true,
+  });
+  expect(await back.json()).toMatchObject({
+    push_enabled: true,
+    email_events: true,
+    email_marketing: false,
+  });
 });

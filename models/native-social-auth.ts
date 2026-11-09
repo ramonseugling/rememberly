@@ -7,6 +7,7 @@ import {
   configuredAudiences,
   verifyNativeIdentityToken,
 } from 'models/native-social-auth-verifier';
+import { createDefaults } from 'models/notification-preferences';
 import session from 'models/session';
 
 export const SOCIAL_CHALLENGE_SECONDS = 5 * 60;
@@ -104,6 +105,7 @@ export async function exchangeNativeSocialIdentity(
           [identity.name, identity.email],
         )
       ).rows[0];
+      await createDefaults(client, user.id, false);
       await client.query(
         'INSERT INTO native_social_identities (provider, subject, user_id) VALUES ($1, $2, $3)',
         [provider, identity.subject, user.id],

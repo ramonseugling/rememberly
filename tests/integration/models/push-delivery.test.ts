@@ -53,7 +53,7 @@ beforeEach(async () => {
   };
 });
 async function setup() {
-  await preferences(user.id, true);
+  await preferences(user.id, { push_enabled: true });
   await registerDevice(user.id, auth.id, {
     installation_id: installation,
     expo_push_token: 'ExpoPushToken[test-installation]',
@@ -79,6 +79,8 @@ async function ready() {
 test('preferences default off and expose a fixed delivery schedule', async () => {
   expect(await preferences(user.id)).toEqual({
     push_enabled: false,
+    email_events: true,
+    email_marketing: true,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -170,7 +172,7 @@ test.each(['expired', 'deleted', 'disabled', 'optout'])(
       await database.query('DELETE FROM sessions WHERE id=$1', [auth.id]);
     if (mode === 'disabled')
       await database.query('UPDATE push_devices SET disabled_at=now()');
-    if (mode === 'optout') await preferences(user.id, false);
+    if (mode === 'optout') await preferences(user.id, { push_enabled: false });
     await runPushJob(provider, today);
     expect(sent).toHaveLength(0);
   },
@@ -185,7 +187,7 @@ test('device deletion is user scoped and account deletion cascades all push data
   ).toHaveLength(1);
   await database.query('DELETE FROM users WHERE id=$1', [user.id]);
   for (const table of [
-    'push_preferences',
+    'notification_preferences',
     'push_devices',
     'push_deliveries',
     'push_attempts',

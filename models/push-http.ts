@@ -61,16 +61,16 @@ export function pushHandler(kind: 'preferences' | 'register' | 'remove') {
         if (req.method === 'GET')
           return res.status(200).json(await preferences(identity.user_id));
         const body = req.body;
+        const allowed = ['push_enabled', 'email_events', 'email_marketing'];
+        const keys = body && typeof body === 'object' ? Object.keys(body) : [];
         if (
-          !body ||
-          typeof body !== 'object' ||
-          Object.keys(body).join(',') !== 'push_enabled' ||
-          typeof body.push_enabled !== 'boolean'
+          !keys.length ||
+          keys.some(
+            (key) => !allowed.includes(key) || typeof body[key] !== 'boolean',
+          )
         )
           return invalid(res);
-        return res
-          .status(200)
-          .json(await preferences(identity.user_id, body.push_enabled));
+        return res.status(200).json(await preferences(identity.user_id, body));
       }
       return res.status(204).end();
     } catch (error) {

@@ -90,6 +90,27 @@ describe('GET /api/v1/notifications/send', () => {
     expect(await response.json()).toEqual({ sent: 0 });
   });
 
+  it('does not select today events of users who turned off event e-mails', async () => {
+    const user = await orchestrator.createUser();
+    const today = getToday();
+    await orchestrator.createEvent(user.id, {
+      event_day: today.getDate(),
+      event_month: today.getMonth() + 1,
+    });
+    await database.query(
+      'INSERT INTO notification_preferences (user_id, email_events) VALUES ($1, false)',
+      [user.id],
+    );
+    const response = await fetch(
+      'http://localhost:3000/api/v1/notifications/send',
+      {
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+      },
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ sent: 0 });
+  });
+
   it('returns 405 for disallowed methods', async () => {
     const response = await fetch(
       'http://localhost:3000/api/v1/notifications/send',
