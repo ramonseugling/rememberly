@@ -203,3 +203,37 @@ test('registration details are validated before requesting an email code', () =>
     registrationError({ ...details, otp_code: '' }, details.password, today),
   );
 });
+
+test('invite preview is a credential-free GET that returns only the group name', async () => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const transport: PublicTransport = async (url, init) => {
+    calls.push({ url, init });
+    return response({ name: 'Família Silva' });
+  };
+  const api = createPublicAuthApi('https://api.example.com', transport);
+  assert.deepEqual(await api.invitePreview('abc12345'), {
+    name: 'Família Silva',
+  });
+  assert.equal(
+    calls[0]!.url,
+    'https://api.example.com/api/v1/groups/invite?code=abc12345',
+  );
+  assert.equal(calls[0]!.init.method, 'GET');
+  assert.equal(calls[0]!.init.credentials, 'omit');
+  assert.equal(calls[0]!.init.redirect, 'error');
+  assert.equal(calls[0]!.init.body, undefined);
+});
+
+test('invite preview rejects unknown codes and malformed responses', async () => {
+  const notFound = createPublicAuthApi('https://api.example.com', async () =>
+    response({ name: 'NotFoundError' }, 404),
+  );
+  await assert.rejects(
+    notFound.invitePreview('zzzzzzzz'),
+    (error) => error instanceof PublicAuthError && error.status === 404,
+  );
+  const malformed = createPublicAuthApi('https://api.example.com', async () =>
+    response({ title: 'x' }),
+  );
+  await assert.rejects(malformed.invitePreview('abc12345'), PublicAuthError);
+});

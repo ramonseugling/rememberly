@@ -10,12 +10,9 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandButton } from '../../components/brand-button/brand-button';
-import { Text } from '../../components/brand-text/brand-text';
 import { useNotificationPrompt } from '../notifications';
 import {
   DsBackHeader,
@@ -77,7 +74,6 @@ function GroupContent({ userId }: { userId: string }) {
   const { maybePrompt, element: promptElement } = useNotificationPrompt();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<GroupTab>('dates');
-  const [expandedJoin, setExpandedJoin] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     title: string;
     message: string;
@@ -86,7 +82,6 @@ function GroupContent({ userId }: { userId: string }) {
   } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
   const [rename, setRename] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -213,26 +208,6 @@ function GroupContent({ userId }: { userId: string }) {
       if (firstGroup) void maybePrompt();
     });
   }
-  function join() {
-    if (!code.trim()) {
-      setError('Informe o código de convite.');
-      return;
-    }
-    const firstGroup = !groups.data?.length;
-    void mutate(async () => {
-      const joined = await request<Group>('/api/v1/groups/join', {
-        method: 'POST',
-        body: { invite_code: code.trim() },
-      });
-      if (!alive.current) return;
-      setCode('');
-      setExpandedJoin(false);
-      setSelectedId(joined.id);
-      setTab('dates');
-      await groups.reload();
-      if (firstGroup) void maybePrompt();
-    });
-  }
   const isEmptyList =
     !!groups.data && !groups.error && groups.data.length === 0;
   const { state: sessionState } = useSession();
@@ -272,11 +247,7 @@ function GroupContent({ userId }: { userId: string }) {
             />
           }
         >
-          {error && !createOpen && (
-            <Text accessibilityRole="alert" style={styles.destructive}>
-              {error}
-            </Text>
-          )}
+          {error && !createOpen && <DsFeedback tone="error" message={error} />}
           {pending && !createOpen && (
             <ActivityIndicator
               accessibilityLabel="Salvando alterações"
@@ -337,37 +308,6 @@ function GroupContent({ userId }: { userId: string }) {
                     ))}
                   </View>
                 </>
-              )}
-              <BrandButton
-                label={
-                  expandedJoin
-                    ? 'Fechar convite'
-                    : 'Já tem um código de convite?'
-                }
-                variant="outline"
-                onPress={() => setExpandedJoin((value) => !value)}
-                disabled={pending}
-              />
-              {expandedJoin && (
-                <View style={styles.card}>
-                  <Text style={styles.heading}>Entrar em um grupo</Text>
-                  <TextInput
-                    style={styles.input}
-                    accessibilityLabel="Código de convite"
-                    placeholder="Código de convite"
-                    placeholderTextColor={theme.colors.muted}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    value={code}
-                    onChangeText={setCode}
-                    editable={!pending}
-                  />
-                  <BrandButton
-                    label="Entrar no grupo"
-                    onPress={join}
-                    pending={pending}
-                  />
-                </View>
               )}
             </>
           ) : (

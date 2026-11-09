@@ -43,7 +43,8 @@ export function createPublicAuthApi(
   ) {
     throw new Error('A validated API origin is required.');
   }
-  async function post(
+  async function send(
+    method: 'GET' | 'POST',
     path: string,
     body: unknown,
     signal?: AbortSignal,
@@ -56,15 +57,18 @@ export function createPublicAuthApi(
     const url = `${origin}${path}`;
     try {
       const response = await transport(url, {
-        method: 'POST',
+        method,
         credentials: 'omit',
         redirect: 'error',
         signal: abort.signal,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
+        headers:
+          method === 'GET'
+            ? { Accept: 'application/json' }
+            : {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+        body: method === 'GET' ? undefined : JSON.stringify(body),
       });
       if (
         abort.signal.aborted ||
@@ -90,6 +94,8 @@ export function createPublicAuthApi(
       signal?.removeEventListener('abort', cancel);
     }
   }
+  const post = (path: string, body: unknown, signal?: AbortSignal) =>
+    send('POST', path, body, signal);
   return {
     async sendCode(email: string, signal?: AbortSignal) {
       const data = await post(
@@ -116,6 +122,17 @@ export function createPublicAuthApi(
       )
         throw new PublicAuthError();
       return { googleOnly: data.google_only === true };
+    },
+    async invitePreview(code: string, signal?: AbortSignal) {
+      const data = await send(
+        'GET',
+        `/api/v1/groups/invite?code=${encodeURIComponent(code)}`,
+        undefined,
+        signal,
+      );
+      if (typeof data.name !== 'string' || !data.name)
+        throw new PublicAuthError();
+      return { name: data.name };
     },
     async resetPassword(token: string, password: string, signal?: AbortSignal) {
       const data = await post(
