@@ -93,4 +93,10 @@ export const appearance = {
     destructive: tokens.colors.danger,
   },
   fonts: { heading: fonts.heading, body: fonts.body, bold: fonts.bold },
+  sheet: {
+    backdrop: tokens.colors.overlay,
+    closeBackground: tokens.colors.surfaceMuted,
+    titleSize: 20,
+    gutter: 16,
+  },
 };

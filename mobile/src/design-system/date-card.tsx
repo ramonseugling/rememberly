@@ -1,16 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Cake,
-  ChevronRight,
-  Gift,
-  Heart,
-  PartyPopper,
-} from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DsAvatar, DsBadge, DsText } from './index';
 import { daysBadge } from './badge/days';
 import { tokens } from './tokens';
 import { eventTypeLabel } from '../features/dates/model';
+import { eventIcon } from '../features/dates/event-icon';
 import type { AgendaItem } from '../features/dates/model';
 const shortMonths = [
   'jan',
@@ -33,14 +28,7 @@ interface DsDateCardProps {
 }
 export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
   const today = item.days_until === 0;
-  const Icon =
-    item.type === 'birthday'
-      ? Cake
-      : item.type.includes('anniversary')
-        ? Heart
-        : item.type === 'celebration'
-          ? PartyPopper
-          : Gift;
+  const Icon = eventIcon(item.type);
   const badge = daysBadge(
     item.days_until,
     `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`,

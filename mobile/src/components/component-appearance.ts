@@ -17,6 +17,12 @@ export interface ComponentAppearance {
     destructive?: string;
   };
   fonts: { heading: string; body: string; bold: string };
+  sheet?: {
+    backdrop: string;
+    closeBackground: string;
+    titleSize: number;
+    gutter: number;
+  };
 }
 
 export function resolveAppearance(appearance?: ComponentAppearance) {
@@ -41,6 +47,12 @@ export function resolveAppearance(appearance?: ComponentAppearance) {
       body: fonts.body === 'System' ? nativeFamily : fonts.body,
       heading: fonts.heading === 'System' ? nativeFamily : fonts.heading,
       bold: fonts.bold === 'System' ? nativeFamily : fonts.bold,
+    },
+    sheet: {
+      backdrop: appearance?.sheet?.backdrop ?? 'rgba(36, 43, 92, 0.3)',
+      closeBackground: appearance?.sheet?.closeBackground,
+      titleSize: appearance?.sheet?.titleSize ?? 22,
+      gutter: appearance?.sheet?.gutter ?? 24,
     },
     fontWeights: {
       body: fonts.body === 'System' ? ('400' as const) : undefined,

@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -161,6 +162,7 @@ export const EventEditor = ({
           <DsButton
             label="Excluir"
             variant="destructive"
+            icon={<Trash2 size={18} color={tokens.colors.danger} />}
             disabled={pending}
             onPress={() => setConfirming(true)}
             style={styles.action}

@@ -170,7 +170,7 @@ const createStyles = (theme: ResolvedAppearance) =>
       flex: 1,
       justifyContent: 'flex-end',
     },
-    backdrop: { backgroundColor: 'rgba(36, 43, 92, 0.3)' },
+    backdrop: { backgroundColor: theme.sheet.backdrop },
     panel: {
       backgroundColor: theme.colors.background,
       borderTopLeftRadius: 28,
@@ -193,8 +193,8 @@ const createStyles = (theme: ResolvedAppearance) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingLeft: 24,
-      paddingRight: 12,
+      paddingLeft: theme.sheet.gutter,
+      paddingRight: theme.sheet.gutter - 12,
       paddingVertical: 10,
       gap: 8,
     },
@@ -202,14 +202,16 @@ const createStyles = (theme: ResolvedAppearance) =>
       flex: 1,
       fontFamily: theme.fonts.heading,
       fontWeight: theme.fontWeights.heading,
-      fontSize: 22,
+      fontSize: theme.sheet.titleSize,
       color: theme.colors.foreground,
     },
     close: {
       minWidth: theme.controlMinHeight,
       minHeight: theme.controlMinHeight,
+      borderRadius: theme.controlMinHeight / 2,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: theme.sheet.closeBackground,
     },
-    content: { paddingHorizontal: 24, paddingTop: 8, gap: 16 },
+    content: { paddingHorizontal: theme.sheet.gutter, paddingTop: 8, gap: 16 },
   });

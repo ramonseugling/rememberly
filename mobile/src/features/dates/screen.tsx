@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createElement, useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   ActivityIndicator,
@@ -9,15 +9,17 @@ import {
   View,
 } from 'react-native';
 import {
-  Cake,
   Calendar,
   ChevronDown,
   ChevronUp,
   Plus,
+  Users,
 } from 'lucide-react-native';
 import {
   DsButton,
+  DsAvatar,
   DsBrandHeader,
+  DsChip,
   DsEmptyIcon,
   DsEmptyState,
   DsFeedback,
@@ -30,6 +32,7 @@ import { DsDateCard } from '../../design-system/date-card';
 import { dateSections } from './sections';
 import { tokens } from '../../design-system/tokens';
 import { EventEditor } from './event-editor';
+import { eventIcon } from './event-icon';
 import { editableEventId, eventTypeLabel, monthNames } from './model';
 import type { Agenda, AgendaItem, EventPayload } from './model';
 
@@ -280,16 +283,34 @@ export function DatesScreen() {
       />
       {viewed && !editor && (
         <DsSheet visible title={viewed.title} onClose={() => setViewedId(null)}>
-          <DsText>{eventTypeLabel(viewed)}</DsText>
-          <DsText>
-            {viewed.event_day} de {monthNames[viewed.event_month - 1]}
-          </DsText>
-          {viewed.source.kind === 'group_birthday' && (
-            <DsText>{viewed.source.group_name}</DsText>
-          )}
+          <View style={styles.detail}>
+            <DsAvatar name={viewed.title} size={64} />
+            <View style={styles.detailInfo}>
+              <View style={styles.detailRow}>
+                {createElement(eventIcon(viewed.type), {
+                  size: 18,
+                  color: tokens.colors.brand,
+                })}
+                <DsText role="label">{eventTypeLabel(viewed)}</DsText>
+              </View>
+              <View style={styles.detailRow}>
+                <Calendar size={18} color={tokens.colors.textMuted} />
+                <DsText role="label">
+                  {viewed.event_day} de {monthNames[viewed.event_month - 1]}
+                </DsText>
+              </View>
+              {viewed.source.kind === 'group_birthday' && (
+                <DsChip
+                  label={viewed.source.group_name}
+                  icon={<Users size={14} color={tokens.colors.textMuted} />}
+                />
+              )}
+            </View>
+          </View>
           {editableEventId(viewed) && (
             <DsButton
               label="Editar evento"
+              style={styles.detailAction}
               onPress={() => {
                 setViewedId(null);
                 openEditor(viewed);
@@ -341,6 +362,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 26,
   },
+  detailAction: { minHeight: 52 },
+  detail: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  detailInfo: { flex: 1, gap: 6 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardSpacing: { marginBottom: 8 },
   expand: {
     alignSelf: 'center',
