@@ -7,7 +7,8 @@ import {
   PartyPopper,
 } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { DsBadge, DsText } from './index';
+import { DsAvatar, DsBadge, DsText } from './index';
+import { daysBadge } from './badge/days';
 import { tokens } from './tokens';
 import { eventTypeLabel } from '../features/dates/model';
 import type { AgendaItem } from '../features/dates/model';
@@ -40,20 +41,15 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
         : item.type === 'celebration'
           ? PartyPopper
           : Gift;
-  const badge = today
-    ? 'Hoje 🎉'
-    : item.days_until <= 7
-      ? `Em ${item.days_until} ${item.days_until === 1 ? 'dia' : 'dias'}`
-      : `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`;
+  const badge = daysBadge(
+    item.days_until,
+    `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`,
+  );
   const group =
     item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
     <View style={styles.content}>
-      <View style={styles.avatar}>
-        <DsText style={styles.initial}>
-          {item.title.trim().charAt(0).toUpperCase()}
-        </DsText>
-      </View>
+      <DsAvatar name={item.title} size={56} />
       <View style={styles.copy}>
         <DsText style={styles.title} numberOfLines={2}>
           {item.title}
@@ -66,14 +62,14 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
           </DsText>
         </View>
       </View>
-      <DsBadge label={badge} tone={today ? 'today' : 'neutral'} />
+      <DsBadge label={badge.label} tone={badge.tone} />
       <ChevronRight size={20} color={tokens.colors.textMuted} />
     </View>
   );
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Ver ${eventTypeLabel(item)} de ${item.title}, ${badge}`}
+      accessibilityLabel={`Ver ${eventTypeLabel(item)} de ${item.title}, ${badge.label}`}
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
       onPress={onView}
@@ -110,15 +106,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: tokens.colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: { color: tokens.colors.primary, fontWeight: '700', fontSize: 22 },
   copy: { flex: 1, minWidth: 0, gap: 4 },
   title: { fontSize: 16, lineHeight: 21, fontWeight: '700' },
   type: { flexDirection: 'row', alignItems: 'center', gap: 6 },

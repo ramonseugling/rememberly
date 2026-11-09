@@ -17,6 +17,7 @@ import {
   DsCard,
   DsSelect,
   DsFeedback,
+  DsAvatar,
   DsRow,
   appearance as pilotAppearance,
   tokens,
@@ -224,11 +225,7 @@ function ProfileContent() {
           {data && editor && (
             <>
               <View style={styles.identity}>
-                <View accessible={false} style={styles.avatar}>
-                  <DsText accessible={false} style={styles.initial}>
-                    {editor.user.name.charAt(0).toUpperCase()}
-                  </DsText>
-                </View>
+                <DsAvatar name={editor.user.name} size={88} />
                 <View style={styles.identityText}>
                   <DsText role="section" style={styles.identityName}>
                     {editor.user.name}
@@ -383,22 +380,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingTop: 8,
     paddingBottom: 12,
-  },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: tokens.colors.surfaceMuted,
-    borderWidth: 3,
-    borderColor: tokens.colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: {
-    color: tokens.colors.primary,
-    fontWeight: '700',
-    fontSize: 32,
-    lineHeight: 40,
   },
   identityText: { alignItems: 'center', gap: 4, width: '100%' },
   identityName: { textAlign: 'center' },

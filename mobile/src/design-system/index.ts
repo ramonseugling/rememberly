@@ -11,3 +11,6 @@ export { DsFeedback } from './feedback/feedback';
 export { DsSelect } from './select/select';
 export { DsOtpInput } from './otp-input/otp-input';
 export { DsSheet } from './sheet/sheet';
+export { DsAvatar } from './avatar/avatar';
+export { DsDaysBadge } from './badge/days-badge';
+export { DsListCard } from './list-card/list-card';

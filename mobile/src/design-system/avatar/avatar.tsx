@@ -1,0 +1,93 @@
+import { LinearGradient } from 'expo-linear-gradient';
+import { Pencil } from 'lucide-react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { DsText } from '../text/text';
+import { tokens } from '../tokens';
+import { initialOf } from './initial';
+
+interface DsAvatarProps {
+  name: string;
+  size?: number;
+  photoUri?: string | null;
+  onEdit?: () => void;
+  editLabel?: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const DsAvatar = ({
+  name,
+  size = 48,
+  photoUri,
+  onEdit,
+  editLabel = 'Editar foto',
+  style,
+}: DsAvatarProps) => {
+  const badge = Math.max(24, Math.round(size * 0.32));
+  return (
+    <View style={[{ width: size, height: size }, style]}>
+      <LinearGradient
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        colors={tokens.actionGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.circle,
+          { width: size, height: size, borderRadius: size / 2 },
+        ]}
+      >
+        {photoUri ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={{ width: size, height: size }}
+          />
+        ) : (
+          <DsText
+            style={{
+              color: tokens.colors.onPrimary,
+              fontFamily: tokens.fonts.headingBold,
+              fontWeight: '700',
+              fontSize: Math.round(size * 0.4),
+              lineHeight: Math.round(size * 0.5),
+            }}
+          >
+            {initialOf(name)}
+          </DsText>
+        )}
+      </LinearGradient>
+      {onEdit && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={editLabel}
+          hitSlop={12}
+          onPress={onEdit}
+          style={[
+            styles.edit,
+            { width: badge, height: badge, borderRadius: badge / 2 },
+          ]}
+        >
+          <Pencil size={Math.round(badge * 0.5)} color={tokens.colors.brand} />
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  circle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  edit: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.surface,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+  },
+});

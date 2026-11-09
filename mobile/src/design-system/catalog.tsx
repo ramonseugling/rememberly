@@ -4,12 +4,15 @@ import { ArrowLeft, Calendar, Heart, Plus } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  DsAvatar,
   DsBadge,
   DsButton,
   DsCard,
   DsCheckbox,
+  DsDaysBadge,
   DsFeedback,
   DsField,
+  DsListCard,
   DsOtpInput,
   DsRow,
   DsSelect,
@@ -212,6 +215,22 @@ export const DesignSystemCatalog = () => {
             <DsBadge label="Confirmado" tone="success" />
             <DsBadge label="Atenção" tone="danger" />
           </View>
+          <View style={styles.badges}>
+            <DsDaysBadge days={0} farLabel="" />
+            <DsDaysBadge days={7} farLabel="" />
+            <DsDaysBadge days={30} farLabel="15 dez" />
+          </View>
+          <View style={styles.badges}>
+            <DsAvatar name="Ana" size={48} />
+            <DsAvatar name="Marina" size={56} />
+            <DsAvatar name="Perfil com lápis" size={72} onEdit={() => {}} />
+          </View>
+          <DsListCard
+            title="Datas especiais"
+            subtitle="Dia das Mães, Dia dos Pais e mais"
+            icon={<Heart size={22} color={tokens.colors.brand} />}
+            onPress={() => setSheet(true)}
+          />
           <DsFeedback tone="success" message="Exemplo: alteração concluída." />
           <DsFeedback
             tone="error"

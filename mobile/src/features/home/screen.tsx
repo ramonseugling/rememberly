@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  DsBadge,
+  DsAvatar,
+  DsDaysBadge,
   DsButton,
   DsCard,
   DsFeedback,
@@ -61,11 +62,8 @@ export function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Abrir meu perfil"
             onPress={() => router.navigate('/(tabs)/profile')}
-            style={styles.avatar}
           >
-            <DsText role="section" style={{ color: tokens.colors.actionText }}>
-              {name.charAt(0).toUpperCase()}
-            </DsText>
+            <DsAvatar name={name} size={48} />
           </Pressable>
         </View>
         <View style={styles.heading}>
@@ -116,24 +114,13 @@ export function HomeScreen() {
             const today = item.days_until === 0;
             const contents = (
               <View style={styles.eventContent}>
-                <View style={styles.person}>
-                  <DsText role="section" style={styles.link}>
-                    {item.title.trim().charAt(0).toUpperCase()}
-                  </DsText>
-                </View>
+                <DsAvatar name={item.title} size={56} />
                 <View style={styles.eventCopy}>
                   <View style={styles.eventTitle}>
                     <DsText role="label" style={{ flexShrink: 1 }}>
                       {item.title}
                     </DsText>
-                    <DsBadge
-                      label={
-                        today
-                          ? 'Hoje 🎉'
-                          : `Em ${item.days_until} ${item.days_until === 1 ? 'dia' : 'dias'}`
-                      }
-                      tone={today ? 'today' : 'neutral'}
-                    />
+                    <DsDaysBadge days={item.days_until} farLabel="" />
                   </View>
                   <View style={styles.type}>
                     <Cake size={14} color={tokens.colors.brand} />
@@ -271,14 +258,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   greeting: { flex: 1, gap: 6 },
-  avatar: {
-    height: 48,
-    width: 48,
-    borderRadius: 24,
-    backgroundColor: tokens.colors.iconSurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   heading: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -304,14 +283,6 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     minHeight: 80,
-  },
-  person: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: tokens.colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   eventCopy: { flex: 1, gap: 3 },
   eventTitle: {

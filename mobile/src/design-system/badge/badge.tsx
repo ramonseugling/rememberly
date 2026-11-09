@@ -4,19 +4,21 @@ import { tokens } from '../tokens';
 
 interface DsBadgeProps {
   label: string;
-  tone?: 'neutral' | 'primary' | 'success' | 'danger' | 'today';
+  tone?: 'neutral' | 'primary' | 'soon' | 'success' | 'danger' | 'today';
 }
 export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
   const color =
     tone === 'today'
       ? tokens.colors.todayText
-      : tone === 'primary'
-        ? tokens.colors.actionText
-        : tone === 'success'
-          ? tokens.colors.success
-          : tone === 'danger'
-            ? tokens.colors.danger
-            : tokens.colors.textMuted;
+      : tone === 'soon'
+        ? tokens.colors.primary
+        : tone === 'primary'
+          ? tokens.colors.actionText
+          : tone === 'success'
+            ? tokens.colors.success
+            : tone === 'danger'
+              ? tokens.colors.danger
+              : tokens.colors.textMuted;
   return (
     <View
       style={[
@@ -29,7 +31,7 @@ export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
                 ? tokens.colors.successSurface
                 : tone === 'danger'
                   ? tokens.colors.dangerSurface
-                  : tone === 'primary'
+                  : tone === 'primary' || tone === 'soon'
                     ? tokens.colors.iconSurface
                     : tokens.colors.surfaceMuted,
         },
