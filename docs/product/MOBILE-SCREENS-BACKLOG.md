@@ -1,0 +1,119 @@
+# Mobile screens backlog — implementing the Claude Design mocks
+
+Created 2026-11-09. Source of truth for the target look and behavior: the Claude Design canvas (46 boards) and [docs/mobile/design-system.md](../mobile/design-system.md). This file lists the tasks needed to implement those screens, including the backend changes, in small iterations. Related: [product backlog](BACKLOG.md) (gift-list milestones REM-\*).
+
+## How to work
+
+- **One task at a time.** Implement a single task, then stop for review before starting the next. Do not chain tasks or iterations.
+- **Ask before deciding.** Every product, architecture or technology decision is asked to the user first. Tasks marked `decision` below cannot start until the matching entry in [Open decisions](#open-decisions) is answered; implementation proposals are suggestions, not decisions.
+- Pick tasks from the lowest unfinished iteration; the user approves visually on a device before the next iteration starts.
+- Fields: **scope** (M mobile, B backend, W web), **depends**, **size** (S/M/L), **status** (`todo`, `in progress`, `done`, `blocked`). Update the status here when it changes.
+- Every task keeps types, formatting, relevant tests and Hermes iOS/Android exports green. Backend tasks add integration tests against a real PostgreSQL (no mocks), use parameterized SQL, `/api/v1/` routes and forward-only migrations.
+- User-facing text stays in pt-BR; code, comments and docs in English.
+
+## Current state (2026-11-09)
+
+- Mobile: Home, Events and Profile use the isolated design system (`mobile/src/design-system/`) with the old palette (solid primary). Groups, authentication, join-group, special dates, account deletion, session cleanup and notification settings use the legacy theme (`mobile/src/theme.ts`).
+- Missing in mobile: onboarding, notifications page (push and e-mail), account options page, terms/privacy page, photos, gift list, birthday event page, permission modal after the first event or group. The "Desejos" tab is a "coming soon" placeholder. Fredoka/Quicksand, `expo-linear-gradient` and `expo-notifications` are installed; `expo-blur` and `expo-image-picker` are not.
+- Backend: no photo storage or columns; no gift tables; events are personal only; push preference is a single boolean; e-mail preferences exist only as `users.marketing_consent` (changed through the unsubscribe link); group invites use a fixed 8-character `invite_code`; account deletion requires a password and the word `DELETE`, and is blocked when the user owns groups; push is off by default (`PUSH_DELIVERY_ENABLED`).
+
+## Iteration 0 — Foundations
+
+| ID     | Scope | Task                                                                                                                                                                                                                                | Depends | Size | Status               |
+| ------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---- | -------------------- |
+| FND-06 | B     | Local `rememberly_test` database workflow so the pre-commit hook (`lint:check` plus the full test suite, which needs the Next dev server) passes locally; document it in `docs/ci.md`. Also commit the already staged doc changes.  | —       | S    | todo (decision D-01) |
+| FND-01 | M     | Tokens to the mock: brand gradient (`hsl(340,80%,65%)` → `hsl(25,90%,65%)`), accent text `#ED5E8E`, today `#FEDECB`, soft icon surface. Update `tokens.ts`, `actionGradient` and the contrast tests (white on both gradient stops). | —       | S    | todo                 |
+| FND-02 | M     | DS components from the mocks: gradient `DsButton`, `DsAvatar` (initials on gradient, photo-ready, edit pencil), `DsBadge` variants, `DsChip`, `DsSegmentedTabs`, `DsEmptyState`, `DsListCard`, `DsBackHeader`.                      | FND-01  | M    | todo                 |
+| FND-03 | M     | `DsConfirmSheet` to replace native `Alert` confirmations (delete event, leave group, remove member, sign out).                                                                                                                      | FND-01  | S    | todo                 |
+| FND-04 | M     | Floating pill tab bar with five tabs and gradient active state; rename tab "Desejos" to "Presentes".                                                                                                                                | FND-01  | M    | todo (decision D-02) |
+| FND-05 | M     | Copy pass: "data(s)" → "evento(s)" in mobile strings; update tests that assert copy.                                                                                                                                                | —       | S    | todo                 |
+
+## Iteration 1 — Home and Events
+
+| ID     | Scope | Task                                                                                                                                                                                  | Depends        | Size | Status               |
+| ------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ---- | -------------------- |
+| EVT-01 | M     | Home restyle and its three empty variants. Boards: Main, InicioVazio, InicioSemEventos, InicioSemGrupos.                                                                              | FND-01..04     | M    | todo                 |
+| EVT-02 | M     | Events list restyle, full-width "Adicionar evento" gradient button (no FAB), empty state. Boards: Eventos, EventosVazio.                                                              | FND-01..04     | M    | todo                 |
+| EVT-03 | M     | Event detail, add and edit as pages (today a sheet and an editor sheet); delete through `DsConfirmSheet`. Boards: EventoDetalhe, EventoAdicionar, EventoEditar.                       | EVT-02, FND-03 | L    | todo                 |
+| EVT-04 | M     | Permission modal "Quer ser lembrado?" after the first event is created or the first group joined (never at first login); "Agora não" is remembered locally. Board: NotificacoesModal. | EVT-03, PRF-03 | M    | todo (decision D-03) |
+
+## Iteration 2 — Profile and account
+
+| ID          | Scope | Task                                                                                                                                                                                                                                                                                                       | Depends             | Size | Status                         |
+| ----------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---- | ------------------------------ |
+| PRF-01      | M     | Profile page: avatar, form, rows "Datas especiais", "Notificações", "Termos e privacidade", "Mais opções da conta" (Sair da conta and Excluir conta move to the options page). Board: Perfil.                                                                                                              | FND-01..04          | M    | todo                           |
+| PRF-02      | M     | Special dates page on the new DS (`DsSwitch`), reminder-purpose copy, "Faltou alguma data? Crie nos seus eventos!" banner. Board: DatasEspeciais.                                                                                                                                                          | PRF-01              | S    | todo                           |
+| BE-NOTIF-01 | B     | Per-channel notification preferences in `GET/PATCH /api/v1/mobile/notification-preferences`: e-mail for events, and marketing ("Novidades e dicas") for e-mail and push. Respect them in `models/notification.ts`, `models/push-delivery.ts` and `models/broadcast.ts`; keep the unsubscribe link working. | —                   | M    | todo (decision D-04)           |
+| PRF-03      | M     | Notifications page: Push × E-mail matrix for "Eventos" and "Novidades e dicas"; "off" state when the OS permission is denied. Boards: Notificacoes, NotificacoesOff.                                                                                                                                       | PRF-01, BE-NOTIF-01 | L    | todo                           |
+| BE-ACC-01   | B     | `DELETE /api/v1/mobile/me`: new confirmation phrase, support for Google-only accounts, behavior for users who own groups (today 409 `OwnedGroupsError`). Align `docs/mobile/account-deletion.md`.                                                                                                          | —                   | M    | blocked (decisions D-05, D-06) |
+| PRF-04      | M     | Account options page (Sair da conta, Excluir minha conta) and the delete page with the typed phrase. Boards: ContaOpcoes, ContaExcluir.                                                                                                                                                                    | PRF-01, BE-ACC-01   | M    | todo                           |
+| PRF-05      | M     | "Termos e privacidade" page linking to the public terms and privacy pages. Board: TermosPrivacidade.                                                                                                                                                                                                       | PRF-01              | S    | todo (decision D-07)           |
+
+## Iteration 3 — Groups
+
+| ID        | Scope | Task                                                                                                                                                                                                             | Depends        | Size | Status                  |
+| --------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ---- | ----------------------- |
+| GRP-01    | M     | Groups list, empty state (logo, wordmark, "Criar meu primeiro grupo") and the create page; split the 868-line `src/features/groups/screen.tsx` into per-screen modules. Boards: Grupos, GruposVazio, GrupoCriar. | FND-01..04     | L    | todo                    |
+| GRP-02    | M     | Group page with segmented tabs Eventos / Membros / Ajustes, avatar stack, rename, delete, remove member. Boards: GrupoDatas, GrupoMembros, GrupoConfig.                                                          | GRP-01, FND-03 | L    | todo                    |
+| GRP-03    | M     | Invitation by link only (remove the code field), invitation and leave pages, `join-group` restyled and translated to pt-BR (currently English). Boards: ConviteGrupo, ConviteGrupoSaida.                         | GRP-01         | M    | todo                    |
+| BE-GRP-01 | B     | Revocable/rotatable invite link (today a fixed `invite_code` that cannot be regenerated). Only if the product wants it.                                                                                          | —              | M    | blocked (decision D-08) |
+
+## Iteration 4 — Authentication and onboarding
+
+| ID      | Scope | Task                                                                                                                                                                                                                                                      | Depends             | Size | Status |
+| ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---- | ------ |
+| AUTH-01 | M     | Login, sign up, code (OTP), forgot password and new password on the new DS (logo, gradient wordmark, gradient buttons); replace the legacy pieces of `src/features/auth/ui.tsx`. Boards: AuthLogin, AuthCadastro, AuthCodigo, AuthEsqueci, AuthNovaSenha. | FND-01..02          | L    | todo   |
+| ONB-01  | M     | Five-step onboarding shown once after the first login (local flag): welcome, events, groups, gifts, profile, with mini UI mocks. Boards: Onboarding1..5.                                                                                                  | FND-01..02, AUTH-01 | M    | todo   |
+
+## Iteration 5 — Photos
+
+| ID          | Scope | Task                                                                                                                                                                                                                                  | Depends             | Size | Status               |
+| ----------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---- | -------------------- |
+| BE-PHOTO-01 | B     | Photo storage on Vercel Blob (already decided): `users.avatar_url`, `groups.photo_url`, upload and remove endpoints with size/type validation, cleanup of the previous blob, photo URLs in `me`, `agenda`, group and member payloads. | —                   | L    | todo (decision D-09) |
+| PHO-01      | M     | Profile photo sheet (take photo, choose from gallery, remove) and photos in avatars (Home, Events, Profile). Board: PerfilFoto.                                                                                                       | BE-PHOTO-01, FND-02 | M    | todo (decision D-10) |
+| PHO-02      | M     | Group photo (pencil on the group avatar, owner only) and avatar stacks with photos. Board: GrupoFoto.                                                                                                                                 | BE-PHOTO-01, GRP-02 | M    | todo                 |
+| PHO-03      | W     | Web parity for photos.                                                                                                                                                                                                                | BE-PHOTO-01         | M    | todo (later)         |
+
+## Iteration 6 — Gift list (blocked by business decisions)
+
+Maps to the milestone-1 stories in [BACKLOG.md](BACKLOG.md) (REM-101…304). It does not start until the open business decisions listed there are resolved.
+
+| ID         | Scope | Task                                                                                                                                                                                  | Depends            | Size | Status  |
+| ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---- | ------- |
+| BE-GIFT-01 | B     | One gift list per user and its items, private by default (REM-101).                                                                                                                   | decisions          | M    | blocked |
+| BE-GIFT-02 | B     | Owner CRUD APIs and URL validation without fetching external content (REM-102).                                                                                                       | BE-GIFT-01         | M    | blocked |
+| BE-GIFT-03 | B     | Sharing with owner-chosen groups and member reads (REM-201/202).                                                                                                                      | BE-GIFT-02         | L    | blocked |
+| BE-GIFT-04 | B     | Secret reservations: one active reservation per item, concurrency-safe, the owner never sees reservation state (REM-301…304).                                                         | BE-GIFT-03         | L    | blocked |
+| GFT-01     | M     | "Presentes" tab: my list with the birthday countdown hero (and birthday-today variant), empty state, add item. Boards: DesejosLista, DesejosListaHoje, DesejosVazio, DesejoAdicionar. | BE-GIFT-02, FND-04 | L    | blocked |
+| GFT-02     | M     | Share page: switch per group and a WhatsApp link (a public link is REM-203). Board: DesejosCompartilhar.                                                                              | BE-GIFT-03         | M    | blocked |
+| GFT-03     | M     | A member's list and the reserve flow. Boards: DesejosMembro, DesejoReservar.                                                                                                          | BE-GIFT-04         | L    | blocked |
+
+## Iteration 7 — Birthday push page
+
+| ID         | Scope | Task                                                                                                                                                                                                                                        | Depends            | Size | Status               |
+| ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---- | -------------------- |
+| BE-PUSH-01 | B     | Push payload with a resolvable target (person and occurrence) and personalized text; unify the "today" calculation between e-mail (`getToday`) and push (`referenceDay`); validate on real devices before enabling `PUSH_DELIVERY_ENABLED`. | PRF-03             | L    | todo (decision D-11) |
+| PSH-01     | M     | Birthday event page opened from the notification tap (today and early-reminder variants; no options menu, no "send greetings" button) with the deep link in `src/navigation/intents.ts`. Boards: EventoPushHoje, EventoPushAntecipado.      | BE-PUSH-01, EVT-03 | L    | todo                 |
+
+## Open decisions
+
+Ask the user before starting the blocked task. Suggestions are only starting points.
+
+| ID   | Decision                                                                                                                        | Blocks            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| D-01 | How to run the local test suite: separate `rememberly_test` database, script/env layout, or skip the hook for docs-only commits | FND-06            |
+| D-02 | Tab bar: `expo-blur` dependency or a translucent fallback without a new dependency                                              | FND-04            |
+| D-03 | Where the "asked already" flag for the permission modal is stored (local only vs. server) and when to re-ask after "Agora não"  | EVT-04            |
+| D-04 | Data model for notification preferences (extend `push_preferences` vs. new table) and whether marketing is per channel          | BE-NOTIF-01       |
+| D-05 | What happens to owned groups when the owner deletes the account (transfer ownership, delete group, or keep blocking)            | BE-ACC-01, PRF-04 |
+| D-06 | How Google-only accounts confirm account deletion (fresh Google sign-in vs. e-mailed code)                                      | BE-ACC-01, PRF-04 |
+| D-07 | Public URLs (and existence) of the terms and privacy pages                                                                      | PRF-05            |
+| D-08 | Fixed invite code vs. revocable invite link token                                                                               | BE-GRP-01         |
+| D-09 | Photo limits: max size, accepted formats, resizing on the client or the server                                                  | BE-PHOTO-01       |
+| D-10 | Add `expo-image-picker` (and camera permission copy) for photos                                                                 | PHO-01            |
+| D-11 | Should group birthdays get an early reminder (today only the owner's events do)                                                 | BE-PUSH-01        |
+| D-12 | Gift-list business rules (see BACKLOG.md "Business decisions that block stories")                                               | Iteration 6       |
+
+## Suggested first slice
+
+FND-06 → FND-01 → FND-02 → FND-04 → EVT-01, taken one task at a time with a review after each. This puts the new look on Home with the floating bar and needs no backend work beyond the test setup.

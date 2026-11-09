@@ -1,119 +1,93 @@
-# Design system mobile — minimalista acolhedor
+# Mobile design system — warm minimalism
 
-Atualizado em 07/11/2026. Estado: duas propostas visuais rejeitadas; revisão atual baseada em extração de pixels e proporções da referência recortada.
+Updated 2026-11-08. Status: the visual direction below was designed as high-fidelity mocks in Claude Design (canvas of 46 mobile boards) and is the **target**. The code in `mobile/src/design-system/` still implements the previous palette (solid primary, native system font) and is **not migrated yet**; see [Implementation status](#implementation-status).
 
-## Referência visual
+## Direction
 
-A referência vigente é o [recorte da tela inicial](references/home-color-reference.png), de 202 × 407 pixels. O [mock completo anterior](references/rememberly-visual-reference.png) fica como histórico. Cores foram amostradas com System.Drawing.Bitmap.GetPixel, usando frequências em regiões planas e pixels mais saturados nos ícones; não são valores de um arquivo de design original.
+Soft pink backgrounds, light cards with a thin border and a discreet shadow, circular avatars, and a pink-to-peach brand gradient on every primary element. Friendly but not childish: copy avoids romantic wording (events are for family, friends and colleagues, not only partners).
 
-| Amostra             | Região em pixels (x, y) | Cor observada                        |
-| ------------------- | ----------------------- | ------------------------------------ |
-| Fundo               | x45–149, y30–39         | #FCF4F8 (259 ocorrências)            |
-| Superfície de grupo | x60–129, y273–278       | #FDF9FB (56 ocorrências)             |
-| Badge comum         | x139–176, y169–179      | #F3E6EF                              |
-| Texto escuro        | x15–74, y42–55          | #221921 (mediana dos pixels escuros) |
-| Ícone ativo         | x27–47, y360–386        | #E53565 e #D52555                    |
-| Card de hoje        | x18–186, y105–154       | #FEE6E8 → #FEF1F7                    |
-| Badge de hoje       | x146–177, y111–115      | #FEDECB                              |
-| Ícone família       | x22–48, y275–298        | #EE1124; fundo #FEE7DE               |
-| Ícone amigos        | x22–48, y311–336        | #AC26A4                              |
-
-A imagem tem antialiasing, sombras e gradientes. Bordas, texto secundário, estados ausentes e superfícies complementares são adaptações documentadas; não devem ser apresentados como valores exatos extraídos. O rosa de marca #E53565 permanece nos ícones. Texto de ação pequeno sobre rosa usa #BB204B para contraste, sem escurecer a paleta inteira. Badge de hoje usa texto #994017 sobre #FEDECB.
-
-Proporções aproximadas para viewport lógico de 390 pontos (escala ~2×): margens 16, avatares 56, linhas de evento a partir de 80, grupos 68, raios 22, badges com raio 10. Títulos 24 e seções 20. O catálogo reutiliza esses componentes na composição da referência. Fotos e navegação da imagem não acrescentam funcionalidades nesta etapa.
-
-## Escopo e adoção
-
-Base v2 isolada em mobile/src/design-system/. Pilotos reais: Eventos (antes Datas), Perfil e a nova tela Início. O usuário autorizou a nova navegação de cinco abas nesta rodada. Preservar o tema legado das demais telas, o web, APIs e regras de acesso. Após aprovação dos pilotos, aplicar a Grupos, Especiais e autenticação em DS-005. Wishlist permanece bloqueada; ver ../product/BACKLOG.md.
-
-Usar fonte nativa: System no iOS e sans-serif no Android, com pesos explícitos 400, 600 e 700. A escolha anterior de Quicksand nos pilotos foi substituída para aproximar a composição do mock. Sem novas fontes ou dependências. Fredoka e Quicksand continuam nas telas legadas até a migração aprovada.
+Source of truth for screens: the Claude Design canvas (`Rememberly mobile screens`). The earlier pixel-sampled references in `docs/mobile/references/` remain as history.
 
 ## Tokens
 
-| Papel                    | Valor             | Uso                                                     |
-| ------------------------ | ----------------- | ------------------------------------------------------- |
-| background               | #FCF4F8           | Fundo rosado discreto                                   |
-| surface                  | #FDF9FB           | Cards e painéis                                         |
-| surfaceMuted             | #F3E6EF           | Agrupamentos e desabilitados                            |
-| text                     | #221921           | Conteúdo principal                                      |
-| textMuted                | #594553           | Conteúdo secundário                                     |
-| primary                  | #D52555           | Ação sólida e foco                                      |
-| brand                    | #E53565           | Ícones ativos, amostra saturada do mock                 |
-| actionText               | #BB204B           | Texto de ação sobre fundos claros                       |
-| todaySurface / todayText | #FEDECB / #994017 | Badge de hoje                                           |
-| family / familySurface   | #EE1124 / #FEE7DE | Ícones de família na composição                         |
-| friends / friendsSurface | #AC26A4 / #F8E5F5 | Ícone extraído e fundo complementar de amigos           |
-| primaryPressed           | #BB204B           | Ação pressionada                                        |
-| onPrimary                | #FFFFFF           | Texto sobre ação primária                               |
-| border                   | #F0E4EC           | Separação de superfícies, não indicador único de campos |
-| controlBorder            | #A28698           | Limites de campos e seletores                           |
-| outlineBorder            | #FADADE           | Contorno decorativo de botões com rótulo explícito      |
-| iconSurface              | #FEE6E8           | Fundo de ícones e badges em destaque                    |
-| danger                   | #B42335           | Erros e ações destrutivas                               |
-| success                  | #245B34           | Confirmações                                            |
-| successSurface           | #EAF5E8           | Fundo de confirmação                                    |
-| dangerSurface            | #FDECF0           | Fundo de erro ou ação destrutiva                        |
-| accent                   | #D05126           | Detalhes decorativos de celebração                      |
-| actionGradient           | #D52555 → #D52555 | Ação principal com texto branco                         |
-| actionPressedGradient    | #BB204B → #BB204B | Ação principal pressionada                              |
-| celebration              | #FEE6E8 → #FEF1F7 | Destaque de hoje com texto escuro                       |
-| backgroundGradient       | #FCF4F8 → #FDF9FB | Fundo suave da composição do catálogo                   |
+| Role              | Value                                  | Use                                                 |
+| ----------------- | -------------------------------------- | --------------------------------------------------- |
+| background        | `#FCF4F8` → `#FDF9FB` (vertical)       | Screen background                                   |
+| surface           | `#FDF9FB`                              | Cards and panels                                    |
+| surfaceMuted      | `#F3E6EF`                              | Neutral badges, close buttons, disabled             |
+| text              | `#221921`                              | Primary content                                     |
+| textMuted         | `#594553`                              | Secondary content                                   |
+| border            | `#F0E4EC`                              | Card and row borders                                |
+| controlBorder     | `#A28698`                              | Field and selector boundaries                       |
+| brand             | `#E53565`                              | Icons, links and "Back" actions                     |
+| accentText        | `#ED5E8E`                              | Text actions on light backgrounds                   |
+| brandGradient     | `hsl(340,80%,65%)` → `hsl(25,90%,65%)` | See below                                           |
+| iconSurface       | `#FEE6E8` (soft: `#FEF1F7`)            | Icon circles, secondary buttons, "in N days" badges |
+| todaySurface      | `#FEDECB`                              | "Today" highlights                                  |
+| danger / surface  | `#B42335` / `#FDECF0`                  | Errors and destructive actions                      |
+| success / surface | `#245B34` / `#EAF5E8`                  | Confirmations and the WhatsApp action               |
 
-Ação primária sólida no rosa #D52555; o recorte não demonstra gradiente em botão principal. Os dois stops iguais preservam a interface dos componentes compartilhados. Secundárias recebem fundo suave e texto #BB204B. Somente o destaque de hoje usa gradiente rosa-pêssego. Raios menores substituem a cápsula exagerada da rodada anterior.
+The brand gradient (135°) is used for: primary buttons (white text), selected chips and tabs, switches when on, initials avatars (fallback when there is no photo), the wordmark, and the active tab icon and label. Secondary buttons use `iconSurface` with `accentText`. Do not use a flat pink for primary actions.
 
-Tipografia: título 24/30 com peso 700, seção 20/26 com peso 700, corpo 14/20 com peso 400, rótulo 16/22 com peso 600 e legenda 12/17 com peso 400 (tamanho/altura em pontos). Respeitar escala de fonte do sistema, sem truncar instruções e erros essenciais.
+### Typography
 
-Espaçamentos: 4, 8, 12, 16, 20, 24, 32, 40. Margem lateral 16; padding de card 16; gap de campo 6–8. Raios: controle 12, linha 22, card 22, painel 28, botão 16. Área interativa mínima de 48 × 48 para ações independentes; listas e formulários adaptam à fonte grande. Ícones Lucide existentes, 18–24, traço consistente. Bordas discretas; sombra de card: 0 2px 6px rgba(108, 39, 77, 0.06). Linhas recebem a mesma sombra discreta dos cards.
+- Headings: **Fredoka** 600/700. Body: **Quicksand** 400–700 (same families as the web app).
+- Scale (size/line): title 24/30, section 20/26, card title 16–18, body 14/20, label 16/22 at 600, caption 12/17.
+- Respect the system font scale; never truncate instructions or essential errors.
 
-## Componentes e estados
+### Shape and spacing
 
-Texto semântico; botão primário/secundário/destrutivo/textual; campo com rótulo, dica e erro; seletor em painel; card; linha de lista; badge; switch; checkbox; OTP de seis dígitos; feedback; painel inferior.
+- Radii: control 12, button 16, row/card 22, panel/sheet 28, badge 10, avatar full.
+- Spacing: 4, 8, 12, 16, 20, 24, 32, 40. Side margin 16, card padding 16.
+- Minimum touch target 48 × 48. Lucide icons, 18–24, consistent stroke.
+- Card shadow: `0 2px 6px rgba(108, 39, 77, 0.06)`. Floating bar shadow: `0 8px 24px rgba(108, 39, 77, 0.16)`.
 
-Cada controle trata foco, pressionado, desabilitado e carregamento quando aplicável. Erro e sucesso usam texto/ícone além de cor. Spinner e mensagens precisam de rótulos acessíveis. Valores de checkbox/switch no catálogo são locais; não representam preferências reais da conta.
+## Navigation
 
-Painel: backdrop estacionário com opacidade independente, translação só no conteúdo, comportamento pendente preservado e respeito a redução de movimento. Reutilizar a implementação existente com parametrização visual, sem duplicar o fluxo de modal.
+Floating pill bar (blurred, inset 16 from the screen edges) with five tabs: **Home, Events, Groups, Gifts, Profile**. The active tab has a soft pink pill and the gradient icon and label. There is no central action button: "Add event" is a full-width gradient button inside Events, and "Create group" lives in Groups.
 
-## Catálogo e pilotos
+## Screen inventory (mocks)
 
-Catálogo acessível somente em ambiente development por entrada de desenvolvimento no Perfil. Usar também bloqueio de rota, não apenas esconder o link. Exemplos explicitamente identificados como demonstração; sem acesso ao cliente de dados para mutações.
+| Area           | Screens                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Home           | Main, no upcoming events, no events, no groups                                                                             |
+| Events         | List, empty, detail, add, edit, notification permission modal, birthday event page (today and early reminder)              |
+| Groups         | List, create, events, members, settings (with photo), invitation, leave, photo sheet, empty                                |
+| Profile        | Profile, special dates, photo sheet, notifications (on and off), account options, delete account, terms and privacy        |
+| Authentication | Login, sign up, code (OTP), forgot password, new password                                                                  |
+| Onboarding     | Five steps: welcome, events, groups, gifts, profile                                                                        |
+| Gift list      | My list (normal and birthday-today hero), empty, add item, share (groups and WhatsApp link), a member's list, reserve item |
 
-Datas: linhas compactas com inicial circular, tipo, data, origem e badge de contagem; gradiente suave apenas para hoje. Manter seções, expansão, CRUD e exclusão no editor. Perfil: identificação centralizada com inicial circular, formulário e painéis discretos; preservar seletores, salvar, sair, exclusão e opções adicionais existentes. Nenhuma preferência nova, foto ou recurso simulado nas telas reais.
+## Product decisions made during the design
 
-## Critérios de validação
+- Wording: "events" everywhere (never "dates"); "gift list" and tab "Gifts" (never "wishes").
+- Event notifications are a single preference per channel (push and email); early reminders are not a separate setting.
+- Notification permission is requested after the first event is created or the first group is joined, never at first login.
+- Group invitations are always a link; there is no invitation code.
+- Groups and the profile support a photo (pencil on the avatar); the fallback is initials on the brand gradient.
+- Account: "Sign out" and "Delete my account" live in the account options page; deletion requires typing the phrase "Delete my account" (localized in the UI as "Excluir minha conta").
+- "Terms and privacy" is its own page under Profile, like special dates, notifications and account options.
+- The birthday event page (opened from a push notification) shows the person, date, group and their gift list. It has no "send greetings" button and no options menu: events are edited from the Events screen.
+- Gift list sharing: per group, plus a revocable WhatsApp link (public link scope is tracked in the product backlog as REM-203).
 
-Verificar contraste, áreas de toque, texto ampliado, rótulos, erro/sucesso, teclado, safe areas e redução de movimento. Executar tipos, formatação, testes pertinentes e exports Hermes iOS/Android. Testes de contraste e disponibilidade do catálogo cobrem comportamentos novos; não criar testes que apenas espelham estilos.
+## Components and states
 
-Registrar testes e limites reais após implementação. Aprovação visual dos pilotos: pendente. Build assinado, provider Google, push e associação HTTPS permanecem fora da aceitação visual no Expo Go.
+Semantic text; primary/secondary/destructive/text buttons; field with label, hint and error; selector in a sheet; card; list row; badge; switch; checkbox; six-digit OTP; feedback; bottom sheet.
 
-## Implementação e acesso ao catálogo
+Every control handles focus, pressed, disabled and loading where applicable. Error and success use text or an icon in addition to color. Spinners and messages need accessible labels. Sheet: stationary backdrop with independent opacity, translation only on the content, pending behavior preserved, and reduced motion respected.
 
-A base e os pilotos de Datas e Perfil estão implementados e aguardam aprovação visual. Componentes antigos continuam usando sua aparência original quando o parâmetro opcional appearance não é fornecido. Seletores, OTP e painel compartilham o comportamento existente; apenas a aparência e as dimensões dos pilotos são parametrizadas. A área de toque dos controles da nova base é de pelo menos 48 pontos.
+## Implementation status
 
-Para revisar no Expo Go: iniciar o app com EXPO_PUBLIC_APP_ENV=development e API local alcançável, entrar na conta, abrir Perfil e tocar em **Catálogo do design system** no fim da página. A rota /design-system exige sessão autenticada, ambiente development e bundle **DEV**; staging/production e bundles de release não expõem o catálogo. Há bloqueio de rota além de ocultação do botão.
+- Done (previous palette): isolated base in `mobile/src/design-system/`, a development-only catalog (route-gated, authenticated, `development` environment and DEV bundle), and pilots for Events, Profile and Home. Tokens in `tokens.ts`: solid primary `#D52555`, `actionGradient` with two equal stops, native system font.
+- Not done: gradient primary and selected states, Fredoka/Quicksand in the native app, the Gifts tab (currently labeled with a "coming soon" placeholder), and every screen in the inventory that is not an existing pilot. Migration of the remaining screens is tracked task by task in the [mobile screens backlog](../product/MOBILE-SCREENS-BACKLOG.md) (DS-005 in the [product backlog](../product/BACKLOG.md) is superseded by it).
+- Visual approval on a device is the user's call and cannot be inferred from types, tests or bundles.
 
-A galeria abre com uma composição de eventos e grupos inspirada no mock, usando exemplos locais identificados. Contém também texto, cores, ações, campos, seletores, switch, checkbox, OTP, linhas, badges, feedback e painel; estados de foco e pressionado são acionados pela interação. Nenhuma demonstração faz chamadas de mutação. Os pilotos reais continuam enviando alterações somente por suas ações explícitas de salvar/excluir, como antes.
+## Validation criteria
 
-Evidência da primeira rodada (06/11): 97 testes mobile, TypeScript, formatação e exports Hermes Android/iOS aprovados. A aparência dessa rodada foi rejeitada. Na revisão de 07/11, os 97 testes mobile, TypeScript, formatação completa de mobile e exports Hermes Android/iOS passaram novamente. A cobertura de contraste inclui texto branco nos gradientes de ação, além dos pares de texto normal (4,5:1), destaque de celebração e limites de campos habilitados (3:1).
+Check contrast (normal text 4.5:1, large text and field boundaries 3:1, including white text on both gradient stops), touch targets, enlarged text, labels, error/success, keyboard, safe areas and reduced motion. Run types, formatting, relevant tests and Hermes iOS/Android exports. Do not write tests that only mirror styles. Signed builds, the Google provider, push and HTTPS association stay out of visual acceptance in Expo Go.
 
-Preview local verificado: Metro e manifesto Expo respondem 200, com bundle em 192.168.1.20:8081; API alcançável na porta 3000, retornando 401 ao acesso não autenticado, como esperado. Banco local existente preservado, nove usuários e conta dev@dev.com presentes. Não foi executado seed.
+## History
 
-Esses checks não substituem a inspeção de escalonamento, teclado, leitor de tela, safe areas e movimento em aparelho. Não foi executado teste visual automatizado nem declarado aceite de dispositivo.
-
-Próxima etapa depende da aprovação dos pilotos pelo usuário. Não migrar demais telas nem implementar wishlist automaticamente.
-
-## Revisão por extração — 07/11/2026
-
-Substitui visualmente a rodada d3e9d28, também rejeitada. Aprovação visual pendente. Preserva dados, regras, navegação e escopo de pilotos. TypeScript e 97 testes mobile passaram; aprovação visual em dispositivo permanece pendente.
-
-## Ampliação autorizada: Início e navegação
-
-Em 07/11 o usuário solicitou aplicar a composição do recorte à nova tela Início, com dados reais, três aniversários e dois grupos. O menu passa a Início · Eventos · Grupos · Desejos · Perfil; Desejos mostra “Em breve”. A nova direção substitui a restrição de navegação descrita nas rodadas anteriores. O tema legado das demais telas permanece até sua revisão específica. A Home e a barra de abas usam os tokens extraídos. Fotos são representadas por iniciais; não há upload de imagem.
-
-Validação funcional: TypeScript e 101 testes mobile aprovados, incluindo seleção cronológica de aniversários, limite de dois grupos, nomes e destino atualizado de notificações. A aparência ainda depende de comparação no dispositivo.
-
-Verificação final da rodada Início: formatação completa e exports Hermes iOS/Android aprovados. Leitura autenticada das APIs de perfil, agenda e grupos retornou 200 com os formatos esperados; a sessão temporária do teste foi revogada. Expo Go permanece disponível no preview local. Isso não substitui validação visual ou interação em dispositivo.
-
-## Piloto Eventos
-
-Referência: [mock da tela Eventos](references/events-reference.png). A composição usa títulos escuros, fundo rosa suave, cards com contorno e sombra discreta, avatares circulares com iniciais, badge pêssego para hoje e lilás para datas futuras. O ícone de calendário no cabeçalho abre a criação de evento. As seções usam o mês civil da agenda, com prioridade para os próximos sete dias.
-`nVerificação da rodada Eventos: 102 testes mobile, TypeScript, formatação e exports Hermes iOS/Android aprovados. A inspeção visual no dispositivo permanece pendente.
+- 2026-11-06: first proposal and pilots; rejected (97 mobile tests, TypeScript, formatting and Hermes exports passed).
+- 2026-11-07: revision from a reference mock, then from a pixel-sampled crop of the home screen; new Home screen and five-tab navigation; Events pilot (102 tests). Visual approval pending.
+- 2026-11-08: full mock set in Claude Design with the gradient primary, Fredoka/Quicksand and the screens above. Documentation updated; code not changed.

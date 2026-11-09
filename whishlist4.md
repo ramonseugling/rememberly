@@ -1,115 +1,117 @@
-# Backlog consolidado — Wishlist e presentes no Rememberly
+# Consolidated backlog — Gift list and presents in Rememberly
 
-## Direção definida
+> Historical record of the original proposal. The current execution index is `docs/product/BACKLOG.md`.
 
-A proposta amplia o Rememberly de lembretes de datas para **listas de desejos e organização de presentes entre pessoas dos mesmos grupos**.
+## Defined direction
 
-O primeiro marco será **wishlist com reservas secretas no mobile**, usando o backend atual. Compartilhamento público, experiência dedicada de aniversário e push ficam para etapas posteriores.
+The proposal extends Rememberly from date reminders to **wish lists and gift organization among people in the same groups**.
 
-Decisões confirmadas nesta conversa:
+The first milestone will be a **wish list with secret reservations on mobile**, using the current backend. Public sharing, a dedicated birthday experience and push come in later stages.
 
-- Mobile primeiro; wishlist no web será uma entrega posterior.
-- Compartilhamento inicialmente restrito a grupos autorizados.
-- Navegação: **Datas · Grupos · Desejos · Perfil**.
-- Datas comemorativas continuam disponíveis pelo Perfil.
-- O redesign minimalista e o calendário anteriormente cancelados permanecem descartados.
-- Decisões de negócio ainda abertas serão registradas como bloqueios antes das respectivas implementações.
+Decisions confirmed in this conversation:
 
-## O que já existe e o que é novidade
+- Mobile first; the web wish list is a later delivery.
+- Sharing is initially restricted to authorized groups.
+- Navigation: **Dates · Groups · Wishes · Profile**.
+- Commemorative dates remain available from Profile.
+- The previously cancelled minimalist redesign and calendar remain discarded.
+- Open business decisions will be recorded as blockers before the respective implementations.
 
-| Área                           | Estado atual                                                     | Trabalho necessário                                           |
-| ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------- |
-| Contas, autenticação e sessões | Implementados no web e mobile                                    | Reutilizar e proteger os novos recursos                       |
-| Datas e grupos                 | Implementados                                                    | Acrescentar acesso aos desejos dos membros                    |
-| Wishlist pessoal               | Ausente                                                          | Dados, APIs e telas                                           |
-| Compartilhamento de wishlist   | Ausente                                                          | Permissões explícitas por grupo                               |
-| Reservas e compras declaradas  | Ausentes                                                         | Concorrência, confidencialidade e interfaces                  |
-| Tela dedicada de aniversário   | Ausente                                                          | Identificação da pessoa e ocorrência, leitura autorizada      |
-| Fotos de perfil                | Sem suporte funcional identificado                               | Definir necessidade e privacidade; inicialmente usar iniciais |
-| Push                           | Infraestrutura implementada, envio desativado                    | Configuração, operação e validação em builds instaladas       |
-| Deep links                     | Convites e recuperação implementados; notificações levam às abas | Acrescentar destino específico de aniversário                 |
-| Observabilidade                | Axiom e Analytics web existentes                                 | Instrumentar o novo funil sem dados sensíveis                 |
+## What already exists and what is new
 
-**Distinção importante:** aniversários dos grupos são derivados do cadastro dos usuários. Um evento pessoal chamado “Pedro” é texto livre e não identifica necessariamente uma conta. Não associaremos wishlist a alguém pelo nome.
+| Area                                | Current state                                                     | Work needed                                                 |
+| ----------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| Accounts, authentication, sessions  | Implemented on web and mobile                                     | Reuse and protect the new features                          |
+| Dates and groups                    | Implemented                                                       | Add access to members' wishes                               |
+| Personal wish list                  | Absent                                                            | Data, APIs and screens                                      |
+| Wish list sharing                   | Absent                                                            | Explicit permissions per group                              |
+| Reservations and declared purchases | Absent                                                            | Concurrency, confidentiality and interfaces                 |
+| Dedicated birthday page             | Absent                                                            | Person and occurrence identification, authorized reads      |
+| Profile photos                      | No functional support identified                                  | Define need and privacy; initially use initials             |
+| Push                                | Infrastructure implemented, delivery disabled                     | Configuration, operation and validation on installed builds |
+| Deep links                          | Invitations and recovery implemented; notifications open the tabs | Add a specific birthday destination                         |
+| Observability                       | Axiom and web Analytics exist                                     | Instrument the new funnel without sensitive data            |
 
-## Backlog por marco
+**Important distinction:** group birthdays are derived from users' profiles. A personal event named "Pedro" is free text and does not necessarily identify an account. We will not associate a wish list with someone by name.
 
-### Marco 0 — Consolidar contexto e fechar os contratos
+## Backlog by milestone
 
-| ID      | Prioridade | Entrega e aceite                                                                                                                                                                     |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| REM-000 | P0         | Consolidar visão, decisões e backlog em `docs/product/`, preservando o histórico de mobile. Mesclar orientações úteis dos arquivos recebidos sem substituir o `AGENTS.md` existente. |
-| REM-001 | P0         | Consolidar a auditoria iniciada nesta conversa: capacidades existentes, lacunas, referências de código e limites de validação. Estado inicial: **em revisão**.                       |
-| REM-002 | P0         | Fechar dados, autorização, contratos de resposta e políticas de ciclo de vida. A implementação de reservas fica bloqueada pelas decisões listadas abaixo.                            |
-| REM-501 | P1         | Diagnosticar antecipadamente os requisitos reais de push, links e builds, reutilizando os registros existentes. Identificar dependências externas sem ativar envios.                 |
+### Milestone 0 — Consolidate context and close the contracts
 
-**Correções aos documentos recebidos:** o projeto usa PostgreSQL com SQL parametrizado, sem ORM; rotas sob `/api/v1/`; migrações progressivas com rollback automático desabilitado. Os exemplos de tabelas e endpoints são propostas, não o estado atual.
+| ID      | Priority | Delivery and acceptance                                                                                                                                                                |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REM-000 | P0       | Consolidate vision, decisions and backlog in `docs/product/`, preserving the mobile history. Merge useful guidance from the received files without replacing the existing `AGENTS.md`. |
+| REM-001 | P0       | Consolidate the audit started in this conversation: existing capabilities, gaps, code references and validation limits. Initial status: **under review**.                              |
+| REM-002 | P0       | Close data, authorization, response contracts and lifecycle policies. The reservations implementation is blocked by the decisions listed below.                                        |
+| REM-501 | P1       | Diagnose the real requirements for push, links and builds early, reusing existing records. Identify external dependencies without enabling delivery.                                   |
 
-### Marco 1 — Wishlist e reservas no mobile
+**Corrections to the received documents:** the project uses PostgreSQL with parameterized SQL and no ORM; routes under `/api/v1/`; progressive migrations with automatic rollback disabled. The table and endpoint examples are proposals, not the current state.
 
-Executar na ordem abaixo, com entregas pequenas e verificáveis.
+### Milestone 1 — Wish list and reservations on mobile
 
-| Ordem / IDs   | Prioridade | Entrega e critério principal                                                                                                                                                                                |
-| ------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 — REM-101   | P0         | Persistência de uma wishlist permanente por usuário e seus itens. Título obrigatório; campos opcionais conforme contrato aprovado. Lista privada por padrão.                                                |
-| 2 — REM-201   | P0         | Compartilhamento com grupos escolhidos pelo dono. Acesso exige vínculo atual autorizado e considera a união dos grupos em comum.                                                                            |
-| 3 — REM-102   | P0         | APIs de criação, leitura, edição e exclusão pelo proprietário. Validar URLs e não buscar conteúdo externo.                                                                                                  |
-| 4 — REM-103   | P0         | Tela **Meus desejos** no mobile: cadastro, edição, exclusão, estados vazio/erro/carregamento e seleção dos grupos autorizados. Ajustar a navegação aprovada.                                                |
-| 5 — REM-202   | P0         | Abrir a wishlist de outro membro pelo grupo. Não duplicar itens quando houver vários grupos em comum; tratar acesso revogado.                                                                               |
-| 6 — REM-301   | P0         | Persistência de reservas: uma reserva ativa global por item, inclusive sob concorrência e entre grupos diferentes.                                                                                          |
-| 7 — REM-302   | P0         | APIs para reservar, marcar como comprado e cancelar. Somente o responsável gerencia sua reserva; conflitos retornam `409`.                                                                                  |
-| 8 — REM-303   | P0         | Interface dos presenteadores com disponibilidade e ações. O dono recebe somente seus desejos, sem estado de reserva, compra ou identidade do responsável.                                                   |
-| 9 — REM-304   | **P0**     | Implementar e testar as políticas aprovadas para edição/exclusão, perda de acesso e exclusão de conta. Esta história deixa de ser P1 e passa a bloquear o lançamento de reservas.                           |
-| 10 — REM-601A | P1         | Medição mínima de criação, compartilhamento, visualização e reserva. Usar a observabilidade existente quando suficiente, sem registrar títulos, URLs ou estados secretos em superfícies acessíveis ao dono. |
-| 11 — REM-602A | P0         | Piloto controlado no mobile: autorização, concorrência, regressões, estados de interface e validação em dispositivo. Liberação reversível das novas funções.                                                |
+Execute in the order below, with small, verifiable deliveries.
 
-**Dependência principal:** contratos aprovados → persistência e permissões → wishlist própria e de membros → reservas e ciclo de vida → piloto.
+| Order / IDs   | Priority | Delivery and main criterion                                                                                                                                                                       |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — REM-101   | P0       | Persistence of one permanent wish list per user and its items. Title required; optional fields per the approved contract. Private by default.                                                     |
+| 2 — REM-201   | P0       | Sharing with groups chosen by the owner. Access requires a current authorized membership and considers the union of common groups.                                                                |
+| 3 — REM-102   | P0       | APIs to create, read, edit and delete by the owner. Validate URLs and do not fetch external content.                                                                                              |
+| 4 — REM-103   | P0       | **My wishes** screen on mobile: create, edit, delete, empty/error/loading states and selection of authorized groups. Adjust the approved navigation.                                              |
+| 5 — REM-202   | P0       | Open another member's wish list through the group. Do not duplicate items when there are several common groups; handle revoked access.                                                            |
+| 6 — REM-301   | P0       | Reservation persistence: one globally active reservation per item, including under concurrency and across different groups.                                                                       |
+| 7 — REM-302   | P0       | APIs to reserve, mark as purchased and cancel. Only the reserver manages their reservation; conflicts return `409`.                                                                               |
+| 8 — REM-303   | P0       | Gift-giver interface with availability and actions. The owner receives only their own wishes, with no reservation or purchase state and no reserver identity.                                     |
+| 9 — REM-304   | **P0**   | Implement and test the approved policies for edit/delete, loss of access and account deletion. This story is no longer P1 and blocks the release of reservations.                                 |
+| 10 — REM-601A | P1       | Minimal measurement of creation, sharing, viewing and reservation. Use existing observability when sufficient, without logging titles, URLs or secret states on surfaces accessible to the owner. |
+| 11 — REM-602A | P0       | Controlled mobile pilot: authorization, concurrency, regressions, interface states and device validation. Reversible release of the new features.                                                 |
 
-### Marco 2 — Tela de aniversário e notificações
+**Main dependency:** approved contracts → persistence and permissions → own and members' wish lists → reservations and lifecycle → pilot.
 
-| IDs             | Prioridade | Entrega e aceite                                                                                                                                                    |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| REM-401         | P1         | Tela dedicada de aniversário, reutilizando a pessoa cadastrada e a ocorrência anual. Não criar aniversários paralelos nem vincular eventos pessoais por nome.       |
-| REM-402         | P1         | Mostrar desejos apenas quando o visitante tiver acesso. A tela do aniversariante continua sem dados de reservas.                                                    |
-| REM-502A        | P1         | Estender navegação e payloads para abrir a pessoa/ocorrência correta, inclusive após login. Revalidar autorização no destino.                                       |
-| REM-502B        | P1         | Preparar e validar push real: credenciais, builds instaladas, permissões, processamento de recibos, retries e monitoramento. Reutilizar a infraestrutura existente. |
-| REM-601B / 602B | P1         | Medir abertura de aniversário/notificação e validar lançamento integrado.                                                                                           |
-| REM-403         | P2         | Facilitar felicitações usando compartilhamento ou outra capacidade aprovada, sem envio automático em nome do usuário.                                               |
+### Milestone 2 — Birthday page and notifications
 
-Push não será requisito para validar inicialmente o valor das wishlists e reservas.
+| IDs             | Priority | Delivery and acceptance                                                                                                                                    |
+| --------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REM-401         | P1       | Dedicated birthday page, reusing the registered person and the annual occurrence. Do not create parallel birthdays or link personal events by name.        |
+| REM-402         | P1       | Show wishes only when the visitor has access. The birthday person's page keeps showing no reservation data.                                                |
+| REM-502A        | P1       | Extend navigation and payloads to open the right person/occurrence, including after login. Revalidate authorization at the destination.                    |
+| REM-502B        | P1       | Prepare and validate real push: credentials, installed builds, permissions, receipt processing, retries and monitoring. Reuse the existing infrastructure. |
+| REM-601B / 602B | P1       | Measure birthday/notification opens and validate the integrated release.                                                                                   |
+| REM-403         | P2       | Make greetings easier using sharing or another approved capability, with no automatic sending on the user's behalf.                                        |
 
-### Evoluções posteriores
+Push will not be a requirement to initially validate the value of wish lists and reservations.
 
-- **Wishlist no web:** oferecer a experiência a quem chega por convite sem instalar o app.
-- **REM-203:** link público revogável, sem informações de reserva ou compra.
-- **REM-503:** aviso antecipado de aniversário para preparar presentes, com opção explícita do usuário. Os lembretes antecipados atuais continuam existindo.
-- Fotos, preço/imagem dos desejos, ordenação avançada e outras melhorias conforme escopo aprovado.
-- Extração de informações de lojas por URL, com análise específica de segurança.
-- Presentes coletivos, afiliados, pagamentos, assinatura e B2B permanecem hipóteses futuras.
+### Later evolutions
 
-## Decisões de negócio que bloqueiam histórias
+- **Web wish list:** offer the experience to people who arrive through an invitation without installing the app.
+- **REM-203:** revocable public link, with no reservation or purchase information.
+- **REM-503:** early birthday notice to prepare gifts, with an explicit user option. The current early reminders continue to exist.
+- Photos, item price/image, advanced ordering and other improvements per approved scope.
+- Extraction of store information from URLs, with a specific security analysis.
+- Collective gifts, affiliates, payments, subscription and B2B remain future hypotheses.
 
-Estas decisões não serão tomadas implicitamente durante a implementação:
+## Business decisions that block stories
 
-| Decisão                                                                                                 | Precisa estar resolvida antes de |
-| ------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Campos do primeiro formulário, ordenação e limite de itens — os 50 itens são apenas sugestão            | REM-101/103                      |
-| O que acontece quando o dono altera ou exclui um item reservado/comprado, sem revelar que houve reserva | REM-002, antes das reservas      |
-| Como o responsável acompanha ou cancela uma reserva após perder acesso ao grupo/lista                   | REM-302/304                      |
-| Tratamento das reservas quando o dono ou o presenteador exclui a conta                                  | Migrações e REM-304              |
-| Quando uma reserva expira ou um item comprado pode voltar a ficar disponível                            | REM-301/304                      |
-| Identidade da ocorrência anual, contexto de múltiplos grupos e informações pessoais exibidas            | REM-401                          |
-| Inclusão de fotos, exposição de idade e forma de enviar parabéns                                        | Funcionalidades correspondentes  |
+These decisions will not be made implicitly during implementation:
 
-## Contratos técnicos e validação
+| Decision                                                                                                | Must be resolved before      |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Fields of the first form, ordering and item limit — the 50-item limit is only a suggestion              | REM-101/103                  |
+| What happens when the owner edits or deletes a reserved/purchased item, without revealing a reservation | REM-002, before reservations |
+| How the reserver follows or cancels a reservation after losing access to the group/list                 | REM-302/304                  |
+| Handling of reservations when the owner or the gift-giver deletes their account                         | Migrations and REM-304       |
+| When a reservation expires or a purchased item can become available again                               | REM-301/304                  |
+| Identity of the annual occurrence, multi-group context and personal information shown                   | REM-401                      |
+| Inclusion of photos, age exposure and how to send greetings                                             | Corresponding features       |
 
-- Reutilizar backend, sessões, grupos e padrões MVC existentes. Não criar um backend exclusivo para wishlist mobile.
-- Separar explicitamente as respostas do proprietário e dos presenteadores. Esconder informações na interface não atende ao requisito de confidencialidade.
-- Tratar disponibilidade como derivada das reservas; proteger a exclusividade no banco e em transações.
-- Revalidar acesso em cada leitura e alteração; cache, erros e respostas alternativas também não podem revelar reservas ao dono.
-- Validar corridas com PostgreSQL real: dois usuários tentando reservar o mesmo item, inclusive por grupos diferentes.
-- Cobrir proprietário, membro autorizado, terceiro, ex-membro, múltiplos grupos, revogação e exclusão de conta.
-- Testar repetição de requisições, falhas de rede, expiração de sessão e atualização dos dados no mobile.
-- Preservar autenticação, eventos, grupos, e-mails e fluxos já aprovados. Testes de push e links em builds instaladas permanecem separados dos testes no Expo Go.
+## Technical contracts and validation
 
-O resultado desta etapa é um backlog organizado e comparado ao código. **Nenhum arquivo foi alterado e nenhuma funcionalidade nova está sendo declarada como implementada.**
+- Reuse the existing backend, sessions, groups and MVC patterns. Do not create a backend exclusive to the mobile wish list.
+- Explicitly separate the owner's and the gift-givers' responses. Hiding information in the interface does not satisfy the confidentiality requirement.
+- Treat availability as derived from reservations; protect exclusivity in the database and in transactions.
+- Revalidate access on every read and change; caches, errors and alternative responses must not reveal reservations to the owner either.
+- Validate races with a real PostgreSQL: two users trying to reserve the same item, including through different groups.
+- Cover owner, authorized member, third party, former member, multiple groups, revocation and account deletion.
+- Test request repetition, network failures, session expiry and data refresh on mobile.
+- Preserve authentication, events, groups, emails and already approved flows. Push and link tests on installed builds stay separate from Expo Go tests.
+
+The result of this stage is a backlog organized and compared with the code. **No file was changed and no new functionality is being declared as implemented.**

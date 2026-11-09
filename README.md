@@ -190,9 +190,12 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Running Tests
 
-> The test suite requires the **dev server to be running** at `localhost:3000` before executing.
+> The test suite requires a **test dev server** running at `localhost:3000`. Start it with `npm run dev:test` (and the local Postgres with `npm run services:up`). Tests and that server use a separate `<database>_test` database in the same Docker container (created automatically), so the development database is never wiped.
 
 ```bash
+# Start the dev server against the test database
+npm run dev:test
+
 # Run all tests
 npm run test
 
@@ -200,7 +203,7 @@ npm run test
 npm run test:watch
 
 # Run a single test file
-node --env-file=.env.development ./node_modules/.bin/jest --runInBand tests/integration/api/v1/users/post.test.ts
+npm run test -- --runTestsByPath tests/integration/api/v1/users/post.test.ts
 ```
 
 **Testing philosophy:**

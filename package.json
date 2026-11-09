@@ -14,8 +14,9 @@
     "seed": "tsx --env-file=.env.development infra/scripts/seed.ts",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "test": "node --env-file=.env.development node_modules/jest/bin/jest.js --detectOpenHandles --runInBand --forceExit",
-    "test:watch": "node --env-file=.env.development node_modules/jest/bin/jest.js --watch --runInBand",
+    "test": "tsx infra/scripts/with-test-db.ts node node_modules/jest/bin/jest.js --detectOpenHandles --runInBand --forceExit",
+    "test:watch": "tsx infra/scripts/with-test-db.ts node node_modules/jest/bin/jest.js --watch --runInBand",
+    "dev:test": "tsx infra/scripts/with-test-db.ts next dev",
     "prepare": "husky"
   },
   "author": "",
