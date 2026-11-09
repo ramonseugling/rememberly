@@ -97,3 +97,25 @@ export function orderedMembers(members: GroupMember[]): GroupMember[] {
     return a.daysUntil - b.daysUntil;
   });
 }
+
+export function birthdayDateLabel(
+  member: Pick<GroupMember, 'birth_day' | 'birth_month'>,
+): string {
+  if (member.birth_day === null || member.birth_month === null) {
+    return 'Aniversário não informado';
+  }
+  return new Date(
+    Date.UTC(2000, member.birth_month - 1, member.birth_day),
+  ).toLocaleDateString('pt-BR', {
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export function birthdaysInMonth(
+  birthdays: GroupMember[],
+  month: number,
+): GroupMember[] {
+  return birthdays.filter((member) => member.birth_month === month);
+}

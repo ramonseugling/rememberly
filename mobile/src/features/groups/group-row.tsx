@@ -1,12 +1,12 @@
 import { ChevronRight, Share2, Users } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DsText, tokens } from '../../design-system';
+import { groupColors } from './group-palette';
 import { groupSubtitle } from './group-subtitle';
 import type { Group } from './model';
 
 interface GroupRowProps {
   group: Group;
-  index: number;
   disabled?: boolean;
   onOpen: () => void;
   onInvite: () => void;
@@ -14,12 +14,11 @@ interface GroupRowProps {
 
 export const GroupRow = ({
   group,
-  index,
   disabled,
   onOpen,
   onInvite,
 }: GroupRowProps) => {
-  const palette = tokens.groupPalette[index % tokens.groupPalette.length]!;
+  const palette = groupColors(group.id);
   return (
     <View style={styles.card}>
       <Pressable
