@@ -28,7 +28,7 @@ export const GroupMembersTab = ({
       <View key={member.id}>
         {index > 0 && <View style={styles.divider} />}
         <View style={styles.row}>
-          <DsAvatar name={member.name} size={44} />
+          <DsAvatar name={member.name} size={44} photoUri={member.avatar_url} />
           <View style={styles.grow}>
             <DsText role="label">
               {member.name}

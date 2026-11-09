@@ -296,3 +296,36 @@ test('pre-aborted request never sends a credential and redirect responses are re
   await assert.rejects(controller.request('/api/v1/me'), ApiError);
   assert.equal(calls, 1);
 });
+
+test('raw binary bodies keep their content type, never combine with JSON and never ride on GET', async () => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const { controller } = fixture(async (url, init) => {
+    calls.push({ url, init });
+    return response(url, 200, { avatar_url: 'https://cdn.example.com/a.webp' });
+  });
+  await controller.restore();
+  const data = new Uint8Array([1, 2, 3]);
+  await controller.request('/api/v1/users/avatar', {
+    method: 'PUT',
+    rawBody: { data, contentType: 'image/jpeg' },
+  });
+  assert.equal(calls[0]!.init.body, data);
+  const headers = new Headers(calls[0]!.init.headers);
+  assert.equal(headers.get('Content-Type'), 'image/jpeg');
+  assert.equal(headers.get('Authorization')?.startsWith('Bearer '), true);
+  await assert.rejects(
+    controller.request('/api/v1/users/avatar', {
+      method: 'PUT',
+      body: { a: 1 },
+      rawBody: { data, contentType: 'image/jpeg' },
+    }),
+    (error) => error instanceof ApiError && error.kind === 'network',
+  );
+  await assert.rejects(
+    controller.request('/api/v1/users/avatar', {
+      rawBody: { data, contentType: 'image/jpeg' },
+    }),
+    (error) => error instanceof ApiError && error.kind === 'network',
+  );
+  assert.equal(calls.length, 1);
+});

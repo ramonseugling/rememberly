@@ -37,7 +37,7 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
     item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
     <View style={styles.content}>
-      <DsAvatar name={item.title} size={48} />
+      <DsAvatar name={item.title} size={48} photoUri={item.avatar_url} />
       <View style={styles.copy}>
         <DsText style={styles.title} numberOfLines={2}>
           {item.title}

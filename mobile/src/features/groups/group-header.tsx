@@ -1,7 +1,7 @@
-import { Share2, Users } from 'lucide-react-native';
+import { Share2 } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { DsButton, DsText, tokens } from '../../design-system';
-import { groupColors } from './group-palette';
+import { GroupAvatar } from './group-avatar';
 import type { Group } from './model';
 
 interface GroupHeaderProps {
@@ -9,6 +9,7 @@ interface GroupHeaderProps {
   subtitle: string;
   disabled?: boolean;
   onInvite: () => void;
+  onEditPhoto?: () => void;
 }
 
 export const GroupHeader = ({
@@ -16,13 +17,11 @@ export const GroupHeader = ({
   subtitle,
   disabled,
   onInvite,
+  onEditPhoto,
 }: GroupHeaderProps) => {
-  const palette = groupColors(group.id);
   return (
     <View style={styles.card}>
-      <View style={[styles.icon, { backgroundColor: palette.surface }]}>
-        <Users size={30} color={palette.color} />
-      </View>
+      <GroupAvatar group={group} size={64} onEdit={onEditPhoto} />
       <View style={styles.copy}>
         <DsText role="title" style={styles.center}>
           {group.name}
@@ -52,13 +51,6 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.border,
     backgroundColor: tokens.colors.surface,
     boxShadow: tokens.shadows.card,
-  },
-  icon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   copy: { alignSelf: 'stretch', gap: 4 },
   center: { textAlign: 'center' },

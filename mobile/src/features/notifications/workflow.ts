@@ -1,5 +1,7 @@
 export interface NotificationPreferences {
   push_enabled: boolean;
+  email_events: boolean;
+  email_marketing: boolean;
   time_zone: string;
   daily_time: string;
 }

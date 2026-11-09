@@ -1,7 +1,7 @@
-import { ChevronRight, Share2, Users } from 'lucide-react-native';
+import { ChevronRight, Share2 } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DsText, tokens } from '../../design-system';
-import { groupColors } from './group-palette';
+import { GroupAvatar } from './group-avatar';
 import { groupSubtitle } from './group-subtitle';
 import type { Group } from './model';
 
@@ -18,7 +18,6 @@ export const GroupRow = ({
   onOpen,
   onInvite,
 }: GroupRowProps) => {
-  const palette = groupColors(group.id);
   return (
     <View style={styles.card}>
       <Pressable
@@ -29,9 +28,7 @@ export const GroupRow = ({
         onPress={onOpen}
         style={({ pressed }) => [styles.main, pressed && { opacity: 0.75 }]}
       >
-        <View style={[styles.icon, { backgroundColor: palette.surface }]}>
-          <Users size={24} color={palette.color} />
-        </View>
+        <GroupAvatar group={group} size={48} />
         <View style={styles.copy}>
           <DsText role="label" numberOfLines={2}>
             {group.name}
@@ -76,13 +73,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  icon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   copy: { flex: 1, minWidth: 0, gap: 2 },
   invite: {

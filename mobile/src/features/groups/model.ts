@@ -8,6 +8,7 @@ export interface Group {
   member_count: number;
   created_at?: string;
   created_by_name?: string;
+  photo_url?: string | null;
   current_month?: number;
   upcoming_birthdays?: GroupBirthday[];
 }
@@ -23,6 +24,7 @@ export interface GroupMember {
   id: string;
   name: string;
   email: string;
+  avatar_url?: string | null;
   role: GroupRole;
   birth_day: number | null;
   birth_month: number | null;

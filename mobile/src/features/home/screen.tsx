@@ -30,6 +30,7 @@ import {
 import { useResource } from '../../data/hooks';
 import { useSession } from '../../session/provider';
 import type { Agenda } from '../dates/model';
+import { GroupAvatar } from '../groups/group-avatar';
 import type { Group } from '../groups/model';
 import type { ProfileUser } from '../account/forms';
 import { firstName, homeBirthdays, homeGroups } from './model';
@@ -70,7 +71,11 @@ export function HomeScreen() {
             accessibilityLabel="Abrir meu perfil"
             onPress={() => router.navigate('/(tabs)/profile')}
           >
-            <DsAvatar name={name} size={48} />
+            <DsAvatar
+              name={name}
+              size={48}
+              photoUri={profile.data?.user.avatar_url}
+            />
           </Pressable>
         </View>
         <View style={styles.heading}>
@@ -128,7 +133,11 @@ export function HomeScreen() {
             const today = item.days_until === 0;
             const contents = (
               <View style={styles.eventContent}>
-                <DsAvatar name={item.title} size={56} />
+                <DsAvatar
+                  name={item.title}
+                  size={56}
+                  photoUri={item.avatar_url}
+                />
                 <View style={styles.eventCopy}>
                   <View style={styles.eventTitle}>
                     <DsText role="label" style={{ flexShrink: 1 }}>
@@ -231,31 +240,12 @@ export function HomeScreen() {
           />
         )}
         <View style={styles.list}>
-          {homeGroups(groups.data ?? []).map((group, index) => (
+          {homeGroups(groups.data ?? []).map((group) => (
             <DsRow
               key={group.id}
               title={group.name}
               subtitle={`${group.member_count} ${group.member_count === 1 ? 'membro' : 'membros'}`}
-              leading={
-                <View
-                  style={[
-                    styles.groupIcon,
-                    {
-                      backgroundColor:
-                        index === 0
-                          ? tokens.colors.familySurface
-                          : tokens.colors.friendsSurface,
-                    },
-                  ]}
-                >
-                  <Users
-                    size={24}
-                    color={
-                      index === 0 ? tokens.colors.family : tokens.colors.friends
-                    }
-                  />
-                </View>
-              }
+              leading={<GroupAvatar group={group} size={48} />}
               style={styles.group}
               onPress={() =>
                 router.navigate({
@@ -329,12 +319,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.colors.border,
     boxShadow: tokens.shadows.card,
-  },
-  groupIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

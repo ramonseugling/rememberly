@@ -3,14 +3,53 @@ import test from 'node:test';
 import {
   canDeleteAccount,
   createDeletionConfirmation,
+  deletionBody,
+  deletionErrorMessage,
 } from '../src/features/account/deletion-confirmation.ts';
 
-test('account deletion requires a password and the exact destructive confirmation', () => {
-  assert.equal(canDeleteAccount('current password', 'DELETE'), true);
-  for (const confirmation of ['', 'delete', 'Delete', ' DELETE', 'DELETE ']) {
-    assert.equal(canDeleteAccount('current password', confirmation), false);
+test('account deletion requires a credential and the exact confirmation phrase', () => {
+  const password = { mode: 'password', value: 'current password' } as const;
+  const code = { mode: 'code', value: '482915' } as const;
+  assert.equal(canDeleteAccount(password, 'Excluir minha conta'), true);
+  assert.equal(canDeleteAccount(code, 'Excluir minha conta'), true);
+  for (const confirmation of [
+    '',
+    'DELETE',
+    'excluir minha conta',
+    ' Excluir minha conta',
+    'Excluir minha conta ',
+  ]) {
+    assert.equal(canDeleteAccount(password, confirmation), false);
   }
-  assert.equal(canDeleteAccount('', 'DELETE'), false);
+  assert.equal(
+    canDeleteAccount({ mode: 'password', value: '' }, 'Excluir minha conta'),
+    false,
+  );
+  for (const value of ['', '12345', '1234567', 'abcdef', '12 456']) {
+    assert.equal(
+      canDeleteAccount({ mode: 'code', value }, 'Excluir minha conta'),
+      false,
+    );
+  }
+});
+
+test('the request body carries exactly one credential', () => {
+  assert.deepEqual(deletionBody({ mode: 'password', value: 'secret' }), {
+    password: 'secret',
+    confirmation: 'Excluir minha conta',
+  });
+  assert.deepEqual(deletionBody({ mode: 'code', value: '482915' }), {
+    otp_code: '482915',
+    confirmation: 'Excluir minha conta',
+  });
+});
+
+test('deletion errors are explained per cause', () => {
+  assert.match(deletionErrorMessage(403, 'password'), /senha atual/);
+  assert.match(deletionErrorMessage(409, 'password'), /grupos/);
+  assert.match(deletionErrorMessage(400, 'code'), /Código inválido/);
+  assert.match(deletionErrorMessage(429, 'code'), /Muitas tentativas/);
+  assert.match(deletionErrorMessage(undefined, 'password'), /Tente novamente/);
 });
 
 test('native confirmation authorizes only one submission for its original session', () => {

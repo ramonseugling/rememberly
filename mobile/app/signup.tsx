@@ -1,10 +1,13 @@
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { Check } from 'lucide-react-native';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { Text } from '../src/components/brand-text/brand-text';
-import { OtpInput } from '../src/components/otp-input/otp-input';
-import { SelectField } from '../src/components/select-field/select-field';
+import { StyleSheet, TextInput, View } from 'react-native';
+import {
+  DsCheckbox,
+  DsOtpInput,
+  DsSelect,
+  DsText,
+  tokens,
+} from '../src/design-system';
 import {
   AuthAction,
   AuthField,
@@ -26,7 +29,6 @@ import {
   profileMonths,
 } from '../src/features/account/profile-presentation';
 import { useSession } from '../src/session/provider';
-import { theme } from '../src/theme';
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: currentYear - 1900 + 1 }, (_, index) => ({
@@ -129,6 +131,7 @@ export default function SignupScreen() {
 
   return (
     <AuthPage
+      compactBrand
       title={
         registered
           ? 'Sua conta está pronta!'
@@ -148,9 +151,9 @@ export default function SignupScreen() {
     >
       {registered ? (
         <>
-          <Text style={styles.text}>
+          <DsText style={styles.text}>
             Você já pode entrar usando seu e-mail e senha.
-          </Text>
+          </DsText>
           <AuthAction
             label="Entrar"
             disabled={busy}
@@ -201,7 +204,7 @@ export default function SignupScreen() {
             maxLength={72}
           />
           <View style={localStyles.field}>
-            <Text style={localStyles.label}>Data de nascimento</Text>
+            <DsText role="label">Data de aniversário</DsText>
             <View style={localStyles.birthday}>
               <TextInput
                 accessibilityLabel="Dia de nascimento"
@@ -212,10 +215,10 @@ export default function SignupScreen() {
                 maxLength={2}
                 style={localStyles.day}
                 placeholder="Dia"
-                placeholderTextColor={theme.colors.muted}
+                placeholderTextColor={tokens.colors.textMuted}
               />
               <View style={localStyles.month}>
-                <SelectField
+                <DsSelect
                   label="Mês"
                   value={month}
                   options={profileMonths}
@@ -228,7 +231,7 @@ export default function SignupScreen() {
                 />
               </View>
               <View style={localStyles.year}>
-                <SelectField
+                <DsSelect
                   label="Ano"
                   value={year}
                   options={years}
@@ -238,30 +241,19 @@ export default function SignupScreen() {
               </View>
             </View>
           </View>
-          <Pressable
-            accessibilityRole="checkbox"
-            accessibilityLabel="Quero receber novidades e dicas por e-mail"
-            accessibilityState={{ checked: marketing, disabled: busy }}
+          <DsCheckbox
+            label="Quero receber novidades e dicas por e-mail"
+            checked={marketing}
             disabled={busy}
-            onPress={() => setMarketing((value) => !value)}
-            style={localStyles.consent}
-          >
-            <View
-              style={[localStyles.checkbox, marketing && localStyles.checked]}
-            >
-              {marketing && <Check size={14} color="white" />}
-            </View>
-            <Text style={localStyles.consentText}>
-              Quero receber novidades e dicas por e-mail
-            </Text>
-          </Pressable>
+            onChange={setMarketing}
+          />
           <AuthAction
             label={task.pending ? 'Enviando código...' : 'Continuar'}
             disabled={busy}
             onPress={sendCode}
           />
           <View style={localStyles.login}>
-            <Text style={styles.text}>Já tem conta?</Text>
+            <DsText style={styles.text}>Já tem conta?</DsText>
             <AuthLink
               label="Entrar"
               onPress={() => router.replace('/login')}
@@ -281,18 +273,18 @@ export default function SignupScreen() {
               task.setMessage(null);
             }}
           />
-          <OtpInput value={code} onChange={setCode} disabled={busy} />
-          <Text style={localStyles.otpHint}>
+          <DsOtpInput value={code} onChange={setCode} disabled={busy} />
+          <DsText role="caption" style={localStyles.otpHint}>
             O código expira em 10 minutos. Solicitar outro código substitui o
             anterior.
-          </Text>
+          </DsText>
           <AuthAction
             label={task.pending ? 'Verificando...' : 'Verificar e criar conta'}
             disabled={busy || code.length !== 6}
             onPress={submit}
           />
           <View style={localStyles.resend}>
-            <Text style={styles.text}>Não recebeu o código?</Text>
+            <DsText style={styles.text}>Não recebeu o código?</DsText>
             <AuthLink label="Reenviar" disabled={busy} onPress={resendCode} />
           </View>
         </>
@@ -303,11 +295,6 @@ export default function SignupScreen() {
 
 const localStyles = StyleSheet.create({
   field: { gap: 8 },
-  label: {
-    fontSize: 14,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.foreground,
-  },
   birthday: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -317,48 +304,20 @@ const localStyles = StyleSheet.create({
   day: {
     flexBasis: 60,
     flexGrow: 1,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 16,
-    minHeight: 48,
+    borderWidth: 1.5,
+    borderColor: tokens.colors.controlBorder,
+    borderRadius: tokens.radius.control,
+    minHeight: tokens.controlMinHeight,
     paddingHorizontal: 10,
     paddingVertical: 12,
     textAlign: 'center',
-    fontSize: 14,
-    fontFamily: theme.fonts.body,
-    color: theme.colors.foreground,
-    backgroundColor: theme.colors.background,
+    fontSize: 16,
+    fontFamily: tokens.fonts.body,
+    color: tokens.colors.text,
+    backgroundColor: '#FFFFFF',
   },
   month: { flexBasis: 112, flexGrow: 3 },
   year: { flexBasis: 88, flexGrow: 1 },
-  consent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    minHeight: 44,
-    gap: 12,
-    paddingVertical: 8,
-  },
-  checkbox: {
-    height: 18,
-    width: 18,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  checked: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  consentText: {
-    flex: 1,
-    color: theme.colors.muted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
   login: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -375,7 +334,7 @@ const localStyles = StyleSheet.create({
   },
   otpHint: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: tokens.colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,
   },

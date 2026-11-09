@@ -1,42 +1,62 @@
-import { BottomSheet } from '../../components/bottom-sheet/bottom-sheet';
-import { BrandButton } from '../../components/brand-button/brand-button';
-import { Text } from '../../components/brand-text/brand-text';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ApiError, useAuthenticatedApi } from '../../data/hooks';
+import {
+  DsButton,
+  DsConfirmSheet,
+  DsFeedback,
+  DsField,
+  DsSheet,
+  DsText,
+  tokens,
+} from '../../design-system';
 import { useSession } from '../../session/provider';
 import {
-  resolveAppearance,
-  type ComponentAppearance,
-  type ResolvedAppearance,
-} from '../../components/component-appearance';
-import {
+  DELETION_PHRASE,
   canDeleteAccount,
   createDeletionConfirmation,
+  deletionBody,
+  deletionErrorMessage,
 } from './deletion-confirmation';
+import type { DeletionMode } from './deletion-confirmation';
 
-export function DeleteAccount({
-  appearance,
-}: { appearance?: ComponentAppearance } = {}) {
-  const theme = resolveAppearance(appearance);
-  const styles = createStyles(theme);
+interface DeleteAccountSheetProps {
+  visible: boolean;
+  hasPassword: boolean;
+  email: string;
+  onClose: () => void;
+}
+
+export const DeleteAccountSheet = ({
+  visible,
+  hasPassword,
+  email,
+  onClose,
+}: DeleteAccountSheetProps) => {
   const { controller, state } = useSession();
   const { request } = useAuthenticatedApi();
   const scope = state.status === 'authenticated' ? state.identity : null;
-  const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState('');
+  const [mode, setMode] = useState<DeletionMode>(
+    hasPassword ? 'password' : 'code',
+  );
+  const [secret, setSecret] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [pending, setPending] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [asking, setAsking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const inputs = useRef({ password: '', confirmation: '' });
+  const [blockedByGroups, setBlockedByGroups] = useState(false);
+  const inputs = useRef({ secret: '', confirmation: '' });
   const focused = useRef(false);
   const activeRequest = useRef<AbortController | null>(null);
+  const ticketRef = useRef<object | null>(null);
   const gate = useRef(createDeletionConfirmation<typeof scope>());
 
   const clearInputs = useCallback(() => {
-    inputs.current = { password: '', confirmation: '' };
-    setPassword('');
+    inputs.current = { secret: '', confirmation: '' };
+    setSecret('');
     setConfirmation('');
   }, []);
 
@@ -46,7 +66,7 @@ export function DeleteAccount({
       setMessage(null);
       return () => {
         focused.current = false;
-        setOpen(false);
+        setAsking(false);
         gate.current.invalidate();
         activeRequest.current?.abort();
         activeRequest.current = null;
@@ -61,6 +81,41 @@ export function DeleteAccount({
     return snapshot.status === 'authenticated' ? snapshot.identity : null;
   }
 
+  function reset() {
+    gate.current.invalidate();
+    ticketRef.current = null;
+    clearInputs();
+    setMessage(null);
+    setBlockedByGroups(false);
+    setAsking(false);
+    setCodeSent(false);
+    setMode(hasPassword ? 'password' : 'code');
+  }
+
+  function close() {
+    reset();
+    onClose();
+  }
+
+  async function sendCode() {
+    if (sending || pending) return;
+    setSending(true);
+    setMessage(null);
+    try {
+      await request('/api/v1/mobile/me/deletion-code', { method: 'POST' });
+      if (focused.current) setCodeSent(true);
+    } catch (cause) {
+      if (focused.current)
+        setMessage(
+          cause instanceof ApiError && cause.status === 429
+            ? deletionErrorMessage(429, 'code')
+            : 'Não foi possível enviar o código agora. Tente novamente.',
+        );
+    } finally {
+      if (focused.current) setSending(false);
+    }
+  }
+
   async function removeAccount(ticket: object) {
     if (
       !focused.current ||
@@ -68,15 +123,14 @@ export function DeleteAccount({
       !gate.current.submit(ticket, currentScope())
     )
       return;
-    if (
-      !canDeleteAccount(inputs.current.password, inputs.current.confirmation)
-    ) {
+    const credential = { mode, value: inputs.current.secret };
+    if (!canDeleteAccount(credential, inputs.current.confirmation)) {
       gate.current.invalidate();
       clearInputs();
       setPending(false);
       return;
     }
-    const body = { password: inputs.current.password, confirmation: 'DELETE' };
+    const body = deletionBody(credential);
     clearInputs();
     const abort = new AbortController();
     activeRequest.current = abort;
@@ -99,15 +153,9 @@ export function DeleteAccount({
         !abort.signal.aborted &&
         gate.current.current(ticket, currentScope())
       ) {
-        setMessage(
-          cause instanceof ApiError && cause.status === 403
-            ? 'Não foi possível confirmar sua senha atual. Digite-a novamente. Esta ação exige uma conta com senha.'
-            : cause instanceof ApiError && cause.status === 409
-              ? 'Você é responsável por um ou mais grupos. Exclua seus grupos antes de excluir a conta. Sua conta não foi excluída.'
-              : cause instanceof ApiError
-                ? cause.message
-                : 'Não foi possível excluir sua conta. Tente novamente.',
-        );
+        const status = cause instanceof ApiError ? cause.status : undefined;
+        setBlockedByGroups(status === 409);
+        setMessage(deletionErrorMessage(status, mode));
       }
     } finally {
       // An older request must not release a newer account's pending operation.
@@ -119,169 +167,181 @@ export function DeleteAccount({
     }
   }
 
-  function confirm() {
+  function askToConfirm() {
     if (
       !focused.current ||
       !scope ||
       currentScope() !== scope ||
-      !canDeleteAccount(inputs.current.password, inputs.current.confirmation)
+      !canDeleteAccount(
+        { mode, value: inputs.current.secret },
+        inputs.current.confirmation,
+      )
     )
       return;
     const ticket = gate.current.open(scope);
     if (!ticket) return;
+    ticketRef.current = ticket;
     setPending(true);
     setMessage(null);
-    const cancel = () => {
-      if (!gate.current.current(ticket, currentScope())) return;
-      if (!gate.current.cancel(ticket)) return;
-      clearInputs();
-      setPending(false);
-    };
-    Alert.alert(
-      'Excluir sua conta permanentemente?',
-      'Sua conta, seus dados pessoais e suas participações em grupos serão excluídos permanentemente. Esta ação não pode ser desfeita. Exclua primeiro os grupos que você criou.',
-      [
-        { text: 'Cancelar', style: 'cancel', onPress: cancel },
-        {
-          text: 'Excluir conta permanentemente',
-          style: 'destructive',
-          onPress: () => void removeAccount(ticket),
-        },
-      ],
-      { cancelable: true, onDismiss: cancel },
-    );
+    setAsking(true);
   }
 
-  const disabled = pending || !canDeleteAccount(password, confirmation);
-  return (
-    <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Excluir conta"
-        onPress={() => {
-          setMessage(null);
-          setOpen(true);
-        }}
-        style={styles.link}
-      >
-        <Text style={styles.linkText}>Excluir conta</Text>
-      </Pressable>
-      <BottomSheet
-        appearance={appearance}
-        title="Excluir conta"
-        visible={open}
-        pending={pending}
-        onClose={() => {
-          gate.current.invalidate();
-          clearInputs();
-          setMessage(null);
-          setOpen(false);
-        }}
-      >
-        <View style={styles.section}>
-          <Text style={styles.text}>
-            Exclua permanentemente sua conta, seus dados pessoais e suas
-            participações em grupos. Esta ação não pode ser desfeita. Antes,
-            exclua os grupos que você criou.
-          </Text>
-          <Text style={styles.hint}>
-            Informe sua senha atual e digite DELETE exatamente para continuar.
-          </Text>
-          <TextInput
-            accessibilityLabel="Senha atual para excluir sua conta"
-            value={password}
-            onChangeText={(value) => {
-              inputs.current.password = value;
-              setPassword(value);
-              setMessage(null);
-            }}
-            secureTextEntry
-            textContentType="password"
-            autoComplete="current-password"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!pending}
-            placeholder="Senha atual"
-            placeholderTextColor={theme.colors.muted}
-            style={styles.input}
-          />
-          <TextInput
-            accessibilityLabel="Digite DELETE para confirmar a exclusão da conta"
-            value={confirmation}
-            onChangeText={(value) => {
-              inputs.current.confirmation = value;
-              setConfirmation(value);
-              setMessage(null);
-            }}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            editable={!pending}
-            placeholder="Digite DELETE"
-            placeholderTextColor={theme.colors.muted}
-            style={styles.input}
-            returnKeyType="done"
-            onSubmitEditing={confirm}
-          />
-          <BrandButton
-            appearance={appearance}
-            label={
-              pending ? 'Excluindo conta...' : 'Excluir conta permanentemente'
-            }
-            variant="destructive"
-            disabled={disabled}
-            pending={pending}
-            onPress={confirm}
-          />
-          {message && (
-            <Text accessibilityRole="alert" style={styles.text}>
-              {message}
-            </Text>
-          )}
-        </View>
-      </BottomSheet>
-    </>
-  );
-}
+  function cancelAsk() {
+    const ticket = ticketRef.current;
+    setAsking(false);
+    if (!ticket || !gate.current.current(ticket, currentScope())) return;
+    if (!gate.current.cancel(ticket)) return;
+    clearInputs();
+    setPending(false);
+  }
 
-const createStyles = (theme: ResolvedAppearance) =>
-  StyleSheet.create({
-    section: { gap: 16 },
-    text: {
-      fontFamily: theme.fonts.body,
-      fontWeight: theme.fontWeights.body,
-      fontSize: 14,
-      color: theme.colors.muted,
-      lineHeight: 21,
-    },
-    hint: {
-      fontFamily: theme.fonts.body,
-      fontWeight: theme.fontWeights.body,
-      fontSize: 12,
-      color: theme.colors.muted,
-      lineHeight: 18,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: theme.colors.controlBorder,
-      borderRadius: theme.controlRadius,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      minHeight: theme.controlMinHeight,
-      fontSize: 14,
-      fontFamily: theme.fonts.body,
-      fontWeight: theme.fontWeights.body,
-      color: theme.colors.foreground,
-    },
-    link: {
-      minHeight: theme.controlMinHeight,
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-    },
-    linkText: {
-      fontFamily: theme.fonts.body,
-      fontWeight: theme.fontWeights.body,
-      fontSize: 14,
-      color: theme.colors.destructive,
-      textDecorationLine: 'underline',
-    },
-  });
+  const credential = { mode, value: secret };
+  const disabled = pending || !canDeleteAccount(credential, confirmation);
+
+  return (
+    <DsSheet
+      visible={visible}
+      title="Excluir conta"
+      pending={pending}
+      onClose={close}
+    >
+      <DsText style={styles.muted}>
+        Exclua permanentemente sua conta, seus dados pessoais e suas
+        participações em grupos. Esta ação não pode ser desfeita. Antes, exclua
+        os grupos que você criou.
+      </DsText>
+      <View style={styles.notice}>
+        <DsText role="caption" style={styles.noticeText}>
+          {mode === 'password'
+            ? `Informe sua senha atual e digite "${DELETION_PHRASE}" para continuar.`
+            : `Peça o código enviado para ${email} e digite "${DELETION_PHRASE}" para continuar.`}
+        </DsText>
+      </View>
+      {mode === 'password' ? (
+        <DsField
+          label="Senha atual"
+          accessibilityLabel="Senha atual para excluir sua conta"
+          placeholder="Senha atual"
+          value={secret}
+          onChangeText={(value) => {
+            inputs.current.secret = value;
+            setSecret(value);
+            setMessage(null);
+          }}
+          secureTextEntry
+          textContentType="password"
+          autoComplete="current-password"
+          autoCapitalize="none"
+          editable={!pending}
+        />
+      ) : (
+        <View style={styles.codeBlock}>
+          <DsButton
+            label={codeSent ? 'Enviar novo código' : 'Enviar código por e-mail'}
+            variant="outline"
+            pending={sending}
+            disabled={pending}
+            onPress={() => {
+              void sendCode();
+            }}
+          />
+          {codeSent && (
+            <DsText role="caption" style={styles.muted}>
+              Enviamos um código de 6 dígitos para {email}. Ele vale por 10
+              minutos.
+            </DsText>
+          )}
+          <DsField
+            label="Código de confirmação"
+            accessibilityLabel="Código de 6 dígitos enviado por e-mail"
+            placeholder="000000"
+            value={secret}
+            onChangeText={(value) => {
+              const digits = value.replace(/[^0-9]/g, '').slice(0, 6);
+              inputs.current.secret = digits;
+              setSecret(digits);
+              setMessage(null);
+            }}
+            keyboardType="number-pad"
+            maxLength={6}
+            editable={!pending}
+          />
+        </View>
+      )}
+      {hasPassword && (
+        <DsButton
+          variant="text"
+          label={
+            mode === 'password' ? 'Usar código por e-mail' : 'Usar minha senha'
+          }
+          disabled={pending}
+          onPress={() => {
+            inputs.current.secret = '';
+            setSecret('');
+            setMessage(null);
+            setMode(mode === 'password' ? 'code' : 'password');
+          }}
+        />
+      )}
+      <DsField
+        label="Confirmação"
+        accessibilityLabel={`Digite ${DELETION_PHRASE} para confirmar`}
+        placeholder={`Digite: ${DELETION_PHRASE}`}
+        value={confirmation}
+        onChangeText={(value) => {
+          inputs.current.confirmation = value;
+          setConfirmation(value);
+          setMessage(null);
+        }}
+        autoCapitalize="none"
+        editable={!pending}
+      />
+      {message && <DsFeedback tone="error" message={message} />}
+      {blockedByGroups && (
+        <DsButton
+          label="Ver meus grupos"
+          variant="outline"
+          onPress={() => {
+            close();
+            router.navigate('/(tabs)/groups');
+          }}
+        />
+      )}
+      <DsButton
+        label="Excluir conta permanentemente"
+        variant="destructive"
+        pending={pending}
+        disabled={disabled}
+        onPress={askToConfirm}
+      />
+      <DsConfirmSheet
+        visible={asking}
+        title="Excluir sua conta permanentemente?"
+        message="Sua conta, seus dados pessoais e suas participações em grupos serão excluídos permanentemente. Esta ação não pode ser desfeita."
+        confirmLabel="Excluir conta permanentemente"
+        pending={false}
+        onCancel={cancelAsk}
+        onConfirm={() => {
+          const ticket = ticketRef.current;
+          setAsking(false);
+          if (ticket) void removeAccount(ticket);
+        }}
+      />
+    </DsSheet>
+  );
+};
+
+const styles = StyleSheet.create({
+  muted: { color: tokens.colors.textMuted },
+  notice: {
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: tokens.colors.dangerSurface,
+  },
+  noticeText: {
+    color: tokens.colors.danger,
+    fontFamily: tokens.fonts.bold,
+    fontWeight: '600',
+  },
+  codeBlock: { gap: 8 },
+});

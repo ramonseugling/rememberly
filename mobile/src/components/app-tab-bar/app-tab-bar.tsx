@@ -26,7 +26,10 @@ export const AppTabBar = ({
         {items.map(({ name, label, Icon }) => {
           const selected =
             active === name ||
-            (name === 'profile' && ['occasions', 'legal'].includes(active));
+            (name === 'profile' &&
+              ['occasions', 'legal', 'notifications', 'account'].includes(
+                active,
+              ));
           return (
             <Pressable
               key={name}

@@ -43,7 +43,7 @@ export const GroupEventsTab = ({
           Próximo evento
         </DsText>
         <View style={styles.row}>
-          <DsAvatar name={next.name} size={48} />
+          <DsAvatar name={next.name} size={48} photoUri={next.avatar_url} />
           <View style={styles.grow}>
             <DsText role="section" style={styles.nextName}>
               {next.name}
@@ -72,6 +72,7 @@ export const GroupEventsTab = ({
                 key={member.id}
                 name={member.name}
                 size={48}
+                photoUri={member.avatar_url}
                 style={[styles.ring, index > 0 && styles.overlap]}
               />
             ))}
@@ -93,7 +94,11 @@ export const GroupEventsTab = ({
           <View key={member.id}>
             {index > 0 && <View style={styles.divider} />}
             <View style={styles.listRow}>
-              <DsAvatar name={member.name} size={36} />
+              <DsAvatar
+                name={member.name}
+                size={36}
+                photoUri={member.avatar_url}
+              />
               <View style={styles.grow}>
                 <DsText role="label">
                   {member.name}

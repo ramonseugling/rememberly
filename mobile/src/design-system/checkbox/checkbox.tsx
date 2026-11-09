@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { DsText } from '../text/text';
 import { tokens } from '../tokens';
 
@@ -23,19 +24,18 @@ export const DsCheckbox = ({
     onPress={() => onChange(!checked)}
     style={[styles.row, disabled && { opacity: 0.45 }]}
   >
-    <View
-      style={[
-        styles.box,
-        checked && {
-          backgroundColor: tokens.colors.primary,
-          borderColor: tokens.colors.primary,
-        },
-      ]}
-    >
-      {checked && (
+    {checked ? (
+      <LinearGradient
+        colors={tokens.actionGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.box, styles.checked]}
+      >
         <Check accessible={false} color={tokens.colors.onPrimary} size={16} />
-      )}
-    </View>
+      </LinearGradient>
+    ) : (
+      <View style={styles.box} />
+    )}
     <DsText style={{ flex: 1 }}>{label}</DsText>
   </Pressable>
 );
@@ -48,13 +48,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   box: {
-    height: 22,
-    width: 22,
-    borderRadius: 6,
+    height: 24,
+    width: 24,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: tokens.colors.controlBorder,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: tokens.colors.surface,
   },
+  checked: { borderWidth: 0 },
 });

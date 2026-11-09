@@ -3,6 +3,7 @@ import type { SessionTransport } from '../session/api.ts';
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
+  rawBody?: { data: Uint8Array; contentType: string };
   signal?: AbortSignal;
 }
 
@@ -74,7 +75,9 @@ export function createAuthenticatedTransport(
     const method = options.method ?? 'GET';
     if (
       !['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].includes(method) ||
-      (method === 'GET' && options.body !== undefined)
+      (method === 'GET' &&
+        (options.body !== undefined || options.rawBody !== undefined)) ||
+      (options.body !== undefined && options.rawBody !== undefined)
     ) {
       throw new ApiError('network');
     }
@@ -92,13 +95,17 @@ export function createAuthenticatedTransport(
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
-          ...(options.body === undefined
-            ? {}
-            : { 'Content-Type': 'application/json' }),
+          ...(options.rawBody
+            ? { 'Content-Type': options.rawBody.contentType }
+            : options.body === undefined
+              ? {}
+              : { 'Content-Type': 'application/json' }),
         },
-        ...(options.body === undefined
-          ? {}
-          : { body: JSON.stringify(options.body) }),
+        ...(options.rawBody
+          ? { body: options.rawBody.data as unknown as BodyInit }
+          : options.body === undefined
+            ? {}
+            : { body: JSON.stringify(options.body) }),
       });
       if (abort.signal.aborted) {
         throw new ApiError(options.signal?.aborted ? 'cancelled' : 'network');

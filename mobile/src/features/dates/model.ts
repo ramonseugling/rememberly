@@ -27,6 +27,7 @@ export interface AgendaItem {
   next_date: string;
   days_until: number;
   is_next_year: boolean;
+  avatar_url?: string | null;
   can_edit: boolean;
 }
 

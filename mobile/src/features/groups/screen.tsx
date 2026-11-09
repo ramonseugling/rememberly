@@ -31,6 +31,8 @@ import { GroupSettingsTab } from './group-settings-tab';
 import { CreateGroupSheet } from './create-group-sheet';
 import { GroupRow } from './group-row';
 import { GroupsEmpty } from './groups-empty';
+import { PhotoSheet } from '../photo/photo-sheet';
+import { usePhotoUpload } from '../photo/use-photo-upload';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { resourceId } from '../../navigation/intents';
@@ -94,6 +96,8 @@ function GroupContent({ userId }: { userId: string }) {
   const detail = useResource<Group>(path);
   const members = useResource<GroupMember[]>(path ? `${path}/members` : null);
   const group = detail.data;
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const photo = usePhotoUpload(`${path ?? ''}/photo`, refresh);
 
   useEffect(() => {
     if (params.overview === '1') {
@@ -345,6 +349,11 @@ function GroupContent({ userId }: { userId: string }) {
                     subtitle={`${group.member_count} ${group.member_count === 1 ? 'membro' : 'membros'}${createdDate ? ` · ${creatorLabel} em ${createdDate}` : ''}`}
                     disabled={pending}
                     onInvite={() => share(group)}
+                    onEditPhoto={
+                      group.role === 'owner'
+                        ? () => setPhotoOpen(true)
+                        : undefined
+                    }
                   />
                   <DsSegmentedTabs
                     tabs={detailTabs}
@@ -495,6 +504,28 @@ function GroupContent({ userId }: { userId: string }) {
         }}
       />
       {promptElement}
+      <PhotoSheet
+        visible={photoOpen}
+        title="Foto do grupo"
+        name={group?.name ?? ''}
+        photoUri={group?.photo_url ?? null}
+        pending={photo.pending}
+        error={photo.error}
+        onChoose={(source) => {
+          void photo.choose(source).then((changed) => {
+            if (changed) setPhotoOpen(false);
+          });
+        }}
+        onRemove={() => {
+          void photo.remove().then((changed) => {
+            if (changed) setPhotoOpen(false);
+          });
+        }}
+        onClose={() => {
+          photo.clearError();
+          setPhotoOpen(false);
+        }}
+      />
       <DsConfirmSheet
         visible={!!confirmation}
         title={confirmation?.title ?? ''}

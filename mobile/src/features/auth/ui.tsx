@@ -1,4 +1,3 @@
-import { Text } from '../../components/brand-text/brand-text';
 import { fetch as expoFetch } from 'expo/fetch';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -19,7 +18,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react-native';
 import { apiConfiguration } from '../../config/environment';
-import { theme } from '../../theme';
+import {
+  DsBrandHeader,
+  DsButton,
+  DsFeedback,
+  DsText,
+  tokens,
+} from '../../design-system';
 import { createPublicAuthApi } from './api';
 import { googleNeedsBuild } from './google-native';
 
@@ -81,19 +86,18 @@ interface AuthPageProps {
   subtitle?: string;
   pending: boolean;
   message: string | null;
+  compactBrand?: boolean;
 }
 export function AuthPage({
   title,
   subtitle,
   pending,
   message,
+  compactBrand,
   children,
 }: PropsWithChildren<AuthPageProps>) {
   return (
-    <LinearGradient
-      colors={['hsl(340, 60%, 98%)', 'hsl(25, 80%, 98%)']}
-      style={styles.safe}
-    >
+    <LinearGradient colors={tokens.backgroundGradient} style={styles.safe}>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           style={styles.safe}
@@ -103,24 +107,23 @@ export function AuthPage({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.content}
           >
+            <DsBrandHeader compact={compactBrand} />
             <View style={styles.card}>
               <View style={styles.header}>
-                <Text accessibilityRole="header" style={styles.title}>
+                <DsText role="title" style={styles.title}>
                   {title}
-                </Text>
-                {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                </DsText>
+                {subtitle && (
+                  <DsText role="caption" style={styles.subtitle}>
+                    {subtitle}
+                  </DsText>
+                )}
               </View>
-              {message && (
-                <View style={styles.feedback}>
-                  <Text accessibilityRole="alert" style={styles.error}>
-                    {message}
-                  </Text>
-                </View>
-              )}
+              {message && <DsFeedback tone="error" message={message} />}
               {pending && (
                 <ActivityIndicator
                   accessibilityLabel="Solicitação em andamento"
-                  color={theme.colors.primary}
+                  color={tokens.colors.brand}
                 />
               )}
               {children}
@@ -156,7 +159,7 @@ export function AuthField({
         : null;
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <DsText role="label">{label}</DsText>
       <View
         style={[
           styles.inputRow,
@@ -164,12 +167,12 @@ export function AuthField({
           !editable && { opacity: 0.6 },
         ]}
       >
-        {Icon && <Icon size={16} color={theme.colors.muted} />}
+        {Icon && <Icon size={18} color={tokens.colors.textMuted} />}
         <TextInput
           {...props}
           accessibilityLabel={props.accessibilityLabel ?? label}
           placeholder={props.placeholder ?? (password ? '••••••••' : undefined)}
-          placeholderTextColor={theme.colors.muted}
+          placeholderTextColor={tokens.colors.textMuted}
           autoCorrect={false}
           editable={editable}
           secureTextEntry={password && !visible}
@@ -192,9 +195,9 @@ export function AuthField({
             style={styles.eye}
           >
             {visible ? (
-              <EyeOff size={16} color={theme.colors.muted} />
+              <EyeOff size={18} color={tokens.colors.textMuted} />
             ) : (
-              <Eye size={16} color={theme.colors.muted} />
+              <Eye size={18} color={tokens.colors.textMuted} />
             )}
           </Pressable>
         )}
@@ -210,25 +213,12 @@ interface AuthActionProps {
 }
 export function AuthAction({ label, disabled, onPress }: AuthActionProps) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: !!disabled }}
+    <DsButton
+      label={label}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.action,
-        (disabled || pressed) && { opacity: disabled ? 0.4 : 0.8 },
-      ]}
-    >
-      <LinearGradient
-        colors={['hsl(340, 80%, 65%)', 'hsl(25, 90%, 65%)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.actionContent}
-      >
-        <Text style={styles.actionText}>{label}</Text>
-      </LinearGradient>
-    </Pressable>
+      style={styles.action}
+    />
   );
 }
 export function AuthLink({
@@ -256,7 +246,9 @@ export function AuthLink({
         disabled && { opacity: 0.4 },
       ]}
     >
-      <Text style={styles.linkText}>{label}</Text>
+      <DsText role="label" style={styles.linkText}>
+        {label}
+      </DsText>
     </Pressable>
   );
 }
@@ -293,19 +285,16 @@ export function AuthGoogleButton({
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </Svg>
-        <Text style={styles.googleText}>Continuar com Google</Text>
+        <DsText role="label" style={styles.googleText}>
+          Continuar com Google
+        </DsText>
       </Pressable>
       {googleNeedsBuild && (
-        <Text style={styles.hint}>
+        <DsText role="caption" style={styles.hint}>
           O login com Google não está disponível no Expo Go. Use uma versão de
           desenvolvimento instalada.
-        </Text>
+        </DsText>
       )}
-      <View style={styles.divider}>
-        <View style={styles.line} />
-        <Text style={styles.dividerText}>OU</Text>
-        <View style={styles.line} />
-      </View>
     </View>
   );
 }
@@ -318,56 +307,46 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 24,
   },
   card: {
     width: '100%',
     maxWidth: 448,
-    padding: 24,
-    gap: 20,
-    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    gap: 16,
+    borderRadius: tokens.radius.sheet,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.card,
-    boxShadow: '0 4px 20px hsla(340, 75%, 68%, 0.08)',
+    borderColor: tokens.colors.border,
+    backgroundColor: tokens.colors.surface,
+    boxShadow: tokens.shadows.card,
   },
-  header: { gap: 8, marginBottom: 0 },
-  title: {
-    color: theme.colors.foreground,
-    fontSize: 30,
-    lineHeight: 36,
-    fontFamily: theme.fonts.headingBold,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: theme.colors.muted,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  text: { color: theme.colors.muted, fontSize: 14, lineHeight: 21 },
-  hint: { color: theme.colors.muted, fontSize: 12, lineHeight: 18 },
-  label: { color: theme.colors.foreground, fontSize: 14 },
+  header: { gap: 6 },
+  title: { textAlign: 'center' },
+  subtitle: { color: tokens.colors.textMuted, textAlign: 'center' },
+  text: { color: tokens.colors.textMuted, fontSize: 14, lineHeight: 21 },
+  hint: { color: tokens.colors.textMuted },
   field: { gap: 6 },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    minHeight: 50,
-    borderColor: theme.colors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    backgroundColor: theme.colors.background,
+    gap: 10,
+    paddingHorizontal: 14,
+    minHeight: tokens.controlMinHeight,
+    borderColor: tokens.colors.controlBorder,
+    borderWidth: 1.5,
+    borderRadius: tokens.radius.control,
+    backgroundColor: '#FFFFFF',
   },
-  focused: { borderColor: theme.colors.primary },
+  focused: { borderColor: tokens.colors.primary },
   input: {
     flex: 1,
     minWidth: 0,
-    minHeight: 48,
-    paddingVertical: 12,
-    color: theme.colors.foreground,
+    minHeight: 44,
+    paddingVertical: 10,
+    color: tokens.colors.text,
     fontSize: 16,
-    fontFamily: theme.fonts.body,
+    fontFamily: tokens.fonts.body,
   },
   eye: {
     minWidth: 44,
@@ -376,58 +355,25 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: -12,
   },
-  feedback: {
-    backgroundColor: 'hsla(0, 84%, 60%, 0.06)',
-    borderRadius: 16,
-    padding: 12,
-  },
-  error: { color: theme.colors.destructive, fontSize: 14, lineHeight: 20 },
-  action: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    boxShadow: '0 6px 20px hsla(340, 75%, 68%, 0.12)',
-  },
-  actionContent: {
-    minHeight: 48,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionText: {
-    fontSize: 14,
-    fontFamily: theme.fonts.bold,
-    color: '#fff',
-    textAlign: 'center',
-  },
+  action: { minHeight: 52 },
   link: { minHeight: 44, justifyContent: 'center', maxWidth: '100%' },
   linkText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: theme.colors.primary,
+    color: tokens.colors.actionText,
     textAlign: 'center',
+    fontSize: 14,
   },
   googleSection: { gap: 12 },
   googleButton: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.background,
-    borderRadius: 16,
-    minHeight: 44,
+    borderWidth: 1.5,
+    borderColor: tokens.colors.border,
+    backgroundColor: '#FFFFFF',
+    borderRadius: tokens.radius.button,
+    minHeight: 52,
     paddingHorizontal: 16,
-    paddingVertical: 10,
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  googleText: { color: theme.colors.foreground, fontSize: 14, flexShrink: 1 },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-  },
-  line: { height: 1, backgroundColor: theme.colors.border, flex: 1 },
-  dividerText: { color: theme.colors.muted, fontSize: 12 },
+  googleText: { flexShrink: 1 },
 });

@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import {
+  Bell,
   CalendarHeart,
   ScrollText,
-  ChevronDown,
-  ChevronUp,
-  LogOut,
   Settings2,
 } from 'lucide-react-native';
 import {
@@ -26,7 +24,6 @@ import {
   DsFeedback,
   DsAvatar,
   DsListCard,
-  appearance as pilotAppearance,
   tokens,
 } from '../../src/design-system';
 import { isDesignCatalogEnabled } from '../../src/design-system/availability';
@@ -43,10 +40,9 @@ import {
   profileHasChanges,
   profileMonths,
 } from '../../src/features/account/profile-presentation';
-import { SessionCleanup } from '../../src/features/account/session-cleanup';
-import { DeleteAccount } from '../../src/features/account/delete-account';
-import { NotificationSettings } from '../../src/features/notifications';
 import { useSession } from '../../src/session/provider';
+import { PhotoSheet } from '../../src/features/photo/photo-sheet';
+import { usePhotoUpload } from '../../src/features/photo/use-photo-upload';
 
 interface ProfileEditor {
   user: ProfileUser;
@@ -73,13 +69,12 @@ function ProfileContent() {
   );
   const [editor, setEditor] = useState<ProfileEditor | null>(null);
   const [saving, setSaving] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const photo = usePhotoUpload('/api/v1/users/avatar', reload);
   const [message, setMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const focused = useRef(false);
   const action = useRef<AbortController | null>(null);
-  const signingOut = useRef(false);
 
   useEffect(() => {
     if (data)
@@ -98,9 +93,7 @@ function ProfileContent() {
         focused.current = false;
         action.current?.abort();
         action.current = null;
-        signingOut.current = false;
         setSaving(false);
-        setLoggingOut(false);
         setMessage(null);
         setSaveError(null);
       };
@@ -117,7 +110,7 @@ function ProfileContent() {
     );
   }
   function change(field: keyof ProfileForm, value: string) {
-    if (action.current || signingOut.current) return;
+    if (action.current) return;
     setEditor(
       (current) =>
         current && {
@@ -135,7 +128,6 @@ function ProfileContent() {
       !scope ||
       !focused.current ||
       action.current ||
-      signingOut.current ||
       !profileHasChanges(editor.form, editor.user)
     )
       return;
@@ -177,20 +169,7 @@ function ProfileContent() {
       }
     }
   }
-  async function logout() {
-    if (signingOut.current || action.current || !focused.current) return;
-    signingOut.current = true;
-    setLoggingOut(true);
-    try {
-      await controller.logout();
-    } finally {
-      if (focused.current) {
-        signingOut.current = false;
-        setLoggingOut(false);
-      }
-    }
-  }
-  const pending = saving || loggingOut;
+  const pending = saving;
   const dirty = editor ? profileHasChanges(editor.form, editor.user) : false;
 
   return (
@@ -232,7 +211,13 @@ function ProfileContent() {
           {data && editor && (
             <>
               <View style={styles.identity}>
-                <DsAvatar name={editor.user.name} size={80} />
+                <DsAvatar
+                  name={editor.user.name}
+                  size={80}
+                  photoUri={editor.user.avatar_url}
+                  onEdit={() => setPhotoOpen(true)}
+                  editLabel="Editar foto de perfil"
+                />
                 <View style={styles.identityText}>
                   <DsText role="section" style={styles.identityName}>
                     {editor.user.name}
@@ -300,7 +285,7 @@ function ProfileContent() {
                 <DsButton
                   label={saving ? 'Salvando...' : 'Salvar alterações'}
                   pending={saving}
-                  disabled={!dirty || loggingOut}
+                  disabled={!dirty}
                   onPress={() => {
                     void save();
                   }}
@@ -317,6 +302,12 @@ function ProfileContent() {
             onPress={() => router.navigate('/(tabs)/occasions')}
           />
           <DsListCard
+            title="Notificações"
+            subtitle="Push e e-mail: escolha como ser avisado"
+            icon={<Bell size={22} color={tokens.colors.brand} />}
+            onPress={() => router.navigate('/(tabs)/notifications')}
+          />
+          <DsListCard
             title="Termos e privacidade"
             subtitle="Termos de uso e política de privacidade"
             icon={<ScrollText size={22} color={tokens.colors.brand} />}
@@ -327,43 +318,8 @@ function ProfileContent() {
             subtitle="Sair da conta e outras opções"
             icon={<Settings2 size={22} color={tokens.colors.textMuted} />}
             iconTone="neutral"
-            accessibilityState={{ expanded }}
-            onPress={() => setExpanded((value) => !value)}
-            trailing={
-              expanded ? (
-                <ChevronUp size={20} color={tokens.colors.textMuted} />
-              ) : (
-                <ChevronDown size={20} color={tokens.colors.textMuted} />
-              )
-            }
+            onPress={() => router.navigate('/(tabs)/account')}
           />
-          {expanded && (
-            <View style={styles.secondary}>
-              <DsCard style={styles.logoutCard}>
-                <View style={styles.field}>
-                  <DsText role="label">Sair da conta</DsText>
-                  <DsText role="caption" style={styles.muted}>
-                    Você será desconectado deste dispositivo. Pode entrar de
-                    novo a qualquer momento.
-                  </DsText>
-                </View>
-                <DsButton
-                  label={loggingOut ? 'Saindo...' : 'Sair da conta'}
-                  variant="destructive"
-                  pending={loggingOut}
-                  disabled={saving}
-                  onPress={() => {
-                    void logout();
-                  }}
-                  icon={<LogOut size={18} color={tokens.colors.danger} />}
-                  style={styles.save}
-                />
-              </DsCard>
-              <SessionCleanup appearance={pilotAppearance} />
-              <NotificationSettings appearance={pilotAppearance} />
-              <DeleteAccount appearance={pilotAppearance} />
-            </View>
-          )}
           {isDesignCatalogEnabled(apiConfiguration.environment, __DEV__) && (
             <DsButton
               label="Catálogo do design system"
@@ -373,6 +329,28 @@ function ProfileContent() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <PhotoSheet
+        visible={photoOpen}
+        title="Foto de perfil"
+        name={editor?.user.name ?? ''}
+        photoUri={editor?.user.avatar_url ?? null}
+        pending={photo.pending}
+        error={photo.error}
+        onChoose={(source) => {
+          void photo.choose(source).then((changed) => {
+            if (changed) setPhotoOpen(false);
+          });
+        }}
+        onRemove={() => {
+          void photo.remove().then((changed) => {
+            if (changed) setPhotoOpen(false);
+          });
+        }}
+        onClose={() => {
+          photo.clearError();
+          setPhotoOpen(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -409,6 +387,4 @@ const styles = StyleSheet.create({
   year: { flexBasis: 88, flexGrow: 1 },
   centeredInput: { textAlign: 'center' },
   save: { alignSelf: 'stretch', minHeight: 52 },
-  logoutCard: { gap: 12, padding: 16, borderRadius: 16 },
-  secondary: { gap: 16 },
 });

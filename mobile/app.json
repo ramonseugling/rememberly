@@ -16,6 +16,14 @@
       "expo-router",
       "expo-secure-store",
       "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Rememberly acessa suas fotos para você escolher a foto do perfil e dos grupos.",
+          "cameraPermission": "O Rememberly usa a câmera para você tirar a foto do perfil e dos grupos.",
+          "microphonePermission": false
+        }
+      ],
       "expo-dev-client"
     ],
     "experiments": {

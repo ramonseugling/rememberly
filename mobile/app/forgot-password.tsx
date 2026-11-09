@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '../src/components/brand-text/brand-text';
+import { DsText, tokens } from '../src/design-system';
 import { emailError } from '../src/features/auth/api';
 import { googleNeedsBuild } from '../src/features/auth/google-native';
 import {
@@ -12,7 +12,6 @@ import {
   publicAuth,
   useAuthTask,
 } from '../src/features/auth/ui';
-import { theme } from '../src/theme';
 
 export default function ForgotPasswordScreen() {
   const task = useAuthTask();
@@ -40,14 +39,14 @@ export default function ForgotPasswordScreen() {
     >
       {result ? (
         <View style={styles.feedback}>
-          <Text accessible={false} style={styles.emoji}>
+          <DsText accessible={false} style={styles.emoji}>
             {result === 'sent' ? '📬' : '🔐'}
-          </Text>
-          <Text style={styles.text}>
+          </DsText>
+          <DsText style={styles.text}>
             {result === 'sent'
               ? 'Pode levar alguns minutos. Verifique também a caixa de spam.'
               : 'Esta conta foi criada usando o Google e não possui senha. Use a opção Continuar com Google na tela de login.'}
-          </Text>
+          </DsText>
           {result === 'google' && (
             <>
               <AuthAction
@@ -56,10 +55,10 @@ export default function ForgotPasswordScreen() {
                 onPress={() => router.replace('/login')}
               />
               {googleNeedsBuild && (
-                <Text style={styles.text}>
+                <DsText style={styles.text}>
                   No Expo Go, o login com Google requer uma versão de
                   desenvolvimento instalada.
-                </Text>
+                </DsText>
               )}
             </>
           )}
@@ -109,7 +108,7 @@ export default function ForgotPasswordScreen() {
             }}
           />
           <View style={styles.footer}>
-            <Text style={styles.text}>Lembrou a senha?</Text>
+            <DsText style={styles.text}>Lembrou a senha?</DsText>
             <AuthLink
               label="Entrar"
               disabled={task.pending}
@@ -127,7 +126,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 48, textAlign: 'center' },
   text: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: tokens.colors.textMuted,
     lineHeight: 20,
     textAlign: 'center',
   },

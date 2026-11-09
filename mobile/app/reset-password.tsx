@@ -1,7 +1,7 @@
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '../src/components/brand-text/brand-text';
+import { DsText, tokens } from '../src/design-system';
 import { resetToken } from '../src/navigation/intents';
 import { passwordError } from '../src/features/auth/api';
 import {
@@ -12,7 +12,6 @@ import {
   publicAuth,
   useAuthTask,
 } from '../src/features/auth/ui';
-import { theme } from '../src/theme';
 
 export default function ResetPasswordScreen() {
   const params = useLocalSearchParams<{ token?: string | string[] }>();
@@ -71,9 +70,9 @@ export default function ResetPasswordScreen() {
     >
       {done ? (
         <View style={styles.feedback}>
-          <Text accessible={false} style={styles.emoji}>
+          <DsText accessible={false} style={styles.emoji}>
             ✅
-          </Text>
+          </DsText>
           <AuthAction
             label="Voltar para o login"
             onPress={() => router.replace('/login')}
@@ -81,10 +80,12 @@ export default function ResetPasswordScreen() {
         </View>
       ) : !showForm ? (
         <View style={styles.feedback}>
-          <Text accessible={false} style={styles.emoji}>
+          <DsText accessible={false} style={styles.emoji}>
             ⚠️
-          </Text>
-          <Text style={styles.text}>Solicite um novo link de redefinição.</Text>
+          </DsText>
+          <DsText style={styles.text}>
+            Solicite um novo link de redefinição.
+          </DsText>
           <AuthAction
             label="Solicitar novo link"
             disabled={task.pending}
@@ -108,10 +109,10 @@ export default function ResetPasswordScreen() {
         <>
           {!linkToken && (
             <View style={styles.manual}>
-              <Text style={styles.manualText}>
+              <DsText style={styles.manualText}>
                 Cole o código que aparece após token= no link recebido por
                 e-mail.
-              </Text>
+              </DsText>
               <AuthField
                 label="Código de redefinição"
                 value={token}
@@ -198,18 +199,18 @@ const styles = StyleSheet.create({
   feedback: { gap: 16 },
   emoji: { fontSize: 48, textAlign: 'center' },
   text: {
-    color: theme.colors.muted,
+    color: tokens.colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
   },
   manual: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: tokens.colors.background,
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: tokens.colors.border,
     borderRadius: 16,
   },
-  manualText: { color: theme.colors.muted, fontSize: 14, lineHeight: 20 },
+  manualText: { color: tokens.colors.textMuted, fontSize: 14, lineHeight: 20 },
 });

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '../src/components/brand-text/brand-text';
+import { DsText } from '../src/design-system';
 import { useSession } from '../src/session/provider';
 import { authorizeGoogle } from '../src/features/auth/google-native';
 import { emailError } from '../src/features/auth/api';
@@ -51,11 +51,11 @@ export default function LoginScreen() {
       message={validation ?? state.message}
     >
       {busy ? (
-        <Text accessibilityLiveRegion="polite" style={local.centered}>
+        <DsText accessibilityLiveRegion="polite" style={local.centered}>
           {state.status === 'restoring'
             ? 'Verificando sua sessão...'
             : 'Entrando...'}
-        </Text>
+        </DsText>
       ) : state.status === 'unavailable' ? (
         <>
           <AuthAction
@@ -122,7 +122,7 @@ export default function LoginScreen() {
             disabled={!email.trim() || !password}
           />
           <View style={local.footer}>
-            <Text style={styles.text}>Ainda não tem conta?</Text>
+            <DsText style={styles.text}>Ainda não tem conta?</DsText>
             <AuthLink
               label="Criar conta"
               onPress={() => router.push('/signup')}
