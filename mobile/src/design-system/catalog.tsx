@@ -226,8 +226,8 @@ export const DesignSystemCatalog = () => {
             <DsBadge label="Atenção" tone="danger" />
           </View>
           <View style={styles.badges}>
-            <DsDaysBadge days={0} farLabel="" />
-            <DsDaysBadge days={7} farLabel="" />
+            <DsDaysBadge days={0} />
+            <DsDaysBadge days={7} />
             <DsDaysBadge days={30} farLabel="15 dez" />
           </View>
           <View style={styles.badges}>

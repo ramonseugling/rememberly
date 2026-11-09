@@ -11,7 +11,7 @@ interface DsButtonProps {
   onPress: () => void;
   disabled?: boolean;
   pending?: boolean;
-  variant?: 'primary' | 'outline' | 'destructive' | 'text';
+  variant?: 'primary' | 'soft' | 'outline' | 'destructive' | 'text';
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }
@@ -59,6 +59,7 @@ export const DsButton = ({
       style={({ pressed }) => [
         styles.button,
         variant === 'outline' && styles.outline,
+        variant === 'soft' && styles.soft,
         variant === 'destructive' && styles.destructive,
         focused && styles.focused,
         pressed &&
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.outlineBorder,
     backgroundColor: tokens.colors.surfaceMuted,
   },
+  soft: { backgroundColor: tokens.colors.iconSurface },
   destructive: {
     borderWidth: 1,
     borderColor: tokens.colors.outlineBorder,

@@ -9,7 +9,7 @@ interface DsBadgeProps {
 export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
   const color =
     tone === 'today'
-      ? tokens.colors.todayText
+      ? tokens.colors.onPrimary
       : tone === 'soon'
         ? tokens.colors.primary
         : tone === 'primary'
@@ -26,7 +26,7 @@ export const DsBadge = ({ label, tone = 'neutral' }: DsBadgeProps) => {
         {
           backgroundColor:
             tone === 'today'
-              ? tokens.colors.todaySurface
+              ? tokens.colors.brand
               : tone === 'success'
                 ? tokens.colors.successSurface
                 : tone === 'danger'

@@ -9,7 +9,10 @@ interface DsEmptyStateProps {
   description: string;
   illustration?: ReactNode;
   actionLabel?: string;
+  actionIcon?: ReactNode;
+  actionVariant?: 'primary' | 'soft';
   onAction?: () => void;
+  compact?: boolean;
 }
 
 export const DsEmptyState = ({
@@ -17,12 +20,18 @@ export const DsEmptyState = ({
   description,
   illustration,
   actionLabel,
+  actionIcon,
+  actionVariant = 'primary',
   onAction,
+  compact,
 }: DsEmptyStateProps) => (
-  <View style={styles.card}>
+  <View style={[styles.card, compact && styles.compact]}>
     {illustration}
     <View style={styles.copy}>
-      <DsText role="section" style={styles.center}>
+      <DsText
+        role="section"
+        style={[styles.center, compact && styles.compactTitle]}
+      >
         {title}
       </DsText>
       <DsText style={[styles.center, { color: tokens.colors.textMuted }]}>
@@ -30,9 +39,18 @@ export const DsEmptyState = ({
       </DsText>
     </View>
     {actionLabel && onAction && (
-      <DsButton label={actionLabel} onPress={onAction} />
+      <DsButton
+        label={actionLabel}
+        icon={actionIcon}
+        variant={actionVariant}
+        onPress={onAction}
+      />
     )}
   </View>
+);
+
+export const DsEmptyIcon = ({ children }: { children: ReactNode }) => (
+  <View style={styles.icon}>{children}</View>
 );
 
 const styles = StyleSheet.create({
@@ -47,6 +65,22 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.surface,
     boxShadow: tokens.shadows.card,
   },
-  copy: { gap: 8 },
+  compact: {
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    gap: 12,
+    borderRadius: tokens.radius.card,
+  },
+  compactTitle: { fontSize: 18, lineHeight: 24 },
+  copy: { gap: 4 },
   center: { textAlign: 'center' },
+  icon: {
+    alignSelf: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.iconSurface,
+  },
 });

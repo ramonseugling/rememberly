@@ -11,7 +11,7 @@ test('avatar initial uses the first letter, uppercase, and handles empty names',
 });
 
 test('days badge picks tone and Portuguese label by distance to the event', () => {
-  assert.deepEqual(daysBadge(0, '15 dez'), { label: 'Hoje 🎉', tone: 'today' });
+  assert.deepEqual(daysBadge(0, '15 dez'), { label: 'Hoje', tone: 'today' });
   assert.deepEqual(daysBadge(1, '15 dez'), { label: 'Em 1 dia', tone: 'soon' });
   assert.deepEqual(daysBadge(7, '15 dez'), {
     label: 'Em 7 dias',
@@ -21,4 +21,5 @@ test('days badge picks tone and Portuguese label by distance to the event', () =
     label: '15 dez',
     tone: 'neutral',
   });
+  assert.deepEqual(daysBadge(12), { label: 'Em 12 dias', tone: 'neutral' });
 });

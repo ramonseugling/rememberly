@@ -1,5 +1,11 @@
 import { router } from 'expo-router';
-import { Cake, ChevronRight, Users } from 'lucide-react-native';
+import {
+  Cake,
+  CalendarPlus,
+  ChevronRight,
+  Plus,
+  Users,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ActivityIndicator,
@@ -14,7 +20,8 @@ import {
   DsAvatar,
   DsDaysBadge,
   DsButton,
-  DsCard,
+  DsEmptyIcon,
+  DsEmptyState,
   DsFeedback,
   DsRow,
   DsText,
@@ -70,16 +77,18 @@ export function HomeScreen() {
           <DsText role="section" style={styles.headingText}>
             Próximos eventos
           </DsText>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ver todos os eventos"
-            onPress={() => router.navigate('/(tabs)/events')}
-            style={styles.all}
-          >
-            <DsText role="caption" style={styles.link}>
-              Ver todos
-            </DsText>
-          </Pressable>
+          {birthdays.length > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver todos os eventos"
+              onPress={() => router.navigate('/(tabs)/events')}
+              style={styles.all}
+            >
+              <DsText role="caption" style={styles.link}>
+                Ver todos
+              </DsText>
+            </Pressable>
+          )}
         </View>
         {agenda.loading && (
           <ActivityIndicator
@@ -100,14 +109,19 @@ export function HomeScreen() {
           </>
         )}
         {!agenda.loading && !agenda.error && !birthdays.length && (
-          <DsCard>
-            <DsText>Nenhum aniversário próximo.</DsText>
-            <DsButton
-              label="Ver eventos"
-              variant="text"
-              onPress={() => router.navigate('/(tabs)/events')}
-            />
-          </DsCard>
+          <DsEmptyState
+            compact
+            illustration={
+              <DsEmptyIcon>
+                <CalendarPlus size={26} color={tokens.colors.brand} />
+              </DsEmptyIcon>
+            }
+            title="Nenhum evento por aqui"
+            description="Cadastre aniversários e datas importantes para receber um aviso no dia."
+            actionLabel="Adicionar evento"
+            actionIcon={<Plus size={20} color={tokens.colors.onPrimary} />}
+            onAction={() => router.navigate('/(tabs)/events')}
+          />
         )}
         <View style={styles.list}>
           {birthdays.map((item) => {
@@ -120,7 +134,7 @@ export function HomeScreen() {
                     <DsText role="label" style={{ flexShrink: 1 }}>
                       {item.title}
                     </DsText>
-                    <DsDaysBadge days={item.days_until} farLabel="" />
+                    <DsDaysBadge days={item.days_until} />
                   </View>
                   <View style={styles.type}>
                     <Cake size={14} color={tokens.colors.brand} />
@@ -169,16 +183,18 @@ export function HomeScreen() {
           <DsText role="section" style={styles.headingText}>
             Meus grupos
           </DsText>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ver todos os grupos"
-            onPress={allGroups}
-            style={styles.all}
-          >
-            <DsText role="caption" style={styles.link}>
-              Ver todos
-            </DsText>
-          </Pressable>
+          {!!groups.data?.length && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver todos os grupos"
+              onPress={allGroups}
+              style={styles.all}
+            >
+              <DsText role="caption" style={styles.link}>
+                Ver todos
+              </DsText>
+            </Pressable>
+          )}
         </View>
         {groups.loading && (
           <ActivityIndicator
@@ -199,14 +215,20 @@ export function HomeScreen() {
           </>
         )}
         {!groups.loading && !groups.error && !groups.data?.length && (
-          <DsCard>
-            <DsText>Você ainda não participa de grupos.</DsText>
-            <DsButton
-              label="Explorar grupos"
-              variant="text"
-              onPress={allGroups}
-            />
-          </DsCard>
+          <DsEmptyState
+            compact
+            illustration={
+              <DsEmptyIcon>
+                <Users size={26} color={tokens.colors.brand} />
+              </DsEmptyIcon>
+            }
+            title="Comemore junto de quem importa"
+            description="Crie um grupo e compartilhe aniversários com família, amigos ou colegas."
+            actionLabel="Criar meu primeiro grupo"
+            actionVariant="soft"
+            actionIcon={<Plus size={20} color={tokens.colors.actionText} />}
+            onAction={allGroups}
+          />
         )}
         <View style={styles.list}>
           {homeGroups(groups.data ?? []).map((group, index) => (
@@ -262,12 +284,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   headingText: { flex: 1 },
   all: { minHeight: 48, justifyContent: 'center', paddingLeft: 8 },
   link: { color: tokens.colors.actionText },
-  list: { gap: 6, marginBottom: 16 },
+  list: { gap: 8, marginBottom: 24 },
   event: {
     backgroundColor: tokens.colors.surface,
     borderRadius: tokens.radius.row,
@@ -276,7 +298,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     boxShadow: tokens.shadows.card,
   },
-  today: { borderColor: tokens.colors.outlineBorder },
+  today: { borderWidth: 0 },
   eventContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -311,7 +333,7 @@ const styles = StyleSheet.create({
   groupIcon: {
     width: 48,
     height: 48,
-    borderRadius: 18,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },

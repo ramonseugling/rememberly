@@ -3,7 +3,7 @@ import { daysBadge } from './days';
 
 interface DsDaysBadgeProps {
   days: number;
-  farLabel: string;
+  farLabel?: string;
 }
 
 export const DsDaysBadge = ({ days, farLabel }: DsDaysBadgeProps) => {
