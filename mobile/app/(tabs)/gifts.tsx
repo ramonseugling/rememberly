@@ -2,14 +2,14 @@ import { Gift } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DsText, tokens } from '../../src/design-system';
-export default function WishesScreen() {
+export default function GiftsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <DsText role="title">Desejos</DsText>
+      <DsText role="title">Presentes</DsText>
       <View style={styles.empty}>
         <Gift size={48} color={tokens.colors.brand} />
         <DsText role="section">Em breve</DsText>
-        <DsText style={styles.copy}>Sua lista de desejos estará aqui.</DsText>
+        <DsText style={styles.copy}>Sua lista de presentes estará aqui.</DsText>
       </View>
     </SafeAreaView>
   );
