@@ -28,6 +28,7 @@ import { BrandButton } from '../../components/brand-button/brand-button';
 import { Text } from '../../components/brand-text/brand-text';
 import { GroupCard } from '../../components/group-card/group-card';
 import { GroupDates } from '../../components/group-dates/group-dates';
+import { useNotificationPrompt } from '../notifications';
 import { DsConfirmSheet } from '../../design-system';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
@@ -64,6 +65,7 @@ function GroupContent({ userId }: { userId: string }) {
     groupId?: string | string[];
   }>();
   const groups = useResource<Group[]>('/api/v1/groups');
+  const { maybePrompt, element: promptElement } = useNotificationPrompt();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<GroupTab>('dates');
   const [expandedJoin, setExpandedJoin] = useState(false);
@@ -187,6 +189,7 @@ function GroupContent({ userId }: { userId: string }) {
       setError(validation);
       return;
     }
+    const firstGroup = !groups.data?.length;
     void mutate(async () => {
       const created = await request<Group>('/api/v1/groups', {
         method: 'POST',
@@ -198,6 +201,7 @@ function GroupContent({ userId }: { userId: string }) {
       setSelectedId(created.id);
       setTab('dates');
       await groups.reload();
+      if (firstGroup) void maybePrompt();
     });
   }
   function join() {
@@ -205,6 +209,7 @@ function GroupContent({ userId }: { userId: string }) {
       setError('Informe o código de convite.');
       return;
     }
+    const firstGroup = !groups.data?.length;
     void mutate(async () => {
       const joined = await request<Group>('/api/v1/groups/join', {
         method: 'POST',
@@ -216,6 +221,7 @@ function GroupContent({ userId }: { userId: string }) {
       setSelectedId(joined.id);
       setTab('dates');
       await groups.reload();
+      if (firstGroup) void maybePrompt();
     });
   }
   const creator = members.data?.find((member) => member.role === 'owner');
@@ -720,6 +726,7 @@ function GroupContent({ userId }: { userId: string }) {
         )}
         <BrandButton label="Criar grupo" pending={pending} onPress={create} />
       </BottomSheet>
+      {promptElement}
       <DsConfirmSheet
         visible={!!confirmation}
         title={confirmation?.title ?? ''}

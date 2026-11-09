@@ -31,6 +31,7 @@ import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
 import { DsDateCard } from '../../design-system/date-card';
 import { dateSections } from './sections';
 import { tokens } from '../../design-system/tokens';
+import { useNotificationPrompt } from '../notifications';
 import { EventEditor } from './event-editor';
 import { eventIcon } from './event-icon';
 import { editableEventId, eventTypeLabel, monthNames } from './model';
@@ -78,11 +79,14 @@ export function DatesScreen() {
       [],
     ),
   );
+  const { maybePrompt, element: promptElement } = useNotificationPrompt();
   const viewed = data?.items.find((item) => item.id === viewedId);
 
   async function save(payload: EventPayload) {
     if (!mounted.current || busy.current) return;
     const id = editor?.item ? editableEventId(editor.item) : null;
+    const firstEvent =
+      !id && !data?.items.some((item) => item.source.kind === 'personal_event');
     if (editor?.item && !id) return;
     busy.current = true;
     setPending(true);
@@ -98,6 +102,7 @@ export function DatesScreen() {
       if (!mounted.current) return;
       setEditor(null);
       await reload();
+      if (firstEvent) void maybePrompt();
     } catch (error) {
       if (
         mounted.current &&
@@ -319,6 +324,7 @@ export function DatesScreen() {
           )}
         </DsSheet>
       )}
+      {promptElement}
       {editor && (
         <EventEditor
           item={editor.item}
