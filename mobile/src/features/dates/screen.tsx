@@ -17,7 +17,9 @@ import {
 } from 'lucide-react-native';
 import {
   DsButton,
-  DsCard,
+  DsBrandHeader,
+  DsEmptyIcon,
+  DsEmptyState,
   DsFeedback,
   DsSheet,
   DsText,
@@ -149,6 +151,7 @@ export function DatesScreen() {
   }
 
   const grouped = dateSections(data?.items ?? [], expanded, data?.today);
+  const isEmpty = !!data && !error && data.items.length === 0;
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <SectionList
@@ -187,7 +190,7 @@ export function DatesScreen() {
           ) : undefined
         }
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, isEmpty && styles.contentEmpty]}
         refreshControl={
           <RefreshControl
             tintColor={tokens.colors.primary}
@@ -200,8 +203,8 @@ export function DatesScreen() {
         }
         ListHeaderComponent={
           <View>
-            <View style={styles.header}>
-              <View style={styles.headerTop}>
+            {!isEmpty && (
+              <View style={styles.header}>
                 <DsText
                   accessibilityRole="header"
                   role="title"
@@ -209,21 +212,18 @@ export function DatesScreen() {
                 >
                   Eventos
                 </DsText>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Adicionar evento"
-                  accessibilityState={{ disabled: pending }}
+                <DsText style={styles.description}>
+                  Acompanhe suas celebrações em ordem cronológica.
+                </DsText>
+                <DsButton
+                  label="Adicionar evento"
+                  icon={<Plus size={20} color={tokens.colors.onPrimary} />}
                   disabled={pending}
                   onPress={() => openEditor()}
-                  style={styles.addIcon}
-                >
-                  <Calendar size={26} color={tokens.colors.text} />
-                </Pressable>
+                  style={styles.addButton}
+                />
               </View>
-              <DsText style={styles.description}>
-                Acompanhe suas celebrações em ordem cronológica.
-              </DsText>
-            </View>
+            )}
             {loading && !data && (
               <ActivityIndicator
                 accessibilityLabel="Carregando eventos"
@@ -252,28 +252,19 @@ export function DatesScreen() {
         ListEmptyComponent={
           !loading && !error ? (
             <View style={styles.emptyContainer}>
-              <DsCard style={styles.empty}>
-                <View style={styles.emptyIcon}>
-                  <Calendar size={44} color={tokens.colors.primary} />
-                </View>
-                <DsText
-                  accessibilityRole="header"
-                  role="section"
-                  style={styles.centered}
-                >
-                  Nenhum evento por aqui ainda
-                </DsText>
-                <DsText style={[styles.description, styles.centered]}>
-                  Adicione aniversários e outras datas importantes para receber
-                  lembretes no momento certo.
-                </DsText>
-                <DsButton
-                  label="Adicionar primeiro evento"
-                  icon={<Plus size={18} color={tokens.colors.onPrimary} />}
-                  onPress={() => openEditor()}
-                  disabled={pending}
-                />
-              </DsCard>
+              <DsBrandHeader />
+              <DsEmptyState
+                illustration={
+                  <DsEmptyIcon size={72} gradient>
+                    <Calendar size={32} color={tokens.colors.onPrimary} />
+                  </DsEmptyIcon>
+                }
+                title="Nenhum evento por aqui"
+                description="Cadastre aniversários e datas importantes e receba um aviso no dia de cada um."
+                actionLabel="Adicionar meu primeiro evento"
+                actionIcon={<Plus size={20} color={tokens.colors.onPrimary} />}
+                onAction={() => openEditor()}
+              />
             </View>
           ) : undefined
         }
@@ -338,17 +329,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
   header: { gap: 6, marginBottom: 24 },
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  addIcon: {
-    minWidth: 48,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   title: {
     fontSize: tokens.typography.title.fontSize,
     lineHeight: tokens.typography.title.lineHeight,
@@ -375,15 +355,7 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.controlBorder,
   },
   errorCard: { gap: 12, marginBottom: 24 },
-  emptyContainer: { gap: 12 },
-  empty: { alignItems: 'center', gap: 16 },
-  emptyIcon: {
-    height: 80,
-    width: 80,
-    borderRadius: 40,
-    backgroundColor: tokens.colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centered: { textAlign: 'center' },
+  emptyContainer: { gap: 24 },
+  contentEmpty: { flexGrow: 1, justifyContent: 'center' },
+  addButton: { marginTop: 6, minHeight: 52 },
 });

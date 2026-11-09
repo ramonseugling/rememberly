@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DsButton } from '../button/button';
@@ -49,9 +50,33 @@ export const DsEmptyState = ({
   </View>
 );
 
-export const DsEmptyIcon = ({ children }: { children: ReactNode }) => (
-  <View style={styles.icon}>{children}</View>
-);
+export const DsEmptyIcon = ({
+  children,
+  size = 56,
+  gradient,
+}: {
+  children: ReactNode;
+  size?: number;
+  gradient?: boolean;
+}) => {
+  const box = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+  };
+  return gradient ? (
+    <LinearGradient
+      colors={tokens.actionGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.icon, box]}
+    >
+      {children}
+    </LinearGradient>
+  ) : (
+    <View style={[styles.icon, box]}>{children}</View>
+  );
+};
 
 const styles = StyleSheet.create({
   card: {
@@ -76,9 +101,6 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   icon: {
     alignSelf: 'center',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: tokens.colors.iconSurface,

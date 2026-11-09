@@ -49,7 +49,7 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
     item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
     <View style={styles.content}>
-      <DsAvatar name={item.title} size={56} />
+      <DsAvatar name={item.title} size={48} />
       <View style={styles.copy}>
         <DsText style={styles.title} numberOfLines={2}>
           {item.title}
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.row,
     backgroundColor: tokens.colors.surface,
     boxShadow: tokens.shadows.card,
-    minHeight: 80,
+    minHeight: 60,
     overflow: 'hidden',
   },
-  today: { borderColor: tokens.colors.outlineBorder },
+  today: { borderWidth: 0 },
   content: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    minHeight: 60,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   DsAvatar,
   DsBackHeader,
+  DsBrandHeader,
   DsBadge,
   DsButton,
   DsCard,
@@ -236,6 +237,7 @@ export const DesignSystemCatalog = () => {
             <DsAvatar name="Perfil com lápis" size={72} onEdit={() => {}} />
           </View>
           <DsBackHeader label="Perfil" onPress={() => {}} />
+          <DsBrandHeader />
           <DsButton
             label="Abrir confirmação"
             variant="outline"
