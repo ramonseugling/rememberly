@@ -276,6 +276,48 @@ async function sendOtpEmail(input: SendOtpEmailInput) {
   log.info('otp_email_sent', { to: input.to });
 }
 
+async function sendAccountDeletionCodeEmail(input: SendOtpEmailInput) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const safeCode = escapeHtml(input.code);
+
+  await resend.emails.send({
+    from: FROM,
+    to: input.to,
+    subject: 'CÃ³digo para excluir sua conta',
+    html: buildAccountDeletionCodeHtml(safeCode),
+  });
+
+  log.info('account_deletion_code_email_sent', { to: input.to });
+}
+
+export function buildAccountDeletionCodeHtml(code: string) {
+  const content = `
+    <p style="color: ${COLOR.text}; font-size: 15px; margin: 0 0 20px 0; line-height: 1.5;">
+      Recebemos um pedido para excluir a sua conta do Rememberly. Para confirmar, digite o cÃ³digo abaixo no aplicativo:
+    </p>
+    <div style="${BRAND_GRADIENT_BG} padding: 24px; border-radius: 20px; margin-bottom: 8px; text-align: center;">
+      <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 12px 0; font-weight: 500;">
+        CÃ³digo de confirmaÃ§Ã£o
+      </p>
+      <p style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+        ${code}
+      </p>
+    </div>
+    <p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 24px 0 8px 0;">
+      Este cÃ³digo expira em <strong>10 minutos</strong>. A exclusÃ£o Ã© permanente e nÃ£o pode ser desfeita.
+    </p>
+    <p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 0;">
+      Se vocÃª nÃ£o pediu para excluir a conta, ignore este e-mail: nada serÃ¡ alterado.
+    </p>
+  `;
+
+  return buildEmailLayout({
+    greeting: 'OlÃ¡! ð',
+    content,
+  });
+}
+
 export function buildOtpHtml(code: string) {
   const content = `
     <p style="color: ${COLOR.text}; font-size: 15px; margin: 0 0 20px 0; line-height: 1.5;">
@@ -566,6 +608,7 @@ const email = {
   sendReminderNotification,
   sendPasswordResetEmail,
   sendOtpEmail,
+  sendAccountDeletionCodeEmail,
   sendDailyDigestEmail,
   sendCommemorativeReminder,
   sendAnnouncementEmail,

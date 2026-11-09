@@ -31,7 +31,10 @@ beforeAll(async () => {
 async function request(options: RequestInit = {}, target = url) {
   const response = await fetch(target, {
     method: 'DELETE',
-    body: JSON.stringify({ password: secret, confirmation: 'DELETE' }),
+    body: JSON.stringify({
+      password: secret,
+      confirmation: 'Excluir minha conta',
+    }),
     ...options,
     headers: {
       Authorization: `Bearer ${own.current.token}`,
@@ -50,7 +53,10 @@ async function exists(id: string) {
 test('wrong passwords and passwordless accounts return403 without changing current sessions', async () => {
   for (const value of ['wrong', secret.trim()]) {
     const response = await request({
-      body: JSON.stringify({ password: value, confirmation: 'DELETE' }),
+      body: JSON.stringify({
+        password: value,
+        confirmation: 'Excluir minha conta',
+      }),
     });
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({
@@ -116,11 +122,11 @@ test.each([
   'null',
   '{}',
   JSON.stringify({ password: secret }),
-  JSON.stringify({ password: '', confirmation: 'DELETE' }),
+  JSON.stringify({ password: '', confirmation: 'Excluir minha conta' }),
   JSON.stringify({ password: secret, confirmation: 'delete' }),
   JSON.stringify({
     password: secret,
-    confirmation: 'DELETE',
+    confirmation: 'Excluir minha conta',
     user_id: crypto.randomUUID(),
   }),
   'x'.repeat(17000),
@@ -326,7 +332,7 @@ test('deletes personal data atomically, preserves other users/groups and removes
     [own.user.email.toUpperCase(), another.user.email],
   );
   await database.query(
-    'INSERT INTO push_preferences(user_id,push_enabled) VALUES($1,true)',
+    'INSERT INTO notification_preferences(user_id,push_events) VALUES($1,true)',
     [own.user.id],
   );
   const device = await database.query(
@@ -368,7 +374,7 @@ test('deletes personal data atomically, preserves other users/groups and removes
     'commemorative_subscriptions',
     'broadcast_deliveries',
     'error_logs',
-    'push_preferences',
+    'notification_preferences',
     'push_devices',
     'push_deliveries',
   ])
@@ -433,4 +439,120 @@ test('deletes personal data atomically, preserves other users/groups and removes
       })
     ).status,
   ).toBe(401);
+});
+
+async function withCode(code = '482915') {
+  const subject = await setup(false);
+  await database.query(
+    "INSERT INTO otp_tokens(email,code,expires_at) VALUES(LOWER($1),$2,NOW()+INTERVAL '10 minutes')",
+    [subject.user.email, code],
+  );
+  return subject;
+}
+function deleteWith(
+  token: string,
+  body: Record<string, unknown>,
+  headers: Record<string, string> = {},
+) {
+  return fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+test('an account without a password is deleted with the e-mailed code and the confirmation phrase', async () => {
+  const subject = await withCode();
+
+  const response = await deleteWith(subject.current.token, {
+    confirmation: 'Excluir minha conta',
+    otp_code: '482915',
+  });
+
+  expect(response.status).toBe(204);
+  expect(await exists(subject.user.id)).toHaveLength(0);
+});
+
+test('a wrong, malformed or missing code keeps the account', async () => {
+  const subject = await withCode();
+  for (const body of [
+    { confirmation: 'Excluir minha conta', otp_code: '000000' },
+    { confirmation: 'Excluir minha conta', otp_code: '12345' },
+    { confirmation: 'Excluir minha conta' },
+    { confirmation: 'DELETE', otp_code: '482915' },
+    {
+      confirmation: 'Excluir minha conta',
+      otp_code: '482915',
+      password: secret,
+    },
+  ]) {
+    const response = await deleteWith(subject.current.token, body);
+    expect(response.status).toBe(400);
+  }
+  expect(await exists(subject.user.id)).toHaveLength(1);
+});
+
+test('the code stops working after too many wrong attempts', async () => {
+  const subject = await withCode();
+  for (let attempt = 0; attempt < 5; attempt += 1)
+    await deleteWith(subject.current.token, {
+      confirmation: 'Excluir minha conta',
+      otp_code: '000000',
+    });
+
+  const response = await deleteWith(subject.current.token, {
+    confirmation: 'Excluir minha conta',
+    otp_code: '482915',
+  });
+
+  expect(response.status).toBe(400);
+  expect(await exists(subject.user.id)).toHaveLength(1);
+});
+
+test('a code requested for another account cannot delete this one', async () => {
+  const mine = await setup(false);
+  const theirs = await withCode('777777');
+
+  const response = await deleteWith(mine.current.token, {
+    confirmation: 'Excluir minha conta',
+    otp_code: '777777',
+  });
+
+  expect(response.status).toBe(400);
+  expect(await exists(mine.user.id)).toHaveLength(1);
+  expect(await exists(theirs.user.id)).toHaveLength(1);
+});
+
+describe('POST /api/v1/mobile/me/deletion-code', () => {
+  const codeUrl = `${url}/deletion-code`;
+
+  test('requires a Bearer session and POST without query parameters', async () => {
+    const subject = await setup(false);
+    expect((await fetch(codeUrl, { method: 'POST' })).status).toBe(401);
+    expect(
+      (
+        await fetch(codeUrl, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${subject.current.token}` },
+        })
+      ).status,
+    ).toBe(405);
+    expect(
+      (
+        await fetch(`${codeUrl}?email=x`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${subject.current.token}` },
+        })
+      ).status,
+    ).toBe(400);
+    const stored = await database.query(
+      'SELECT id FROM otp_tokens WHERE LOWER(email)=LOWER($1)',
+      [subject.user.email],
+    );
+    expect(stored.rows).toHaveLength(0);
+  });
 });

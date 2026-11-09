@@ -1,6 +1,8 @@
 import database from 'infra/database';
 import { UnauthorizedError } from 'infra/errors';
+import otp from 'models/otp';
 import password from 'models/password';
+import photo from 'models/photo';
 import { PasswordConfirmationError } from 'models/session-security';
 
 export class OwnedGroupsError extends Error {
@@ -20,7 +22,13 @@ export class OwnedGroupsError extends Error {
   }
 }
 
-async function deleteAccount(token: string, confirmation: string) {
+export type DeletionCredential =
+  | string
+  | { password: string }
+  | { otpCode: string };
+
+async function deleteAccount(token: string, credential: DeletionCredential) {
+  let avatarUrl: string | null = null;
   const client = await database.getNewClient();
   try {
     await client.query('BEGIN');
@@ -46,11 +54,14 @@ async function deleteAccount(token: string, confirmation: string) {
         action:
           'Sign in and send your session token in the Authorization header.',
       });
-    if (
-      !user.password ||
-      !(await password.compare(confirmation, user.password))
-    )
-      throw new PasswordConfirmationError();
+    if (typeof credential === 'object' && 'otpCode' in credential) {
+      await otp.verify(user.email, credential.otpCode);
+    } else {
+      const secret =
+        typeof credential === 'string' ? credential : credential.password;
+      if (!user.password || !(await password.compare(secret, user.password)))
+        throw new PasswordConfirmationError();
+    }
     const owned = await client.query(
       'SELECT id FROM groups WHERE created_by = $1 LIMIT 1',
       [user.id],
@@ -62,6 +73,11 @@ async function deleteAccount(token: string, confirmation: string) {
     );
     // error_logs has no FK, so remove attributed records explicitly.
     await client.query('DELETE FROM error_logs WHERE user_id = $1', [user.id]);
+    const avatar = await client.query(
+      'SELECT avatar_url FROM users WHERE id = $1',
+      [user.id],
+    );
+    avatarUrl = avatar.rows[0]?.avatar_url ?? null;
     await client.query('DELETE FROM users WHERE id = $1', [user.id]);
     await client.query('COMMIT');
   } catch (error) {
@@ -70,6 +86,7 @@ async function deleteAccount(token: string, confirmation: string) {
   } finally {
     await client.end();
   }
+  await photo.removeQuietly(avatarUrl);
 }
 
 export default { deleteAccount };

@@ -17,6 +17,7 @@ The workflow has read-only repository permissions, cancels superseded runs for t
 CI selects root test files and logs each exclusion. Only these explicitly named provider-delivery suites are excluded:
 
 - `tests/integration/api/v1/admin/broadcast/post.delivery.test.ts`
+- `tests/integration/api/v1/mobile/account-deletion/deletion-code.delivery.test.ts`
 - `tests/integration/api/v1/notifications/send-reminders/get.delivery.test.ts`
 - `tests/integration/api/v1/notifications/send/post.delivery.test.ts`
 - `tests/integration/api/v1/otp/post.delivery.test.ts`

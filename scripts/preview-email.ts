@@ -1,12 +1,17 @@
 import { writeFileSync } from 'node:fs';
 import { ANNOUNCEMENTS } from '../lib/announcements';
 import {
+  buildAccountDeletionCodeHtml,
   buildAnnouncementHtml,
   buildEventNotificationHtml,
   buildReminderHtml,
 } from '../models/email';
 
 const sections: { title: string; html: string }[] = [
+  {
+    title: 'ðï¸ CÃ³digo para excluir a conta',
+    html: buildAccountDeletionCodeHtml('482915'),
+  },
   {
     title: '🎂 Aniversário (no dia)',
     html: buildEventNotificationHtml('Ramon', 'Pedro', '🎂 Aniversário'),
