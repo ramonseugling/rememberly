@@ -19,14 +19,14 @@ Created 2026-11-09. Source of truth for the target look and behavior: the Claude
 
 ## Iteration 0 — Foundations
 
-| ID     | Scope | Task                                                                                                                                                                                                                                | Depends | Size | Status               |
-| ------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---- | -------------------- |
-| FND-06 | B     | Local `rememberly_test` database workflow so the pre-commit hook (`lint:check` plus the full test suite, which needs the Next dev server) passes locally; document it in `docs/ci.md`. Also commit the already staged doc changes.  | —       | S    | todo (decision D-01) |
-| FND-01 | M     | Tokens to the mock: brand gradient (`hsl(340,80%,65%)` → `hsl(25,90%,65%)`), accent text `#ED5E8E`, today `#FEDECB`, soft icon surface. Update `tokens.ts`, `actionGradient` and the contrast tests (white on both gradient stops). | —       | S    | todo                 |
-| FND-02 | M     | DS components from the mocks: gradient `DsButton`, `DsAvatar` (initials on gradient, photo-ready, edit pencil), `DsBadge` variants, `DsChip`, `DsSegmentedTabs`, `DsEmptyState`, `DsListCard`, `DsBackHeader`.                      | FND-01  | M    | todo                 |
-| FND-03 | M     | `DsConfirmSheet` to replace native `Alert` confirmations (delete event, leave group, remove member, sign out).                                                                                                                      | FND-01  | S    | todo                 |
-| FND-04 | M     | Floating pill tab bar with five tabs and gradient active state; rename tab "Desejos" to "Presentes".                                                                                                                                | FND-01  | M    | todo (decision D-02) |
-| FND-05 | M     | Copy pass: "data(s)" → "evento(s)" in mobile strings; update tests that assert copy.                                                                                                                                                | —       | S    | todo                 |
+| ID     | Scope | Task                                                                                                                                                                                                                                | Depends | Size | Status                                                   |
+| ------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---- | -------------------------------------------------------- |
+| FND-06 | B     | Local `rememberly_test` database workflow so the pre-commit hook (`lint:check` plus the full test suite, which needs the Next dev server) passes locally; document it in `docs/ci.md`. Also commit the already staged doc changes.  | —       | S    | done (D-01: second database in the same Docker Postgres) |
+| FND-01 | M     | Tokens to the mock: brand gradient (`hsl(340,80%,65%)` → `hsl(25,90%,65%)`), accent text `#ED5E8E`, today `#FEDECB`, soft icon surface. Update `tokens.ts`, `actionGradient` and the contrast tests (white on both gradient stops). | —       | S    | done (contrast trade-off accepted, D-13)                 |
+| FND-02 | M     | DS components from the mocks: gradient `DsButton`, `DsAvatar` (initials on gradient, photo-ready, edit pencil), `DsBadge` variants, `DsChip`, `DsSegmentedTabs`, `DsEmptyState`, `DsListCard`, `DsBackHeader`.                      | FND-01  | M    | todo                                                     |
+| FND-03 | M     | `DsConfirmSheet` to replace native `Alert` confirmations (delete event, leave group, remove member, sign out).                                                                                                                      | FND-01  | S    | todo                                                     |
+| FND-04 | M     | Floating pill tab bar with five tabs and gradient active state; rename tab "Desejos" to "Presentes".                                                                                                                                | FND-01  | M    | todo (decision D-02)                                     |
+| FND-05 | M     | Copy pass: "data(s)" → "evento(s)" in mobile strings; update tests that assert copy.                                                                                                                                                | —       | S    | todo                                                     |
 
 ## Iteration 1 — Home and Events
 
@@ -99,20 +99,21 @@ Maps to the milestone-1 stories in [BACKLOG.md](BACKLOG.md) (REM-101…304). It 
 
 Ask the user before starting the blocked task. Suggestions are only starting points.
 
-| ID   | Decision                                                                                                                        | Blocks            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| D-01 | How to run the local test suite: separate `rememberly_test` database, script/env layout, or skip the hook for docs-only commits | FND-06            |
-| D-02 | Tab bar: `expo-blur` dependency or a translucent fallback without a new dependency                                              | FND-04            |
-| D-03 | Where the "asked already" flag for the permission modal is stored (local only vs. server) and when to re-ask after "Agora não"  | EVT-04            |
-| D-04 | Data model for notification preferences (extend `push_preferences` vs. new table) and whether marketing is per channel          | BE-NOTIF-01       |
-| D-05 | What happens to owned groups when the owner deletes the account (transfer ownership, delete group, or keep blocking)            | BE-ACC-01, PRF-04 |
-| D-06 | How Google-only accounts confirm account deletion (fresh Google sign-in vs. e-mailed code)                                      | BE-ACC-01, PRF-04 |
-| D-07 | Public URLs (and existence) of the terms and privacy pages                                                                      | PRF-05            |
-| D-08 | Fixed invite code vs. revocable invite link token                                                                               | BE-GRP-01         |
-| D-09 | Photo limits: max size, accepted formats, resizing on the client or the server                                                  | BE-PHOTO-01       |
-| D-10 | Add `expo-image-picker` (and camera permission copy) for photos                                                                 | PHO-01            |
-| D-11 | Should group birthdays get an early reminder (today only the owner's events do)                                                 | BE-PUSH-01        |
-| D-12 | Gift-list business rules (see BACKLOG.md "Business decisions that block stories")                                               | Iteration 6       |
+| ID   | Decision                                                                                                                                                                | Blocks            |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| D-01 | How to run the local test suite: separate `rememberly_test` database, script/env layout, or skip the hook for docs-only commits                                         | FND-06            |
+| D-02 | Tab bar: `expo-blur` dependency or a translucent fallback without a new dependency                                                                                      | FND-04            |
+| D-03 | Where the "asked already" flag for the permission modal is stored (local only vs. server) and when to re-ask after "Agora não"                                          | EVT-04            |
+| D-04 | Data model for notification preferences (extend `push_preferences` vs. new table) and whether marketing is per channel                                                  | BE-NOTIF-01       |
+| D-05 | What happens to owned groups when the owner deletes the account (transfer ownership, delete group, or keep blocking)                                                    | BE-ACC-01, PRF-04 |
+| D-06 | How Google-only accounts confirm account deletion (fresh Google sign-in vs. e-mailed code)                                                                              | BE-ACC-01, PRF-04 |
+| D-07 | Public URLs (and existence) of the terms and privacy pages                                                                                                              | PRF-05            |
+| D-08 | Fixed invite code vs. revocable invite link token                                                                                                                       | BE-GRP-01         |
+| D-09 | Photo limits: max size, accepted formats, resizing on the client or the server                                                                                          | BE-PHOTO-01       |
+| D-10 | Add `expo-image-picker` (and camera permission copy) for photos                                                                                                         | PHO-01            |
+| D-11 | Should group birthdays get an early reminder (today only the owner's events do)                                                                                         | BE-PUSH-01        |
+| D-12 | Gift-list business rules (see BACKLOG.md "Business decisions that block stories")                                                                                       | Iteration 6       |
+| D-13 | Brand gradient and accent text keep the mock colors (`#ED5E8E` → `#F69855`, white text 3.2:1 → 2.2:1; accent text 2.95:1), accepted below WCAG AA — answered 2026-11-09 | FND-01 (done)     |
 
 ## Suggested first slice
 

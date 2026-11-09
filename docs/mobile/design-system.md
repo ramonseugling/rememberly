@@ -78,7 +78,7 @@ Every control handles focus, pressed, disabled and loading where applicable. Err
 
 ## Implementation status
 
-- Done (previous palette): isolated base in `mobile/src/design-system/`, a development-only catalog (route-gated, authenticated, `development` environment and DEV bundle), and pilots for Events, Profile and Home. Tokens in `tokens.ts`: solid primary `#D52555`, `actionGradient` with two equal stops, native system font.
+- Done: tokens (`tokens.ts`) now use the mock gradient `#ED5E8E` → `#F69855` for primary buttons and `#ED5E8E` accent text; contrast is below AA by product decision (D-13). Previously done (old palette): isolated base in `mobile/src/design-system/`, a development-only catalog (route-gated, authenticated, `development` environment and DEV bundle), and pilots for Events, Profile and Home. Remaining differences: solid `#D52555` still used for checkbox, switch and focus; selected chips/tabs gradients; native system font token unused.
 - Not done: gradient primary and selected states, Fredoka/Quicksand in the native app, the Gifts tab (currently labeled with a "coming soon" placeholder), and every screen in the inventory that is not an existing pilot. Migration of the remaining screens is tracked task by task in the [mobile screens backlog](../product/MOBILE-SCREENS-BACKLOG.md) (DS-005 in the [product backlog](../product/BACKLOG.md) is superseded by it).
 - Visual approval on a device is the user's call and cannot be inferred from types, tests or bundles.
 
