@@ -73,6 +73,11 @@ export const tokens = {
   actionGradient: ['#ED5E8E', '#F69855'] as const,
   actionPressedGradient: ['#EA3E77', '#F48434'] as const,
   celebration: ['#FEE6E8', '#FEF1F7'] as const,
+  groupPalette: [
+    { surface: '#FEE7DE', color: '#EE1124' },
+    { surface: '#F8E5F5', color: '#AC26A4' },
+    { surface: '#E6EEF8', color: '#1D4ED8' },
+  ] as const,
   backgroundGradient: ['#FCF4F8', '#FDF9FB'] as const,
   shadows: { card: '0 2px 6px rgba(108, 39, 77, 0.06)' },
 } as const;

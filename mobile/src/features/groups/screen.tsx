@@ -26,10 +26,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomSheet } from '../../components/bottom-sheet/bottom-sheet';
 import { BrandButton } from '../../components/brand-button/brand-button';
 import { Text } from '../../components/brand-text/brand-text';
-import { GroupCard } from '../../components/group-card/group-card';
 import { GroupDates } from '../../components/group-dates/group-dates';
 import { useNotificationPrompt } from '../notifications';
-import { DsConfirmSheet } from '../../design-system';
+import {
+  DsButton,
+  DsConfirmSheet,
+  DsFeedback,
+  DsText,
+  tokens,
+} from '../../design-system';
+import { CreateGroupSheet } from './create-group-sheet';
+import { GroupRow } from './group-row';
+import { GroupsEmpty } from './groups-empty';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { resourceId } from '../../navigation/intents';
@@ -224,6 +232,10 @@ function GroupContent({ userId }: { userId: string }) {
       if (firstGroup) void maybePrompt();
     });
   }
+  const isEmptyList =
+    !!groups.data && !groups.error && groups.data.length === 0;
+  const { state: sessionState } = useSession();
+  const userName = sessionState.identity?.user.name ?? '';
   const creator = members.data?.find((member) => member.role === 'owner');
   const createdDate = group?.created_at
     ? new Date(group.created_at).toLocaleDateString('pt-BR', {
@@ -272,86 +284,59 @@ function GroupContent({ userId }: { userId: string }) {
           )}
           {!selectedId ? (
             <>
-              <View style={styles.intro}>
-                <Text accessibilityRole="header" style={styles.title}>
-                  Meus grupos
-                </Text>
-                <Text style={styles.body}>
-                  Organize aniversários compartilhados com amigos, família e
-                  colegas.
-                </Text>
-                <BrandButton
-                  label="Criar grupo"
-                  onPress={showCreate}
+              {isEmptyList ? (
+                <GroupsEmpty
+                  userName={userName}
                   disabled={pending}
-                  icon={<Plus size={17} color="white" />}
-                  style={styles.start}
+                  onCreate={showCreate}
                 />
-              </View>
-              {groups.loading && !groups.data && (
-                <ActivityIndicator
-                  accessibilityLabel="Carregando grupos"
-                  color={theme.colors.primary}
-                />
-              )}
-              {groups.error && (
-                <View style={styles.card}>
-                  <Text accessibilityRole="alert" style={styles.body}>
-                    {groups.error}
-                  </Text>
-                  <BrandButton
-                    label="Tentar novamente"
-                    variant="outline"
-                    onPress={() => {
-                      void groups.reload();
-                    }}
-                  />
-                </View>
-              )}
-              {groups.data?.length === 0 && (
-                <View style={[styles.card, styles.empty]}>
-                  <View style={styles.avatar}>
-                    <Users size={28} color={theme.colors.primary} />
+              ) : (
+                <>
+                  <View style={styles.intro}>
+                    <DsText role="title">Meus grupos</DsText>
+                    <DsText role="caption" style={styles.muted}>
+                      Organize aniversários compartilhados com amigos, família e
+                      colegas.
+                    </DsText>
+                    <DsButton
+                      label="Criar grupo"
+                      icon={<Plus size={20} color={tokens.colors.onPrimary} />}
+                      disabled={pending}
+                      onPress={showCreate}
+                      style={styles.start}
+                    />
                   </View>
-                  <Text style={styles.heading}>
-                    Comemore junto de quem importa
-                  </Text>
-                  <Text style={styles.body}>
-                    Crie um grupo e compartilhe aniversários com família, amigos
-                    ou colegas.
-                  </Text>
-                  <BrandButton
-                    label="Criar meu primeiro grupo"
-                    onPress={showCreate}
-                    disabled={pending}
-                  />
-                </View>
-              )}
-              {groups.data?.map((item) => (
-                <GroupCard
-                  key={item.id}
-                  group={item}
-                  pending={pending}
-                  onOpen={() => open(item.id)}
-                  onInvite={() => share(item)}
-                />
-              ))}
-              {!!groups.data?.length && (
-                <View style={styles.cta}>
-                  <Text style={styles.heading}>
-                    Mais pessoas, mais celebrações
-                  </Text>
-                  <Text style={styles.body}>
-                    Crie um novo grupo e convide quem faz parte da sua vida.
-                  </Text>
-                  <BrandButton
-                    label="Criar grupo"
-                    onPress={showCreate}
-                    disabled={pending}
-                    icon={<Plus size={16} color="white" />}
-                    style={styles.start}
-                  />
-                </View>
+                  {groups.loading && !groups.data && (
+                    <ActivityIndicator
+                      accessibilityLabel="Carregando grupos"
+                      color={tokens.colors.brand}
+                    />
+                  )}
+                  {groups.error && (
+                    <View style={styles.listFeedback}>
+                      <DsFeedback tone="error" message={groups.error} />
+                      <DsButton
+                        label="Tentar novamente"
+                        variant="outline"
+                        onPress={() => {
+                          void groups.reload();
+                        }}
+                      />
+                    </View>
+                  )}
+                  <View style={styles.groupList}>
+                    {groups.data?.map((item, index) => (
+                      <GroupRow
+                        key={item.id}
+                        group={item}
+                        index={index}
+                        disabled={pending}
+                        onOpen={() => open(item.id)}
+                        onInvite={() => share(item)}
+                      />
+                    ))}
+                  </View>
+                </>
               )}
               <BrandButton
                 label={
@@ -696,36 +681,18 @@ function GroupContent({ userId }: { userId: string }) {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-      <BottomSheet
-        title="Criar grupo"
+      <CreateGroupSheet
         visible={createOpen}
+        name={name}
+        error={error}
         pending={pending}
+        onChangeName={setName}
+        onSubmit={create}
         onClose={() => {
           setCreateOpen(false);
           setError(null);
         }}
-      >
-        <Text style={styles.label}>Nome do grupo</Text>
-        <TextInput
-          style={styles.input}
-          accessibilityLabel="Nome do novo grupo"
-          placeholder="Ex: Família Silva, Amigos do trabalho"
-          placeholderTextColor={theme.colors.muted}
-          value={name}
-          onChangeText={setName}
-          editable={!pending}
-          maxLength={100}
-          autoCapitalize="sentences"
-          returnKeyType="done"
-          onSubmitEditing={create}
-        />
-        {error && (
-          <Text accessibilityRole="alert" style={styles.destructive}>
-            {error}
-          </Text>
-        )}
-        <BrandButton label="Criar grupo" pending={pending} onPress={create} />
-      </BottomSheet>
+      />
       {promptElement}
       <DsConfirmSheet
         visible={!!confirmation}
@@ -752,7 +719,10 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   intro: { gap: 8 },
-  start: { alignSelf: 'flex-start' },
+  start: { alignSelf: 'stretch', minHeight: 52, marginTop: 6 },
+  muted: { color: tokens.colors.textMuted },
+  listFeedback: { gap: 12 },
+  groupList: { gap: 8 },
   title: {
     color: theme.colors.foreground,
     fontSize: 30,

@@ -85,6 +85,23 @@ describe('POST /api/v1/groups', () => {
 });
 
 describe('GET /api/v1/groups', () => {
+  it('includes who created each group the user belongs to', async () => {
+    const creator = await orchestrator.createUserAndSession({
+      name: 'Marina Alves',
+    });
+    const member = await orchestrator.createUserAndSession();
+    const created = await group.create(creator.user.id, { name: 'Amigos' });
+    await groupMember.join(created.invite_code, member.user.id);
+    const response = await fetch('http://localhost:3000/api/v1/groups', {
+      headers: { Authorization: `Bearer ${member.session.token}` },
+    });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveLength(1);
+    expect(data[0].created_by_name).toBe('Marina Alves');
+    expect(data[0].role).toBe('member');
+  });
+
   it('returns ordered birthdays through day 30 only within the authenticated memberships, excluding self', async () => {
     const today = getToday();
     const owner = await orchestrator.createUserAndSession({
@@ -133,6 +150,7 @@ describe('GET /api/v1/groups', () => {
       expect.objectContaining({ name: 'Pessoa 30', days_until: 30 }),
     ]);
     expect(firstGroup.member_count).toBe(4);
+    expect(firstGroup.created_by_name).toBe(owner.user.name);
     expect(
       data.find((entry: { id: string }) => entry.id === second.id)
         .upcoming_birthdays,

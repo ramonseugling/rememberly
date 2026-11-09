@@ -93,7 +93,8 @@ async function findById(groupId: string) {
 async function findAllByUserId(userId: string) {
   const result = await database.query(
     `SELECT g.*, gm.role,
-            (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id)::int AS member_count
+            (SELECT COUNT(*) FROM group_members gm2 WHERE gm2.group_id = g.id)::int AS member_count,
+            (SELECT u.name FROM users u WHERE u.id = g.created_by) AS created_by_name
      FROM groups g
      JOIN group_members gm ON gm.group_id = g.id AND gm.user_id = $1
      ORDER BY g.created_at DESC`,
