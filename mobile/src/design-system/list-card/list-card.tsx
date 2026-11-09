@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { AccessibilityState, StyleProp, ViewStyle } from 'react-native';
 import { DsText } from '../text/text';
 import { tokens } from '../tokens';
 
@@ -10,6 +10,8 @@ interface DsListCardProps {
   subtitle?: string;
   icon?: ReactNode;
   trailing?: ReactNode;
+  accessibilityState?: AccessibilityState;
+  iconTone?: 'brand' | 'neutral';
   onPress?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -19,6 +21,8 @@ export const DsListCard = ({
   title,
   subtitle,
   icon,
+  iconTone = 'brand',
+  accessibilityState,
   trailing,
   onPress,
   disabled,
@@ -26,7 +30,18 @@ export const DsListCard = ({
 }: DsListCardProps) => {
   const content = (
     <>
-      {icon && <View style={styles.icon}>{icon}</View>}
+      {icon && (
+        <View
+          style={[
+            styles.icon,
+            iconTone === 'neutral' && {
+              backgroundColor: tokens.colors.surfaceMuted,
+            },
+          ]}
+        >
+          {icon}
+        </View>
+      )}
       <View style={styles.copy}>
         <DsText role="label">{title}</DsText>
         {subtitle && (
@@ -43,7 +58,7 @@ export const DsListCard = ({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: !!disabled }}
+      accessibilityState={{ ...accessibilityState, disabled: !!disabled }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [

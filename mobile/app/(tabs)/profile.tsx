@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronDown, ChevronUp, LogOut } from 'lucide-react-native';
+import {
+  CalendarHeart,
+  ChevronDown,
+  ChevronUp,
+  LogOut,
+  Settings2,
+} from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,7 +24,7 @@ import {
   DsSelect,
   DsFeedback,
   DsAvatar,
-  DsRow,
+  DsListCard,
   appearance as pilotAppearance,
   tokens,
 } from '../../src/design-system';
@@ -225,7 +231,7 @@ function ProfileContent() {
           {data && editor && (
             <>
               <View style={styles.identity}>
-                <DsAvatar name={editor.user.name} size={88} />
+                <DsAvatar name={editor.user.name} size={80} />
                 <View style={styles.identityText}>
                   <DsText role="section" style={styles.identityName}>
                     {editor.user.name}
@@ -254,7 +260,7 @@ function ProfileContent() {
                   hint="O e-mail não pode ser alterado."
                 />
                 <View style={styles.field}>
-                  <DsText role="label">Data de nascimento</DsText>
+                  <DsText role="label">Data de aniversário</DsText>
                   <View style={styles.birthday}>
                     <View style={styles.day}>
                       <DsField
@@ -302,41 +308,19 @@ function ProfileContent() {
               </DsCard>
             </>
           )}
-          <DsCard style={styles.logoutCard}>
-            <View style={styles.field}>
-              <DsText role="label">Sair da conta</DsText>
-              <DsText role="caption" style={styles.muted}>
-                Você será desconectado deste dispositivo. Pode entrar de novo a
-                qualquer momento.
-              </DsText>
-            </View>
-            <DsButton
-              label={loggingOut ? 'Saindo...' : 'Sair da conta'}
-              variant="destructive"
-              pending={loggingOut}
-              disabled={saving}
-              onPress={() => {
-                void logout();
-              }}
-              icon={<LogOut size={18} color={tokens.colors.danger} />}
-              style={styles.save}
-            />
-          </DsCard>
           {state.message && <DsFeedback message={state.message} tone="error" />}
-          <DeleteAccount appearance={pilotAppearance} />
-          <DsRow
+          <DsListCard
             title="Datas especiais"
-            subtitle="Seus lembretes de datas comemorativas"
+            subtitle="Seus lembretes de Dia das Mães, dia dos Pais e mais..."
+            icon={<CalendarHeart size={22} color={tokens.colors.brand} />}
             onPress={() => router.navigate('/(tabs)/occasions')}
           />
-          <DsRow
+          <DsListCard
             title="Mais opções da conta"
+            subtitle="Sair da conta e outras opções"
+            icon={<Settings2 size={22} color={tokens.colors.textMuted} />}
+            iconTone="neutral"
             accessibilityState={{ expanded }}
-            subtitle={
-              expanded
-                ? 'Recolher segurança e notificações'
-                : 'Segurança e notificações'
-            }
             onPress={() => setExpanded((value) => !value)}
             trailing={
               expanded ? (
@@ -348,8 +332,29 @@ function ProfileContent() {
           />
           {expanded && (
             <View style={styles.secondary}>
+              <DsCard style={styles.logoutCard}>
+                <View style={styles.field}>
+                  <DsText role="label">Sair da conta</DsText>
+                  <DsText role="caption" style={styles.muted}>
+                    Você será desconectado deste dispositivo. Pode entrar de
+                    novo a qualquer momento.
+                  </DsText>
+                </View>
+                <DsButton
+                  label={loggingOut ? 'Saindo...' : 'Sair da conta'}
+                  variant="destructive"
+                  pending={loggingOut}
+                  disabled={saving}
+                  onPress={() => {
+                    void logout();
+                  }}
+                  icon={<LogOut size={18} color={tokens.colors.danger} />}
+                  style={styles.save}
+                />
+              </DsCard>
               <SessionCleanup appearance={pilotAppearance} />
               <NotificationSettings appearance={pilotAppearance} />
+              <DeleteAccount appearance={pilotAppearance} />
             </View>
           )}
           {isDesignCatalogEnabled(apiConfiguration.environment, __DEV__) && (
@@ -396,7 +401,7 @@ const styles = StyleSheet.create({
   month: { flexBasis: 112, flexGrow: 3 },
   year: { flexBasis: 88, flexGrow: 1 },
   centeredInput: { textAlign: 'center' },
-  save: { alignSelf: 'flex-start', maxWidth: '100%' },
+  save: { alignSelf: 'stretch', minHeight: 52 },
   logoutCard: { gap: 12, padding: 16, borderRadius: 16 },
   secondary: { gap: 16 },
 });
