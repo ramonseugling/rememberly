@@ -102,7 +102,7 @@ export const DesignSystemCatalog = () => {
               </View>
             ))}
           </View>
-          <DsText role="title">Datas que importam</DsText>
+          <DsText role="title">Eventos que importam</DsText>
           <DsText role="section">Perto de quem você gosta</DsText>
           <DsText>
             Fonte nativa, títulos compactos e hierarquia próxima à referência.
@@ -113,10 +113,10 @@ export const DesignSystemCatalog = () => {
         <DsText role="section">Ações</DsText>
         <DsCard>
           <DsButton
-            label="Adicionar data"
+            label="Adicionar evento"
             icon={<Plus size={18} color={tokens.colors.onPrimary} />}
             onPress={() =>
-              setFeedback('Botão primário acionado. Nenhuma data foi criada.')
+              setFeedback('Botão primário acionado. Nenhum evento foi criado.')
             }
           />
           <DsButton
@@ -169,7 +169,7 @@ export const DesignSystemCatalog = () => {
             error="Exemplo de mensagem de erro com orientação."
           />
           <DsSelect
-            label="Tipo de data"
+            label="Tipo de evento"
             value={selection}
             options={[
               { label: 'Aniversário', value: 'birthday' },
@@ -209,7 +209,7 @@ export const DesignSystemCatalog = () => {
         <DsText role="section">Superfícies e feedback</DsText>
         <DsCard>
           <DsRow
-            title="Data de demonstração"
+            title="Evento de demonstração"
             subtitle="Texto longo pode quebrar linha sem esconder informações importantes."
             leading={<Calendar size={20} color={tokens.colors.primary} />}
             onPress={() => setSheet(true)}
@@ -285,8 +285,8 @@ export const DesignSystemCatalog = () => {
           />
         </DsCard>
         <DsText role="caption">
-          Pilotos reais: Datas e Perfil. Demais telas aguardam aprovação visual
-          para migração.
+          Pilotos reais: Eventos e Perfil. Demais telas aguardam aprovação
+          visual para migração.
         </DsText>
       </ScrollView>
       <DsConfirmSheet

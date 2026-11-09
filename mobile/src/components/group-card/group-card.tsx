@@ -64,7 +64,7 @@ export const GroupCard = ({
             </View>
             <View style={styles.grow}>
               <Text style={[styles.nextName, !next && styles.muted]}>
-                {next?.name ?? 'Nenhuma data próxima'}
+                {next?.name ?? 'Nenhum evento próximo'}
               </Text>
               <Text style={styles.caption}>
                 {next ? date : 'Tudo em dia! 🎉'}

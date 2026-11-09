@@ -65,13 +65,13 @@ export const EventEditor = ({
   }
   return (
     <DsSheet
-      title={item ? 'Editar data especial' : 'Adicionar data especial'}
+      title={item ? 'Editar evento' : 'Adicionar evento'}
       pending={pending}
       onClose={onClose}
     >
       <DsField
         label="Título"
-        accessibilityLabel="Título da data"
+        accessibilityLabel="Título do evento"
         placeholder="Ex: Aniversário da Ana"
         value={form.title}
         onChangeText={(value) => change('title', value)}
@@ -80,9 +80,9 @@ export const EventEditor = ({
         autoCapitalize="sentences"
       />
       <View style={styles.field}>
-        <DsText role="label">Tipo de data</DsText>
+        <DsText role="label">Tipo de evento</DsText>
         <DsSelect
-          label="Tipo de data"
+          label="Tipo de evento"
           value={form.type}
           options={eventTypes}
           disabled={pending}
@@ -167,7 +167,7 @@ export const EventEditor = ({
           />
         )}
         <DsButton
-          label={pending ? 'Salvando...' : item ? 'Salvar' : 'Adicionar data'}
+          label={pending ? 'Salvando...' : item ? 'Salvar' : 'Adicionar evento'}
           pending={pending}
           disabled={!!item && !dirty}
           onPress={submit}

@@ -102,7 +102,7 @@ export function DatesScreen() {
         setMutationError(
           error instanceof ApiError
             ? error.message
-            : 'Não foi possível salvar esta data. Tente novamente.',
+            : 'Não foi possível salvar este evento. Tente novamente.',
         );
       }
     } finally {
@@ -139,7 +139,7 @@ export function DatesScreen() {
         setMutationError(
           error instanceof ApiError
             ? error.message
-            : 'Não foi possível excluir esta data. Tente novamente.',
+            : 'Não foi possível excluir este evento. Tente novamente.',
         );
       }
     } finally {
@@ -176,7 +176,7 @@ export function DatesScreen() {
               onPress={() => setExpanded(!expanded)}
             >
               <DsText role="label">
-                {expanded ? 'Ver menos datas' : 'Ver todas as datas'}
+                {expanded ? 'Ver menos eventos' : 'Ver todos os eventos'}
               </DsText>
               {expanded ? (
                 <ChevronUp size={18} color={tokens.colors.text} />
@@ -226,7 +226,7 @@ export function DatesScreen() {
             </View>
             {loading && !data && (
               <ActivityIndicator
-                accessibilityLabel="Carregando datas"
+                accessibilityLabel="Carregando eventos"
                 color={tokens.colors.primary}
               />
             )}
@@ -261,14 +261,14 @@ export function DatesScreen() {
                   role="section"
                   style={styles.centered}
                 >
-                  Nenhuma data por aqui ainda
+                  Nenhum evento por aqui ainda
                 </DsText>
                 <DsText style={[styles.description, styles.centered]}>
                   Adicione aniversários e outras datas importantes para receber
                   lembretes no momento certo.
                 </DsText>
                 <DsButton
-                  label="Adicionar primeira data"
+                  label="Adicionar primeiro evento"
                   icon={<Plus size={18} color={tokens.colors.onPrimary} />}
                   onPress={() => openEditor()}
                   disabled={pending}

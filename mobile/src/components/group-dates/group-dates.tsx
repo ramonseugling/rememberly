@@ -37,7 +37,7 @@ export const GroupDates = ({
   return (
     <View style={styles.stack}>
       <View style={styles.highlight}>
-        <Text style={styles.eyebrow}>Próxima data</Text>
+        <Text style={styles.eyebrow}>Próximo evento</Text>
         <View style={styles.row}>
           <View style={styles.icon}>
             <Cake size={20} color={theme.colors.primary} />
@@ -100,7 +100,7 @@ export const GroupDates = ({
         {birthdays.length > 5 && (
           <BrandButton
             variant="outline"
-            label={expanded ? 'Ver menos' : 'Ver todas as datas'}
+            label={expanded ? 'Ver menos' : 'Ver todos os eventos'}
             onPress={() => setExpanded((value) => !value)}
           />
         )}

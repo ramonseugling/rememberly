@@ -95,7 +95,7 @@ export const AppHeader = () => {
             </Text>
             {[
               {
-                label: 'Minhas Datas',
+                label: 'Meus eventos',
                 route: '/(tabs)' as const,
                 Icon: Calendar,
               },

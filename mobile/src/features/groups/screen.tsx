@@ -46,7 +46,7 @@ import type { Group, GroupMember } from './model';
 
 type GroupTab = 'dates' | 'members' | 'settings';
 const tabs = [
-  { id: 'dates', label: 'Datas', Icon: Cake },
+  { id: 'dates', label: 'Eventos', Icon: Cake },
   { id: 'members', label: 'Membros', Icon: Users },
   { id: 'settings', label: 'Configurações', Icon: Settings },
 ] as const;

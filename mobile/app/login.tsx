@@ -46,7 +46,7 @@ export default function LoginScreen() {
   return (
     <AuthPage
       title="Bem-vindo de volta"
-      subtitle="Entre para continuar lembrando datas importantes."
+      subtitle="Entre para continuar lembrando eventos importantes."
       pending={busy}
       message={validation ?? state.message}
     >
