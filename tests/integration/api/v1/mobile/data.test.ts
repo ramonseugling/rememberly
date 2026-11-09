@@ -151,6 +151,8 @@ test('profile returns exact current fields, including null birthday and subseque
       birth_day: null,
       birth_month: null,
       birth_year: null,
+      avatar_url: null,
+      has_password: false,
     },
   });
   const update = await fetch(`${base}/api/v1/users`, {
@@ -174,6 +176,8 @@ test('profile returns exact current fields, including null birthday and subseque
     birth_day: 4,
     birth_month: 5,
     birth_year: 1990,
+    avatar_url: null,
+    has_password: false,
   });
 });
 

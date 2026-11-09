@@ -43,3 +43,20 @@ The specified data-read routes use `/api/v1/mobile/me`, `/api/v1/mobile/agenda`,
 Existing controller errors generally contain `name`, `message`, `action`, and `status_code`; individual session handlers have custom responses. Do not claim global uniformity until exceptions are checked. Preserve existing consumers or explicitly migrate them.
 
 Reference inventory by source paths; keep final request/response definitions in this document or a linked machine-readable specification when one is introduced. Avoid separate competing TypeScript, Markdown, and schema definitions maintained manually.
+
+## Photos (profile and group)
+
+Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.
+
+| Endpoint                          | Who                    | Result                                                  |
+| --------------------------------- | ---------------------- | ------------------------------------------------------- |
+| `PUT /api/v1/users/avatar`        | The authenticated user | `200 { avatar_url }`; replaces and deletes the old file |
+| `DELETE /api/v1/users/avatar`     | The authenticated user | `204`; deletes the file                                 |
+| `PUT /api/v1/groups/:id/photo`    | Group owner only       | `200 { photo_url }`; replaces and deletes the old file  |
+| `DELETE /api/v1/groups/:id/photo` | Group owner only       | `204`; deletes the file                                 |
+
+Errors: `400 ValidationError` for a non-image content type, invalid or unsupported image data (including GIF), an empty body or a body over 2 MB; `401` when unauthenticated or when a non-owner changes a group photo.
+
+Exposure: `avatar_url` is returned by `GET /api/v1/mobile/me`, by the group member lists and by group-birthday items of `GET /api/v1/mobile/agenda`; `photo_url` by `GET /api/v1/groups` and `GET /api/v1/groups/:id`. Both are public, unguessable URLs (random suffix) and are only handed out to people who share a group with the user, or to the user themselves. Deleting a group or an account removes the stored files on a best-effort basis.
+
+Storage: Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set. Without the token, development and tests write to `public/uploads/` (git-ignored); production refuses uploads with `503` if the token is missing.

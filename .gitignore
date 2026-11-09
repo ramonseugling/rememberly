@@ -22,3 +22,5 @@ next-steps.md
 
 # generated email preview (recreated by scripts/preview-email.ts)
 email-preview.html
+# Uploaded photos in local development (production uses Vercel Blob)
+public/uploads/

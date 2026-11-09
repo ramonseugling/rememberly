@@ -102,7 +102,7 @@ async function remove(
 
 async function findAllByGroupId(groupId: string) {
   const result = await database.query(
-    `SELECT u.id, u.name, u.email, u.birth_day, u.birth_month, u.birth_year,
+    `SELECT u.id, u.name, u.email, u.avatar_url, u.birth_day, u.birth_month, u.birth_year,
             gm.role, gm.created_at AS joined_at
      FROM group_members gm
      JOIN users u ON u.id = gm.user_id
@@ -184,6 +184,7 @@ async function findAllBirthdaysByUserId(userId: string) {
 async function findAllBirthdaysForUser(userId: string) {
   const result = await database.query(
     `SELECT u.id AS user_id, u.name AS title,
+            u.avatar_url,
             u.birth_day AS event_day, u.birth_month AS event_month,
             MIN(g.name) AS group_name,
             COUNT(DISTINCT g.id)::int AS group_count
@@ -193,7 +194,7 @@ async function findAllBirthdaysForUser(userId: string) {
      JOIN users u ON u.id = gm.user_id
      WHERE gm.user_id != $1
        AND u.birth_day IS NOT NULL AND u.birth_month IS NOT NULL
-     GROUP BY u.id, u.name, u.birth_day, u.birth_month
+     GROUP BY u.id, u.name, u.avatar_url, u.birth_day, u.birth_month
      ORDER BY u.birth_month ASC, u.birth_day ASC`,
     [userId],
   );
@@ -201,6 +202,7 @@ async function findAllBirthdaysForUser(userId: string) {
   return result.rows as {
     user_id: string;
     title: string;
+    avatar_url: string | null;
     event_day: number;
     event_month: number;
     group_name: string;

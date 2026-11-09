@@ -20,12 +20,26 @@ const getHandler = mobileGet('/api/v1/mobile/me', async (identity) => ({
     birth_day: identity.birth_day,
     birth_month: identity.birth_month,
     birth_year: identity.birth_year,
+    avatar_url: identity.avatar_url ?? null,
+    has_password: identity.has_password ?? false,
   },
 }));
 
+const DELETION_PHRASE = 'Excluir minha conta';
+
 const schema = z
-  .object({ password: z.string().min(1), confirmation: z.literal('DELETE') })
-  .strict();
+  .object({
+    confirmation: z.literal(DELETION_PHRASE),
+    password: z.string().min(1).optional(),
+    otp_code: z
+      .string()
+      .regex(/^[0-9]{6}$/)
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (body) => (body.password === undefined) !== (body.otp_code === undefined),
+  );
 
 async function readConfirmation(req: NextApiRequest) {
   if (
@@ -45,7 +59,10 @@ async function readConfirmation(req: NextApiRequest) {
     const parsed = schema.safeParse(
       JSON.parse(Buffer.concat(chunks).toString('utf8')),
     );
-    return parsed.success ? parsed.data.password : null;
+    if (!parsed.success) return null;
+    return parsed.data.otp_code !== undefined
+      ? { otpCode: parsed.data.otp_code }
+      : { password: parsed.data.password! };
   } catch {
     return null;
   }
@@ -74,7 +91,7 @@ export default async function handler(
       throw new ValidationError({
         message: 'Invalid account deletion request.',
         action:
-          'Send your current password and confirmation DELETE as JSON without query parameters.',
+          'Send the confirmation phrase and either your current password or the e-mailed code as JSON without query parameters.',
       });
     await accountDeletion.deleteAccount(token, confirmation);
     return res.status(204).end();

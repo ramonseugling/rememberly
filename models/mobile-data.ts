@@ -49,6 +49,7 @@ async function agenda(userId: string) {
         group_name: row.group_name,
         group_count: row.group_count,
       },
+      avatar_url: row.avatar_url ?? null,
       title: row.title,
       type: 'birthday',
       custom_type: null,

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import database from 'infra/database';
 import { NotFoundError, ValidationError } from 'infra/errors';
+import photo from 'models/photo';
 
 const MAX_NAME_LENGTH = 100;
 const INVITE_CODE_LENGTH = 8;
@@ -127,7 +128,11 @@ async function update(groupId: string, input: { name: string }) {
 }
 
 async function deleteById(groupId: string) {
-  await database.query(`DELETE FROM groups WHERE id = $1`, [groupId]);
+  const found = await database.query(
+    `DELETE FROM groups WHERE id = $1 RETURNING photo_url`,
+    [groupId],
+  );
+  await photo.removeQuietly(found.rows[0]?.photo_url);
 }
 
 const group = {

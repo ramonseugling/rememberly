@@ -1,5 +1,6 @@
 import database from 'infra/database';
 import { NotFoundError, ValidationError } from 'infra/errors';
+import { createDefaults } from 'models/notification-preferences';
 import password from 'models/password';
 
 interface CreateUserInput {
@@ -46,6 +47,11 @@ async function create(input: CreateUserInput) {
         values.marketing_consent ?? true,
       ],
     );
+    await createDefaults(
+      database,
+      result.rows[0].id,
+      result.rows[0].marketing_consent,
+    );
 
     return result.rows[0];
   }
@@ -60,7 +66,7 @@ async function update(userId: string, input: UpdateUserInput) {
          birth_year = COALESCE($4, birth_year),
          updated_at = NOW()
      WHERE id = $5
-     RETURNING id, name, email, birth_day, birth_month, birth_year, created_at, updated_at`,
+     RETURNING id, name, email, avatar_url, birth_day, birth_month, birth_year, created_at, updated_at`,
     [
       input.name ?? null,
       input.birth_day ?? null,

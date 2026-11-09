@@ -89,6 +89,8 @@ export interface MobileIdentity {
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;
+  avatar_url?: string | null;
+  has_password?: boolean;
 }
 
 export function mobileGet(
