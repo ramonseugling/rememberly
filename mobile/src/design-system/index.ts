@@ -14,3 +14,8 @@ export { DsSheet } from './sheet/sheet';
 export { DsAvatar } from './avatar/avatar';
 export { DsDaysBadge } from './badge/days-badge';
 export { DsListCard } from './list-card/list-card';
+export { DsChip } from './chip/chip';
+export { DsSegmentedTabs } from './segmented-tabs/segmented-tabs';
+export type { DsSegmentedTab } from './segmented-tabs/segmented-tabs';
+export { DsEmptyState } from './empty-state/empty-state';
+export { DsBackHeader } from './back-header/back-header';

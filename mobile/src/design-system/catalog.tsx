@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, Calendar, Heart, Plus } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Heart, Plus, Users } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   DsAvatar,
+  DsBackHeader,
   DsBadge,
   DsButton,
   DsCard,
   DsCheckbox,
+  DsChip,
   DsDaysBadge,
+  DsEmptyState,
   DsFeedback,
   DsField,
   DsListCard,
   DsOtpInput,
   DsRow,
+  DsSegmentedTabs,
   DsSelect,
   DsSheet,
   DsSwitch,
@@ -30,6 +34,10 @@ export const DesignSystemCatalog = () => {
   const [selection, setSelection] = useState('birthday');
   const [code, setCode] = useState('');
   const [sheet, setSheet] = useState(false);
+  const [segment, setSegment] = useState<'events' | 'members' | 'settings'>(
+    'events',
+  );
+  const [chip, setChip] = useState(true);
   const [feedback, setFeedback] = useState(
     'Nenhuma ação real é executada neste catálogo.',
   );
@@ -225,6 +233,33 @@ export const DesignSystemCatalog = () => {
             <DsAvatar name="Marina" size={56} />
             <DsAvatar name="Perfil com lápis" size={72} onEdit={() => {}} />
           </View>
+          <DsBackHeader label="Perfil" onPress={() => {}} />
+          <DsSegmentedTabs
+            value={segment}
+            onChange={setSegment}
+            tabs={[
+              { id: 'events', label: 'Eventos' },
+              { id: 'members', label: 'Membros' },
+              { id: 'settings', label: 'Ajustes' },
+            ]}
+          />
+          <View style={styles.badges}>
+            <DsChip
+              label="Aniversário"
+              selected={chip}
+              onPress={() => setChip(!chip)}
+            />
+            <DsChip
+              label="Amigos da faculdade"
+              icon={<Users size={14} color={tokens.colors.textMuted} />}
+            />
+          </View>
+          <DsEmptyState
+            title="Comemore junto de quem importa"
+            description="Crie um grupo e compartilhe aniversários com família, amigos ou colegas."
+            actionLabel="Criar meu primeiro grupo"
+            onAction={() => {}}
+          />
           <DsListCard
             title="Datas especiais"
             subtitle="Dia das Mães, Dia dos Pais e mais"
