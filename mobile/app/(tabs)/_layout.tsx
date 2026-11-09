@@ -15,6 +15,7 @@ export default function TabLayout() {
         name="occasions"
         options={{ title: 'Especiais', href: null }}
       />
+      <Tabs.Screen name="legal" options={{ title: 'Termos', href: null }} />
     </Tabs>
   );
 }

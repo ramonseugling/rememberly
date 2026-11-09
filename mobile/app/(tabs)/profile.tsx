@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import {
   CalendarHeart,
+  ScrollText,
   ChevronDown,
   ChevronUp,
   LogOut,
@@ -314,6 +315,12 @@ function ProfileContent() {
             subtitle="Seus lembretes de Dia das Mães, dia dos Pais e mais..."
             icon={<CalendarHeart size={22} color={tokens.colors.brand} />}
             onPress={() => router.navigate('/(tabs)/occasions')}
+          />
+          <DsListCard
+            title="Termos e privacidade"
+            subtitle="Termos de uso e política de privacidade"
+            icon={<ScrollText size={22} color={tokens.colors.brand} />}
+            onPress={() => router.navigate('/(tabs)/legal')}
           />
           <DsListCard
             title="Mais opções da conta"

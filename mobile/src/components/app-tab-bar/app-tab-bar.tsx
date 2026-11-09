@@ -25,7 +25,8 @@ export const AppTabBar = ({
       <View style={styles.bar}>
         {items.map(({ name, label, Icon }) => {
           const selected =
-            active === name || (name === 'profile' && active === 'occasions');
+            active === name ||
+            (name === 'profile' && ['occasions', 'legal'].includes(active));
           return (
             <Pressable
               key={name}
