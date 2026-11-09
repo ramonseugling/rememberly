@@ -11,7 +11,7 @@ import {
   DsText,
 } from '../../design-system';
 import { tokens } from '../../design-system/tokens';
-import { dayOptions } from './editor-options';
+import { clampDay, sanitizeDay } from './editor-options';
 import { eventPayload, eventTypes, formForEvent, reminderDays } from './model';
 import type { AgendaItem, EventForm, EventPayload } from './model';
 
@@ -118,17 +118,23 @@ export const EventEditor = ({
               }))}
               onChange={(value) => {
                 change('month', value);
-                change('day', '');
+                change('day', clampDay(form.day, value));
               }}
             />
           </View>
           <View style={{ flex: 1 }}>
-            <DsSelect
+            <DsField
               label="Dia"
+              accessibilityLabel="Dia do evento"
+              placeholder="Dia"
               value={form.day}
-              disabled={pending || !form.month}
-              options={dayOptions(form.month)}
-              onChange={(value) => change('day', value)}
+              onChangeText={(value) =>
+                change('day', sanitizeDay(value, form.month))
+              }
+              keyboardType="number-pad"
+              maxLength={2}
+              editable={!pending}
+              style={{ textAlign: 'center' }}
             />
           </View>
         </View>

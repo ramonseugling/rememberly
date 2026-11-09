@@ -12,8 +12,9 @@ export type ApiErrorKind = 'http' | 'network' | 'cancelled' | 'stale';
 export class ApiError extends Error {
   readonly status: number;
   readonly kind: ApiErrorKind;
+  readonly reason: string | null;
 
-  constructor(kind: ApiErrorKind, status = 0) {
+  constructor(kind: ApiErrorKind, status = 0, reason: string | null = null) {
     const messages: Record<number, string> = {
       400: 'Confira os dados informados e tente novamente.',
       401: 'Sua sessão expirou. Entre novamente.',
@@ -35,6 +36,7 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     this.kind = kind;
+    this.reason = reason;
   }
 }
 
@@ -114,7 +116,11 @@ export function createAuthenticatedTransport(
         throw new ApiError('network');
       }
       if (response.status < 200 || response.status >= 300)
-        throw new ApiError('http', response.status);
+        throw new ApiError(
+          'http',
+          response.status,
+          await errorReason(response),
+        );
       const data = response.status === 204 ? null : await response.json();
       if (abort.signal.aborted)
         throw new ApiError(options.signal?.aborted ? 'cancelled' : 'network');
@@ -127,4 +133,13 @@ export function createAuthenticatedTransport(
       options.signal?.removeEventListener('abort', cancel);
     }
   };
+}
+
+async function errorReason(response: { json: () => Promise<unknown> }) {
+  try {
+    const body = (await response.json()) as { reason?: unknown };
+    return typeof body?.reason === 'string' ? body.reason : null;
+  } catch {
+    return null;
+  }
 }

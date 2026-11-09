@@ -29,10 +29,8 @@ interface DsDateCardProps {
 export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
   const today = item.days_until === 0;
   const Icon = eventIcon(item.type);
-  const badge = daysBadge(
-    item.days_until,
-    `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`,
-  );
+  const shortDate = `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`;
+  const badge = daysBadge(item.days_until, shortDate, item.is_next_year);
   const group =
     item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
@@ -47,6 +45,7 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
           <DsText style={styles.subtitle} numberOfLines={2}>
             {eventTypeLabel(item)}
             {group ? ` · ${group}` : ''}
+            {item.is_next_year ? ` · ${shortDate}` : ''}
           </DsText>
         </View>
       </View>

@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: tokens.tabBarClearance,
     gap: 24,
   },
   intro: { gap: 8 },

@@ -4,12 +4,14 @@ The app accepts validated Rememberly invitations and password-reset links. The `
 
 ## Accepted inputs
 
-| Input                                                                     | Result                                              |
-| ------------------------------------------------------------------------- | --------------------------------------------------- |
-| `rememberly://join-group?code=abc12_-3`                                   | Explicit invitation confirmation                    |
-| `rememberly://reset-password?token=<96 lowercase hexadecimal characters>` | Password form; no automatic password change         |
-| `https://rememberly.com.br/join-group?code=abc12_-3`                      | Same validated invitation when delivered to the app |
-| `https://www.rememberly.com.br/reset-password?token=...`                  | Same validated reset when delivered to the app      |
+| Input                                                                     | Result                                                                         |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `rememberly://join-group?code=abc12_-3`                                   | Explicit invitation confirmation                                               |
+| `rememberly://reset-password?token=<96 lowercase hexadecimal characters>` | Password form; no automatic password change                                    |
+| `https://rememberly.com.br/join-group?code=abc12_-3`                      | Same validated invitation when delivered to the app                            |
+| `https://www.rememberly.com.br/reset-password?token=...`                  | Same validated reset when delivered to the app                                 |
+| `rememberly://gift-list?user=<user UUID>`                                 | Opens that person's gift list (signed-in) or asks to sign in first             |
+| `https://rememberly.com.br/gift-list?user=<user UUID>`                    | Website page with an "Open in the app" button until Universal Links are set up |
 
 The `rememberly:///path` and `rememberly://app/path` forms are accepted too. Only the exact `/join-group` and `/reset-password` paths and their single expected parameter are allowed. Links reject other hosts, credentials, ports outside the exact origin, fragments, duplicate or unknown parameters, whitespace, encoding tricks, normalized traversal, malformed values, and inputs over 512 characters. Invitation codes match the server's eight lowercase base64url characters. Password reset tokens match the server's 48-byte hexadecimal format.
 

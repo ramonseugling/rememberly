@@ -43,6 +43,7 @@ function Navigation() {
       </Stack.Protected>
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="join-group" />
+      <Stack.Screen name="gift-list" />
     </Stack>
   );
 }

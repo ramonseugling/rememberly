@@ -603,6 +603,55 @@ export function buildCommemorativeReminderHtml(
   });
 }
 
+interface SendGiftReleasedEmailInput {
+  to: string;
+  userName: string;
+  ownerName: string;
+  giftTitle: string;
+  action: 'edited' | 'deleted';
+}
+
+async function sendGiftReleasedEmail(input: SendGiftReleasedEmailInput) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  await resend.emails.send({
+    from: FROM,
+    to: input.to,
+    subject: `Sua reserva de presente foi cancelada — ${input.giftTitle}`,
+    html: buildGiftReleasedHtml(
+      escapeHtml(input.userName),
+      escapeHtml(input.ownerName),
+      escapeHtml(input.giftTitle),
+      input.action,
+    ),
+  });
+
+  log.info('gift_released_email_sent', { to: input.to });
+}
+
+export function buildGiftReleasedHtml(
+  userName: string,
+  ownerName: string,
+  giftTitle: string,
+  action: 'edited' | 'deleted',
+) {
+  const what =
+    action === 'deleted'
+      ? 'removeu um presente da lista'
+      : 'alterou um presente da lista';
+  return buildEmailLayout({
+    greeting: `Olá, <strong>${userName}</strong>! 👋`,
+    content: brandHeroCard(
+      '🎁 Reserva cancelada',
+      giftTitle,
+      `${ownerName} ${what}`,
+    ),
+    footerNote:
+      'Como o presente mudou, a sua reserva foi cancelada. Você pode reservar de novo se ainda fizer sentido.',
+    cta: ctaButton(`${APP_URL}/dates`, 'Ver no Rememberly'),
+  });
+}
+
 const email = {
   sendEventNotification,
   sendReminderNotification,
@@ -612,6 +661,7 @@ const email = {
   sendDailyDigestEmail,
   sendCommemorativeReminder,
   sendAnnouncementEmail,
+  sendGiftReleasedEmail,
 };
 
 export default email;

@@ -52,7 +52,7 @@ export const GroupEventsTab = ({
               {birthdayDateLabel(next)}
             </DsText>
           </View>
-          <DsDaysBadge days={next.daysUntil!} />
+          <DsDaysBadge days={next.daysUntil!} nextYear={next.isNextYear} />
         </View>
       </LinearGradient>
       <View style={styles.card}>
@@ -111,7 +111,10 @@ export const GroupEventsTab = ({
                   {birthdayDateLabel(member)}
                 </DsText>
               </View>
-              <DsDaysBadge days={member.daysUntil!} />
+              <DsDaysBadge
+                days={member.daysUntil!}
+                nextYear={member.isNextYear}
+              />
             </View>
           </View>
         ))}

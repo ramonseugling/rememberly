@@ -1,6 +1,7 @@
 export type LinkIntent =
   | { kind: 'invitation'; code: string }
-  | { kind: 'reset'; token: string };
+  | { kind: 'reset'; token: string }
+  | { kind: 'gift-list'; userId: string };
 export type NotificationIntent = {
   kind: 'notification';
   tab: 'dates' | 'groups' | 'occasions';
@@ -63,6 +64,8 @@ export function parseNativeLink(
       return { kind: 'invitation', code: value };
     if (path === '/reset-password' && key === 'token' && resetToken(value))
       return { kind: 'reset', token: value };
+    if (path === '/gift-list' && key === 'user' && resourceId(value))
+      return { kind: 'gift-list', userId: value };
     return null;
   } catch {
     return null;
@@ -72,7 +75,16 @@ export function parseNativeLink(
 export function intentPath(intent: LinkIntent): string {
   return intent.kind === 'invitation'
     ? `/join-group?code=${intent.code}`
-    : `/reset-password?token=${intent.token}`;
+    : intent.kind === 'gift-list'
+      ? `/gift-list?user=${intent.userId}`
+      : `/reset-password?token=${intent.token}`;
+}
+
+export function pendingPath(intent: PendingIntent): string {
+  if (intent.kind === 'invitation') return intentPath(intent);
+  if (intent.kind === 'gift-list')
+    return `/(tabs)/gifts-member?userId=${intent.userId}`;
+  return notificationPath(intent);
 }
 
 export function parseNotification(data: unknown): NotificationIntent | null {

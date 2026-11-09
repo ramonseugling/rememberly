@@ -3,7 +3,6 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -91,7 +90,6 @@ interface AuthPageProps {
 export function AuthPage({
   title,
   subtitle,
-  pending,
   message,
   compactBrand,
   children,
@@ -120,12 +118,6 @@ export function AuthPage({
                 )}
               </View>
               {message && <DsFeedback tone="error" message={message} />}
-              {pending && (
-                <ActivityIndicator
-                  accessibilityLabel="Solicitação em andamento"
-                  color={tokens.colors.brand}
-                />
-              )}
               {children}
             </View>
           </ScrollView>
@@ -209,13 +201,20 @@ export function AuthField({
 interface AuthActionProps {
   label: string;
   disabled?: boolean;
+  pending?: boolean;
   onPress: () => void;
 }
-export function AuthAction({ label, disabled, onPress }: AuthActionProps) {
+export function AuthAction({
+  label,
+  disabled,
+  pending,
+  onPress,
+}: AuthActionProps) {
   return (
     <DsButton
       label={label}
       disabled={disabled}
+      pending={pending}
       onPress={onPress}
       style={styles.action}
     />

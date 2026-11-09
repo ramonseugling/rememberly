@@ -143,7 +143,10 @@ export function HomeScreen() {
                     <DsText role="label" style={{ flexShrink: 1 }}>
                       {item.title}
                     </DsText>
-                    <DsDaysBadge days={item.days_until} />
+                    <DsDaysBadge
+                      days={item.days_until}
+                      nextYear={item.is_next_year}
+                    />
                   </View>
                   <View style={styles.type}>
                     <Cake size={14} color={tokens.colors.brand} />
@@ -262,7 +265,11 @@ export function HomeScreen() {
 }
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: tokens.colors.background },
-  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 24 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: tokens.tabBarClearance,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

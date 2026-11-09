@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 32,
+    paddingBottom: tokens.tabBarClearance,
     gap: 16,
   },
   intro: { gap: 4 },

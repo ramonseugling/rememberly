@@ -152,3 +152,35 @@ export class InternalServerError extends Error {
     };
   }
 }
+
+export class ConflictError extends Error {
+  action: string;
+  status_code: number;
+  reason: string | null;
+
+  constructor({
+    message,
+    action,
+    reason = null,
+  }: {
+    message: string;
+    action: string;
+    reason?: string | null;
+  }) {
+    super(message);
+    this.name = 'ConflictError';
+    this.action = action;
+    this.status_code = 409;
+    this.reason = reason;
+  }
+
+  toJSON(): ErrorResponse & { reason: string | null } {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.status_code,
+      reason: this.reason,
+    };
+  }
+}

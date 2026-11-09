@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   content: {
+    flexGrow: 1,
     minHeight: tokens.controlMinHeight,
     paddingHorizontal: 18,
     paddingVertical: 12,

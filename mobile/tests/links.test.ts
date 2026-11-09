@@ -5,6 +5,7 @@ import {
   acceptNotificationId,
   intentPath,
   parseNativeLink,
+  pendingPath,
   parseNotification,
   notificationPath,
   resourceId,
@@ -131,4 +132,38 @@ test('notification deduplication retains only the latest 100 handled IDs', () =>
   assert.equal(acceptNotificationId(seen, 'first'), true);
   assert.equal(seen.size, 100);
   assert.equal(seen.has('notification-0'), false);
+});
+
+test('accepts gift list links for a valid user id only', () => {
+  const id = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+  const intent = { kind: 'gift-list', userId: id };
+  assert.deepEqual(
+    parseNativeLink(`rememberly://gift-list?user=${id}`),
+    intent,
+  );
+  assert.deepEqual(
+    parseNativeLink(`https://rememberly.com.br/gift-list?user=${id}`),
+    intent,
+  );
+  assert.equal(intentPath(intent as never), `/gift-list?user=${id}`);
+  for (const bad of [
+    'rememberly://gift-list?user=abc',
+    `rememberly://gift-list?code=${id}`,
+    `rememberly://gift-list?user=${id}&x=1`,
+    `https://evil.com/gift-list?user=${id}`,
+    `rememberly://gift-list/extra?user=${id}`,
+  ])
+    assert.equal(parseNativeLink(bad), null, bad);
+});
+
+test('opens a pending gift list link on the member list after login', () => {
+  const id = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+  assert.equal(
+    pendingPath({ kind: 'gift-list', userId: id }),
+    `/(tabs)/gifts-member?userId=${id}`,
+  );
+  assert.equal(
+    pendingPath({ kind: 'invitation', code: 'abc12_-3' }),
+    '/join-group?code=abc12_-3',
+  );
 });

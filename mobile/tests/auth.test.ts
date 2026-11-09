@@ -237,3 +237,26 @@ test('invite preview rejects unknown codes and malformed responses', async () =>
   );
   await assert.rejects(malformed.invitePreview('abc12345'), PublicAuthError);
 });
+
+test('explains known bad requests with app copy, never the raw server text', async () => {
+  const cases: [string, RegExp][] = [
+    ['Este e-mail já está em uso.', /já tem cadastro/],
+    ['Código de verificação incorreto.', /código está incorreto/],
+    [
+      'Código de verificação inválido, expirado ou tentativas esgotadas.',
+      /Solicite um novo código/,
+    ],
+  ];
+  for (const [message, expected] of cases) {
+    const api = createPublicAuthApi('https://api.example.com', async () =>
+      response({ message, action: 'secret' }, 400),
+    );
+    await assert.rejects(
+      api.sendCode('sam@example.com'),
+      (error) =>
+        error instanceof PublicAuthError &&
+        expected.test(error.message) &&
+        !error.message.includes('secret'),
+    );
+  }
+});

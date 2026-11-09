@@ -354,7 +354,11 @@ export function DatesScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
-  content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: tokens.tabBarClearance,
+  },
   header: { gap: 6, marginBottom: 24 },
   title: {
     fontSize: tokens.typography.title.fontSize,

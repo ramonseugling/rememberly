@@ -70,6 +70,7 @@ export const tokens = {
   spacing: { 4: 4, 8: 8, 12: 12, 16: 16, 20: 20, 24: 24, 32: 32, 40: 40 },
   radius: { control: 12, row: 22, card: 22, sheet: 28, button: 16 },
   controlMinHeight: 48,
+  tabBarClearance: 120,
   actionGradient: ['#ED5E8E', '#F69855'] as const,
   actionPressedGradient: ['#EA3E77', '#F48434'] as const,
   celebration: ['#FEE6E8', '#FEF1F7'] as const,

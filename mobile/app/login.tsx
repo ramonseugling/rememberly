@@ -50,13 +50,7 @@ export default function LoginScreen() {
       pending={busy}
       message={validation ?? state.message}
     >
-      {busy ? (
-        <DsText accessibilityLiveRegion="polite" style={local.centered}>
-          {state.status === 'restoring'
-            ? 'Verificando sua sessão...'
-            : 'Entrando...'}
-        </DsText>
-      ) : state.status === 'unavailable' ? (
+      {state.status === 'unavailable' ? (
         <>
           <AuthAction
             label="Tentar conexão novamente"
@@ -91,6 +85,7 @@ export default function LoginScreen() {
               setEmail(value);
               setValidation(null);
             }}
+            editable={!busy}
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
@@ -105,6 +100,7 @@ export default function LoginScreen() {
               setPassword(value);
               setValidation(null);
             }}
+            editable={!busy}
             autoCapitalize="none"
             autoComplete="current-password"
             textContentType="password"
@@ -119,7 +115,8 @@ export default function LoginScreen() {
           <AuthAction
             label="Entrar"
             onPress={submit}
-            disabled={!email.trim() || !password}
+            pending={busy}
+            disabled={!busy && (!email.trim() || !password)}
           />
           <View style={local.footer}>
             <DsText style={styles.text}>Ainda não tem conta?</DsText>

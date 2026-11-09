@@ -307,6 +307,43 @@ export const joinGroupSchema = z.object({
     .min(1, 'O código de convite é obrigatório.'),
 });
 
+const giftText = (label: string, max: number) =>
+  z
+    .string({
+      required_error: `${label} é obrigatório.`,
+      invalid_type_error: `${label} inválido.`,
+    })
+    .max(max, `${label} deve ter no máximo ${max} caracteres.`);
+
+export const createGiftSchema = z
+  .object({
+    title: giftText('O nome do presente', 100),
+    link: giftText('O link', 2000).nullish(),
+    description: giftText('A descrição', 500).nullish(),
+  })
+  .strict();
+
+export const updateGiftSchema = z
+  .object({
+    title: giftText('O nome do presente', 100).optional(),
+    link: giftText('O link', 2000).nullish(),
+    description: giftText('A descrição', 500).nullish(),
+  })
+  .strict()
+  .refine((body) => Object.keys(body).length > 0, {
+    message: 'Informe ao menos um campo para atualizar.',
+  });
+
+export const reserveGiftSchema = z
+  .object({
+    status: z.enum(['reserved', 'purchased'], {
+      required_error: 'Informe se o presente está reservado ou comprado.',
+      invalid_type_error: 'Status de reserva inválido.',
+      message: 'Status de reserva inválido.',
+    }),
+  })
+  .strict();
+
 export const commemorativeDateKeySchema = z.object({
   key: z.string().refine((v) => COMMEMORATIVE_KEYS.includes(v), {
     message: `Chave de data comemorativa inválida. Use uma das chaves válidas: ${COMMEMORATIVE_KEYS.join(', ')}.`,

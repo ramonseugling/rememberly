@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { log } from 'next-axiom';
 import {
+  ConflictError,
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
@@ -38,6 +39,7 @@ function onNoMatch(_req: NextApiRequest, res: NextApiResponse) {
 function onError(error: unknown, req: NextApiRequest, res: NextApiResponse) {
   if (
     error instanceof ValidationError ||
+    error instanceof ConflictError ||
     error instanceof NotFoundError ||
     error instanceof UnauthorizedError ||
     error instanceof MethodNotAllowedError ||

@@ -248,7 +248,8 @@ export default function SignupScreen() {
             onChange={setMarketing}
           />
           <AuthAction
-            label={task.pending ? 'Enviando código...' : 'Continuar'}
+            label="Continuar"
+            pending={task.pending}
             disabled={busy}
             onPress={sendCode}
           />
@@ -279,7 +280,8 @@ export default function SignupScreen() {
             anterior.
           </DsText>
           <AuthAction
-            label={task.pending ? 'Verificando...' : 'Verificar e criar conta'}
+            label="Verificar e criar conta"
+            pending={task.pending}
             disabled={busy || code.length !== 6}
             onPress={submit}
           />

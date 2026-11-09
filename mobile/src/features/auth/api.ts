@@ -3,19 +3,39 @@ export type PublicTransport = (
   init: RequestInit,
 ) => Promise<Pick<Response, 'status' | 'url' | 'redirected' | 'json'>>;
 
+const KNOWN_BAD_REQUESTS: Record<string, string> = {
+  'Este e-mail já está em uso.':
+    'Este e-mail já tem cadastro. Entre com a sua conta ou recupere a senha.',
+  'Código de verificação incorreto.':
+    'O código está incorreto. Confira o e-mail e tente de novo.',
+  'Código de verificação inválido, expirado ou tentativas esgotadas.':
+    'O código expirou ou as tentativas acabaram. Solicite um novo código.',
+};
+
 export class PublicAuthError extends Error {
   readonly status: number;
-  constructor(status = 0) {
+  constructor(status = 0, serverMessage: string | null = null) {
     super(
-      status === 400
-        ? 'Confira seus dados. O código ou link pode ter expirado; solicite um novo se necessário.'
-        : status === 429
-          ? 'Muitas tentativas. Aguarde antes de tentar novamente.'
-          : status >= 500
-            ? 'O serviço está indisponível. Tente novamente mais tarde.'
-            : 'Não foi possível concluir a solicitação. Confira sua conexão e tente novamente.',
+      status === 400 && serverMessage && KNOWN_BAD_REQUESTS[serverMessage]
+        ? KNOWN_BAD_REQUESTS[serverMessage]
+        : status === 400
+          ? 'Confira seus dados. O código ou link pode ter expirado; solicite um novo se necessário.'
+          : status === 429
+            ? 'Muitas tentativas. Aguarde antes de tentar novamente.'
+            : status >= 500
+              ? 'O serviço está indisponível. Tente novamente mais tarde.'
+              : 'Não foi possível concluir a solicitação. Confira sua conexão e tente novamente.',
     );
     this.status = status;
+  }
+}
+
+async function errorMessage(response: { json: () => Promise<unknown> }) {
+  try {
+    const body = (await response.json()) as { message?: unknown };
+    return typeof body?.message === 'string' ? body.message : null;
+  } catch {
+    return null;
   }
 }
 
@@ -77,7 +97,10 @@ export function createPublicAuthApi(
       )
         throw new PublicAuthError();
       if (response.status < 200 || response.status >= 300)
-        throw new PublicAuthError(response.status);
+        throw new PublicAuthError(
+          response.status,
+          response.status === 400 ? await errorMessage(response) : null,
+        );
       const data: unknown = await response.json();
       if (
         abort.signal.aborted ||

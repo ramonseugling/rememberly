@@ -21,6 +21,7 @@
     "@expo-google-fonts/quicksand": "^0.4.1",
     "@react-native-masked-view/masked-view": "0.3.2",
     "expo": "~58.0.21",
+    "expo-clipboard": "~58.0.4",
     "expo-constants": "~58.0.14",
     "expo-crypto": "~58.0.7",
     "expo-dev-client": "~58.0.17",

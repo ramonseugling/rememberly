@@ -21,7 +21,10 @@ export const AppTabBar = ({
 }: BottomTabBarProps) => {
   const active = state.routes[state.index].name;
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View
+      pointerEvents="box-none"
+      style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 8) }]}
+    >
       <View style={styles.bar}>
         {items.map(({ name, label, Icon }) => {
           const selected =
@@ -52,9 +55,6 @@ export const AppTabBar = ({
               <Icon
                 size={22}
                 color={selected ? tokens.colors.brand : tokens.colors.textMuted}
-                fill={
-                  selected && name === 'index' ? tokens.colors.brand : 'none'
-                }
               />
               <DsText
                 role="caption"
@@ -77,9 +77,12 @@ export const AppTabBar = ({
 };
 const styles = StyleSheet.create({
   wrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 8,
-    backgroundColor: tokens.colors.background,
   },
   bar: {
     height: 64,

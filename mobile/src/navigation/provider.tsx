@@ -9,12 +9,7 @@ import {
 } from 'react';
 import { router, useRootNavigationState } from 'expo-router';
 import { useSession } from '../session/provider';
-import {
-  IntentQueue,
-  intentPath,
-  notificationPath,
-  type PendingIntent,
-} from './intents';
+import { IntentQueue, pendingPath, type PendingIntent } from './intents';
 
 const IntentContext = createContext<{
   enqueue: (intent: PendingIntent) => void;
@@ -37,12 +32,7 @@ export function IntentProvider({ children }: PropsWithChildren) {
     queue.current.identity(id);
     if (!id || !navigation?.key) return;
     const intent = queue.current.take(id);
-    if (intent)
-      router.replace(
-        intent.kind === 'invitation'
-          ? intentPath(intent)
-          : notificationPath(intent),
-      );
+    if (intent) router.replace(pendingPath(intent));
   }, [user, revision, navigation?.key, controller]);
   const enqueue = useCallback(
     (intent: PendingIntent) => {

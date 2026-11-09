@@ -155,8 +155,8 @@ export default function ResetPasswordScreen() {
             maxLength={72}
           />
           <AuthAction
-            label={task.pending ? 'Salvando...' : 'Salvar nova senha'}
-            disabled={task.pending}
+            label="Salvar nova senha"
+            pending={task.pending}
             onPress={() => {
               const error = !resetToken(token.trim())
                 ? 'Informe um código de redefinição válido ou solicite um novo link.'
@@ -197,7 +197,7 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   feedback: { gap: 16 },
-  emoji: { fontSize: 48, textAlign: 'center' },
+  emoji: { fontSize: 48, lineHeight: 64, textAlign: 'center' },
   text: {
     color: tokens.colors.textMuted,
     fontSize: 14,

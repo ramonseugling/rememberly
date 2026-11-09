@@ -16,16 +16,18 @@ export default function TabLayout() {
       <Tabs.Screen name="groups" options={{ title: 'Grupos' }} />
       <Tabs.Screen name="gifts" options={{ title: 'Presentes' }} />
       <Tabs.Screen name="profile" options={{ title: 'Perfil' }} />
+      <Tabs.Screen name="occasions" options={{ title: 'Especiais' }} />
+      <Tabs.Screen name="legal" options={{ title: 'Termos' }} />
+      <Tabs.Screen name="account" options={{ title: 'Conta' }} />
       <Tabs.Screen
-        name="occasions"
-        options={{ title: 'Especiais', href: null }}
+        name="gifts-groups"
+        options={{ title: 'Listas dos grupos' }}
       />
-      <Tabs.Screen name="legal" options={{ title: 'Termos', href: null }} />
-      <Tabs.Screen name="account" options={{ title: 'Conta', href: null }} />
       <Tabs.Screen
-        name="notifications"
-        options={{ title: 'Notificações', href: null }}
+        name="gifts-member"
+        options={{ title: 'Lista de presentes' }}
       />
+      <Tabs.Screen name="notifications" options={{ title: 'Notificações' }} />
     </Tabs>
   );
 }

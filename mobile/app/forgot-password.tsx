@@ -92,8 +92,8 @@ export default function ForgotPasswordScreen() {
             autoComplete="email"
           />
           <AuthAction
-            label={task.pending ? 'Enviando...' : 'Enviar link'}
-            disabled={task.pending}
+            label="Enviar link"
+            pending={task.pending}
             onPress={() => {
               const error = emailError(email);
               if (error) {
@@ -123,7 +123,7 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   feedback: { alignItems: 'stretch', gap: 16 },
-  emoji: { fontSize: 48, textAlign: 'center' },
+  emoji: { fontSize: 48, lineHeight: 64, textAlign: 'center' },
   text: {
     fontSize: 14,
     color: tokens.colors.textMuted,

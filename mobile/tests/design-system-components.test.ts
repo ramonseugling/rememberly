@@ -23,3 +23,15 @@ test('days badge picks tone and Portuguese label by distance to the event', () =
   });
   assert.deepEqual(daysBadge(12), { label: 'Em 12 dias', tone: 'neutral' });
 });
+
+test('events whose date already passed this year are labeled for next year', () => {
+  assert.deepEqual(daysBadge(200, '05 mar', true), {
+    label: 'Ano que vem',
+    tone: 'neutral',
+  });
+  assert.deepEqual(daysBadge(3, undefined, true), {
+    label: 'Ano que vem',
+    tone: 'neutral',
+  });
+  assert.equal(daysBadge(3, undefined, false).label, 'Em 3 dias');
+});

@@ -60,3 +60,37 @@ Errors: `400 ValidationError` for a non-image content type, invalid or unsupport
 Exposure: `avatar_url` is returned by `GET /api/v1/mobile/me`, by the group member lists and by group-birthday items of `GET /api/v1/mobile/agenda`; `photo_url` by `GET /api/v1/groups` and `GET /api/v1/groups/:id`. Both are public, unguessable URLs (random suffix) and are only handed out to people who share a group with the user, or to the user themselves. Deleting a group or an account removes the stored files on a best-effort basis.
 
 Storage: Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set. Without the token, development and tests write to `public/uploads/` (git-ignored); production refuses uploads with `503` if the token is missing.
+
+## Gift list (owner)
+
+Added with BE-GIFT-02. Shared routes through `authenticatedController` (Bearer or cookie). Each user has one private list; items are visible only to their owner for now (sharing arrives with BE-GIFT-03 and reservations with BE-GIFT-04).
+
+| Endpoint                   | Body                                                               | Result                                           |
+| -------------------------- | ------------------------------------------------------------------ | ------------------------------------------------ |
+| `GET /api/v1/gifts`        | none                                                               | `200 { items: Item[], limit: 50 }`, newest first |
+| `POST /api/v1/gifts`       | `{ title, link?, description? }`                                   | `201 Item`                                       |
+| `GET /api/v1/gifts/:id`    | none                                                               | `200 Item`                                       |
+| `PATCH /api/v1/gifts/:id`  | any of `title`, `link`, `description` (`null` or `""` clears them) | `200 Item`                                       |
+| `DELETE /api/v1/gifts/:id` | none                                                               | `204`                                            |
+
+`Item` is `{ id, title, link, description, created_at, updated_at }`. Limits: title 1 to 100 characters, link up to 2000 (only `http`/`https`, no credentials, never fetched by the server), description up to 500, at most 50 items per list (`400` "Sua lista já tem 50 presentes."). Unknown fields, an empty patch and invalid values return `400`; items of other users, unknown ids and malformed ids return `404`.
+
+Reserved and purchased items (BE-GIFT-04, decision 2): `PATCH` and `DELETE` on `/api/v1/gifts/:id` answer `409` with `reason: "reserved"` the first time, without saying who reserved. Repeat the request with `?confirm=true` to proceed; the reservation is cancelled. Items marked purchased always answer `409` with `reason: "purchased"`, even when confirmed. The owner list and item payloads never carry reservation data. When the owner confirms, the person who reserved is notified (push with `data: { kind: "gift_released", user_id: <owner id> }` and e-mail), respecting their `push_enabled` and `email_events` preferences; a failed notification never fails the request.
+
+## Gift list member view
+
+Lists are visible to everyone who shares at least one group with the owner; there is no per-group sharing step (decision changed on 2026-11-09, the sharing endpoints were removed).
+
+| Endpoint                      | Body | Result                                                                                                  |
+| ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/gifts/visible`   | none | `200 { owners: { user_id, name, avatar_url, item_count }[] }`, lists the viewer may see, one per person |
+| `GET /api/v1/users/:id/gifts` | none | `200 { owner: { id, name, avatar_url, birth_day, birth_month }, items: Item[] }`                        |
+
+A viewer can read a list when the viewer and the owner share at least one group; leaving or deleting the last common group removes access immediately. `GET /api/v1/gifts/visible` only lists people whose list has items. Owners can always read their own list through `/users/:id/gifts`. Everything else, including unknown or malformed ids, returns `404` so the endpoint does not reveal who has a list. `PUT` returns `400` for groups the owner does not belong to, malformed ids or a missing `group_ids`. For members (not the owner) each item adds `availability` (`available`, `reserved` or `purchased`) and `reserved_by_me`.
+
+### Reservations (members)
+
+- `PUT /api/v1/gifts/:id/reservation` with `{ "status": "reserved" | "purchased" }` reserves the item or updates your own reservation; returns `{ item_id, availability, reserved_by_me }`. `409` with `reason: "taken"` when someone else holds it (concurrency-safe: one active reservation per item). `404` for the owner, people without access, unknown or malformed ids; `400` for an invalid status.
+- `DELETE /api/v1/gifts/:id/reservation` cancels your reservation (`204`, `404` if you hold none).
+- A reservation is cancelled when its holder can no longer see the list or deletes the account; a purchase is kept.
+- Expiry: `GET /api/v1/notifications/expire-gifts` (cron, `CRON_SECRET`, daily). Seven days after the owner's birthday, purchased gifts are removed and the remaining reservations cleared, once per birthday (`gift_lists.expired_for`). Owners without a birthday are never expired.

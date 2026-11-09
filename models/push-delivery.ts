@@ -62,17 +62,28 @@ export async function enqueuePushReminders(today = referenceDay()) {
       });
   }
   let enqueued = 0;
-  for (const reminder of reminders) {
-    const result = await database.query(
-      `INSERT INTO push_deliveries(device_id,user_id,session_id,dedup_key,data)
+  for (const reminder of reminders)
+    enqueued += await enqueuePush(
+      reminder.user_id,
+      reminder.key,
+      reminder.data,
+    );
+  return enqueued;
+}
+
+export async function enqueuePush(
+  userId: string,
+  key: string,
+  data: Record<string, string>,
+) {
+  const result = await database.query(
+    `INSERT INTO push_deliveries(device_id,user_id,session_id,dedup_key,data)
       SELECT d.id,d.user_id,d.session_id,$2,$3::jsonb FROM push_devices d
       JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
       WHERE d.user_id=$1 AND ${eligible} ON CONFLICT(device_id,dedup_key) DO NOTHING`,
-      [reminder.user_id, reminder.key, JSON.stringify(reminder.data)],
-    );
-    enqueued += result.rowCount ?? 0;
-  }
-  return enqueued;
+    [userId, key, JSON.stringify(data)],
+  );
+  return result.rowCount ?? 0;
 }
 async function claim(limit: number) {
   const client = await database.getNewClient();
@@ -117,6 +128,12 @@ async function claim(limit: number) {
     await client.end();
   }
 }
+function pushBody(data: { kind?: string }) {
+  return data.kind === 'gift_released'
+    ? 'Um presente que você reservou mudou. Abra o Rememberly para ver.'
+    : 'You have a date to remember. Open Rememberly to see it.';
+}
+
 async function deliverBatch(provider: PushProvider) {
   const claimed = await claim(provider.sendBatch ? 100 : 4);
   if (!claimed.length) return 0;
@@ -135,7 +152,7 @@ async function deliverBatch(provider: PushProvider) {
     to: row.expo_push_token,
     title: 'Rememberly',
     channelId: 'reminders' as const,
-    body: 'You have a date to remember. Open Rememberly to see it.',
+    body: pushBody(row.data),
     data: row.data,
   }));
   let results: Awaited<ReturnType<PushProvider['send']>>[];
