@@ -2,6 +2,13 @@ import { withAxiom } from 'next-axiom';
 
 export default withAxiom({
   transpilePackages: ['@faker-js/faker'],
+  outputFileTracingIncludes: {
+    '/api/**/*': [
+      './node_modules/sharp/**/*',
+      './node_modules/@img/sharp-linux-x64/**/*',
+      './node_modules/@img/sharp-libvips-linux-x64/**/*',
+    ],
+  },
   async headers() {
     return [
       {

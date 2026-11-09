@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import database from 'infra/database';
 import { ValidationError } from 'infra/errors';
 import { getStorage } from 'infra/storage';
@@ -14,6 +13,7 @@ async function processPhoto(input: Buffer) {
       action: 'Envie uma imagem JPEG, PNG ou WebP de até 2 MB.',
     });
   }
+  const { default: sharp } = await import('sharp');
   try {
     const image = sharp(input, { limitInputPixels: 40_000_000 });
     const { format } = await image.metadata();
