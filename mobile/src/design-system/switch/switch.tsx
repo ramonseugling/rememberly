@@ -1,6 +1,6 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DsText } from '../text/text';
-import { tokens } from '../tokens';
+import { DsToggle } from '../toggle/toggle';
 
 interface DsSwitchProps {
   label: string;
@@ -16,30 +16,14 @@ export const DsSwitch = ({
 }: DsSwitchProps) => (
   <View style={styles.row}>
     <DsText style={{ flex: 1 }}>{label}</DsText>
-    <View style={styles.target}>
-      <Switch
-        accessibilityLabel={label}
-        accessibilityState={{ disabled: !!disabled }}
-        value={value}
-        onValueChange={onValueChange}
-        disabled={disabled}
-        trackColor={{
-          true: tokens.colors.primary,
-          false: tokens.colors.controlBorder,
-        }}
-        ios_backgroundColor={tokens.colors.controlBorder}
-        thumbColor={tokens.colors.onPrimary}
-        hitSlop={8}
-      />
-    </View>
+    <DsToggle
+      accessibilityLabel={label}
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+    />
   </View>
 );
 const styles = StyleSheet.create({
   row: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  target: {
-    minHeight: 48,
-    minWidth: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 });

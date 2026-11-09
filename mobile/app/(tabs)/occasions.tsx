@@ -1,20 +1,29 @@
+import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Plus } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Switch,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BrandButton } from '../../src/components/brand-button/brand-button';
-import { Text } from '../../src/components/brand-text/brand-text';
 import {
   ApiError,
   useAuthenticatedApi,
   useResource,
 } from '../../src/data/hooks';
+import {
+  DsBackHeader,
+  DsButton,
+  DsFeedback,
+  DsListCard,
+  DsText,
+  DsToggle,
+  tokens,
+} from '../../src/design-system';
 import {
   civilDateLabel,
   daysUntilLabel,
@@ -22,7 +31,6 @@ import {
   type Occasion,
 } from '../../src/features/account/forms';
 import { useSession } from '../../src/session/provider';
-import { theme } from '../../src/theme';
 
 type Catalog = { today: string; time_zone: string; items: Occasion[] };
 
@@ -89,34 +97,38 @@ function OccasionsContent() {
         refreshControl={
           <RefreshControl
             refreshing={loading}
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor={tokens.colors.brand}
+            colors={[tokens.colors.brand]}
             onRefresh={() => {
               if (!busy.current) void reload();
             }}
           />
         }
       >
+        <DsBackHeader
+          label="Perfil"
+          onPress={() => router.navigate('/(tabs)/profile')}
+        />
         <View style={styles.header}>
-          <Text accessibilityRole="header" style={styles.heading}>
-            Datas comemorativas
-          </Text>
-          <Text style={styles.text}>
-            Ative os lembretes que deseja receber com 7 dias de antecedência.
-          </Text>
+          <DsText role="title">Datas especiais</DsText>
+          <DsText role="caption" style={styles.muted}>
+            Ative para não esquecer de comprar aquele presente. Avisamos 7 dias
+            antes de cada evento.
+          </DsText>
         </View>
         {loading && !data && (
           <ActivityIndicator
-            accessibilityLabel="Carregando datas comemorativas"
-            color={theme.colors.primary}
+            accessibilityLabel="Carregando datas especiais"
+            color={tokens.colors.brand}
           />
         )}
         {error && (
           <View style={styles.feedback}>
-            <Text accessibilityRole="alert" style={styles.text}>
-              Não foi possível carregar as datas comemorativas. Tente novamente.
-            </Text>
-            <BrandButton
+            <DsFeedback
+              tone="error"
+              message="Não foi possível carregar as datas especiais. Tente novamente."
+            />
+            <DsButton
               label="Tentar novamente"
               variant="outline"
               disabled={pending !== null}
@@ -127,65 +139,41 @@ function OccasionsContent() {
           </View>
         )}
         {data?.items.length === 0 && (
-          <View style={styles.feedback}>
-            <Text style={styles.text}>
-              Nenhuma data comemorativa disponível no momento.
-            </Text>
-          </View>
+          <DsText style={styles.muted}>
+            Nenhuma data especial disponível no momento.
+          </DsText>
         )}
         {data?.items.map((item) => {
           const enabled = confirmed[item.key] ?? item.enabled;
           const label = occasionLabel(item);
           const failed = failure?.key === item.key;
           return (
-            <View key={item.key} style={styles.card}>
-              <View style={styles.cardRow}>
-                <Text accessible={false} style={styles.emoji}>
-                  {item.emoji}
-                </Text>
-                <View style={styles.cardCopy}>
-                  <Text style={styles.label}>{label}</Text>
-                  <Text style={styles.text}>
-                    {daysUntilLabel(item.days_until)} ·{' '}
-                    {civilDateLabel(item.next_date)}
-                  </Text>
-                  {pending === item.key && (
-                    <Text
-                      accessibilityLiveRegion="polite"
-                      style={styles.saving}
-                    >
-                      Salvando…
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.switchTarget}>
-                  <Switch
+            <View key={item.key} style={styles.item}>
+              <DsListCard
+                title={label}
+                subtitle={`${pending === item.key ? 'Salvando… · ' : ''}${daysUntilLabel(item.days_until)} · ${civilDateLabel(item.next_date)}`}
+                icon={
+                  <DsText accessible={false} style={styles.emoji}>
+                    {item.emoji}
+                  </DsText>
+                }
+                trailing={
+                  <DsToggle
                     accessibilityLabel={`${enabled ? 'Desativar' : 'Ativar'} lembrete para ${label}`}
-                    accessibilityState={{
-                      busy: pending === item.key,
-                      disabled: pending !== null,
-                    }}
+                    accessibilityState={{ busy: pending === item.key }}
                     value={enabled}
                     disabled={pending !== null}
-                    onValueChange={(nextEnabled) =>
-                      void toggle(item, nextEnabled)
-                    }
-                    trackColor={{
-                      false: theme.colors.border,
-                      true: theme.colors.primary,
-                    }}
-                    thumbColor="#ffffff"
-                    ios_backgroundColor={theme.colors.border}
-                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                    onValueChange={(next) => void toggle(item, next)}
                   />
-                </View>
-              </View>
+                }
+              />
               {failed && (
                 <View style={styles.retry}>
-                  <Text accessibilityRole="alert" style={styles.error}>
-                    Não foi possível atualizar este lembrete. Tente novamente.
-                  </Text>
-                  <BrandButton
+                  <DsFeedback
+                    tone="error"
+                    message="Não foi possível atualizar este lembrete. Tente novamente."
+                  />
+                  <DsButton
                     label="Tentar novamente"
                     variant="outline"
                     disabled={pending !== null}
@@ -196,58 +184,48 @@ function OccasionsContent() {
             </View>
           );
         })}
+        <LinearGradient colors={tokens.celebration} style={styles.banner}>
+          <View style={styles.bannerCopy}>
+            <DsText role="section" style={styles.bannerTitle}>
+              Faltou algum evento?
+            </DsText>
+            <DsText role="caption" style={styles.muted}>
+              Crie nos seus eventos!
+            </DsText>
+          </View>
+          <DsButton
+            label="Adicionar evento"
+            icon={<Plus size={20} color={tokens.colors.onPrimary} />}
+            onPress={() => router.navigate('/(tabs)/events')}
+          />
+        </LinearGradient>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.colors.background },
+  safe: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 12,
     paddingBottom: 32,
-    gap: 16,
-  },
-  header: { gap: 4, marginBottom: 8 },
-  heading: {
-    fontSize: 30,
-    lineHeight: 38,
-    color: theme.colors.foreground,
-    fontFamily: theme.fonts.headingBold,
-  },
-  label: {
-    fontSize: 16,
-    lineHeight: 20,
-    color: theme.colors.foreground,
-    fontFamily: theme.fonts.heading,
-  },
-  text: { fontSize: 14, color: theme.colors.muted, lineHeight: 20 },
-  feedback: {
-    padding: 20,
     gap: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 24,
-    backgroundColor: theme.colors.card,
   },
-  card: {
-    backgroundColor: theme.colors.card,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+  header: { gap: 6, marginBottom: 4 },
+  muted: { color: tokens.colors.textMuted },
+  feedback: { gap: 12 },
+  item: { gap: 8 },
+  emoji: { fontSize: 24, lineHeight: 30 },
+  retry: { gap: 8 },
+  banner: {
+    marginTop: 4,
+    padding: 16,
+    paddingVertical: 18,
+    gap: 12,
+    borderRadius: tokens.radius.card,
+    boxShadow: tokens.shadows.card,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  emoji: { fontSize: 30 },
-  cardCopy: { flex: 1, minWidth: 0, gap: 2 },
-  switchTarget: {
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  saving: { color: theme.colors.muted, fontSize: 12, lineHeight: 16 },
-  retry: { marginTop: 12, gap: 12 },
-  error: { color: theme.colors.destructive, fontSize: 14, lineHeight: 20 },
+  bannerCopy: { gap: 2 },
+  bannerTitle: { fontSize: 18, lineHeight: 24 },
 });

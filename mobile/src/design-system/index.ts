@@ -23,3 +23,4 @@ export { DsConfirmSheet } from './confirm-sheet/confirm-sheet';
 export { DsEmptyIcon } from './empty-state/empty-state';
 export { DsGradientText } from './gradient-text/gradient-text';
 export { DsBrandHeader } from './brand-header/brand-header';
+export { DsToggle } from './toggle/toggle';
