@@ -11,7 +11,6 @@ import {
 } from 'lucide-react-native';
 import {
   ActivityIndicator,
-  Alert,
   BackHandler,
   KeyboardAvoidingView,
   Platform,
@@ -29,6 +28,7 @@ import { BrandButton } from '../../components/brand-button/brand-button';
 import { Text } from '../../components/brand-text/brand-text';
 import { GroupCard } from '../../components/group-card/group-card';
 import { GroupDates } from '../../components/group-dates/group-dates';
+import { DsConfirmSheet } from '../../design-system';
 import { apiConfiguration } from '../../config/environment';
 import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { resourceId } from '../../navigation/intents';
@@ -67,6 +67,12 @@ function GroupContent({ userId }: { userId: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<GroupTab>('dates');
   const [expandedJoin, setExpandedJoin] = useState(false);
+  const [confirmation, setConfirmation] = useState<{
+    title: string;
+    message: string;
+    label: string;
+    action: () => Promise<void>;
+  } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -152,16 +158,7 @@ function GroupContent({ userId }: { userId: string }) {
     label: string,
     action: () => Promise<void>,
   ) {
-    Alert.alert(title, message, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: label,
-        style: 'destructive',
-        onPress: () => {
-          void mutate(action);
-        },
-      },
-    ]);
+    setConfirmation({ title, message, label, action });
   }
   function open(groupId: string) {
     if (busy.current) return;
@@ -723,6 +720,18 @@ function GroupContent({ userId }: { userId: string }) {
         )}
         <BrandButton label="Criar grupo" pending={pending} onPress={create} />
       </BottomSheet>
+      <DsConfirmSheet
+        visible={!!confirmation}
+        title={confirmation?.title ?? ''}
+        message={confirmation?.message ?? ''}
+        confirmLabel={confirmation?.label ?? ''}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => {
+          const current = confirmation;
+          setConfirmation(null);
+          if (current) void mutate(current.action);
+        }}
+      />
     </SafeAreaView>
   );
 }

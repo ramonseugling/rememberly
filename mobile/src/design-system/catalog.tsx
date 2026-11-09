@@ -10,6 +10,7 @@ import {
   DsButton,
   DsCard,
   DsCheckbox,
+  DsConfirmSheet,
   DsChip,
   DsDaysBadge,
   DsEmptyState,
@@ -38,6 +39,7 @@ export const DesignSystemCatalog = () => {
     'events',
   );
   const [chip, setChip] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [feedback, setFeedback] = useState(
     'Nenhuma ação real é executada neste catálogo.',
   );
@@ -234,6 +236,11 @@ export const DesignSystemCatalog = () => {
             <DsAvatar name="Perfil com lápis" size={72} onEdit={() => {}} />
           </View>
           <DsBackHeader label="Perfil" onPress={() => {}} />
+          <DsButton
+            label="Abrir confirmação"
+            variant="outline"
+            onPress={() => setConfirmOpen(true)}
+          />
           <DsSegmentedTabs
             value={segment}
             onChange={setSegment}
@@ -282,6 +289,14 @@ export const DesignSystemCatalog = () => {
           para migração.
         </DsText>
       </ScrollView>
+      <DsConfirmSheet
+        visible={confirmOpen}
+        title="Excluir evento?"
+        message="“Aniversário da Ana” será removido permanentemente."
+        confirmLabel="Excluir"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => setConfirmOpen(false)}
+      />
       <DsSheet
         visible={sheet}
         title="Painel de demonstração"

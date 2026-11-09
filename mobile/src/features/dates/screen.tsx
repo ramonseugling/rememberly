@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   ActivityIndicator,
-  Alert,
   SectionList,
   Pressable,
   RefreshControl,
@@ -112,23 +111,10 @@ export function DatesScreen() {
     }
   }
 
-  function confirmDelete(item: AgendaItem) {
+  function deleteItem(item: AgendaItem) {
     const id = editableEventId(item);
     if (!id || busy.current) return;
-    Alert.alert(
-      'Excluir data?',
-      `“${item.title}” será removida permanentemente.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => {
-            void remove(id);
-          },
-        },
-      ],
-    );
+    void remove(id);
   }
 
   async function remove(id: string) {
@@ -335,7 +321,7 @@ export function DatesScreen() {
           onDelete={
             editor.item
               ? () => {
-                  if (editor.item) confirmDelete(editor.item);
+                  if (editor.item) deleteItem(editor.item);
                 }
               : undefined
           }

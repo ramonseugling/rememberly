@@ -19,3 +19,4 @@ export { DsSegmentedTabs } from './segmented-tabs/segmented-tabs';
 export type { DsSegmentedTab } from './segmented-tabs/segmented-tabs';
 export { DsEmptyState } from './empty-state/empty-state';
 export { DsBackHeader } from './back-header/back-header';
+export { DsConfirmSheet } from './confirm-sheet/confirm-sheet';

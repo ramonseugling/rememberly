@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   DsButton,
+  DsConfirmSheet,
   DsField,
   DsFeedback,
   DsSelect,
@@ -47,6 +48,7 @@ export const EventEditor = ({
 }: EventEditorProps) => {
   const [form, setForm] = useState(() => formForEvent(item));
   const [validation, setValidation] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const initial = formForEvent(item);
   const dirty = (Object.keys(form) as (keyof EventForm)[]).some(
     (key) => form[key] !== initial[key],
@@ -160,7 +162,7 @@ export const EventEditor = ({
             label="Excluir"
             variant="destructive"
             disabled={pending}
-            onPress={onDelete}
+            onPress={() => setConfirming(true)}
             style={styles.action}
           />
         )}
@@ -172,6 +174,20 @@ export const EventEditor = ({
           style={styles.action}
         />
       </View>
+      {item && onDelete && (
+        <DsConfirmSheet
+          visible={confirming}
+          title="Excluir evento?"
+          message={`“${item.title}” será removido permanentemente.`}
+          confirmLabel="Excluir"
+          pending={pending}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            onDelete();
+          }}
+        />
+      )}
     </DsSheet>
   );
 };
