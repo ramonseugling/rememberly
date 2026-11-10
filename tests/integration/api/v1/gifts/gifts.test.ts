@@ -49,6 +49,7 @@ describe('gift list API (owner)', () => {
       'description',
       'id',
       'link',
+      'photo_url',
       'title',
       'updated_at',
     ]);

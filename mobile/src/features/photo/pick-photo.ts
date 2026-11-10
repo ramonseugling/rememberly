@@ -4,7 +4,7 @@ import { PHOTO_QUALITY, PHOTO_SIZE } from './photo-rules';
 import type { PhotoSource } from './photo-rules';
 
 export type PickResult =
-  | { kind: 'picked'; data: Uint8Array }
+  | { kind: 'picked'; data: Uint8Array; uri: string }
   | { kind: 'cancelled' }
   | { kind: 'denied' };
 
@@ -34,5 +34,9 @@ export async function pickPhoto(source: PhotoSource): Promise<PickResult> {
     compress: PHOTO_QUALITY,
   });
   const response = await fetch(saved.uri);
-  return { kind: 'picked', data: new Uint8Array(await response.arrayBuffer()) };
+  return {
+    kind: 'picked',
+    data: new Uint8Array(await response.arrayBuffer()),
+    uri: saved.uri,
+  };
 }

@@ -1,8 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { ChevronRight, Gift, Plus, Share2, Users } from 'lucide-react-native';
+import { ChevronRight, Gift, Plus } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -32,43 +30,27 @@ import {
   birthdayCard,
   firstName,
   giftConflict,
+  giftFieldsChanged,
   giftHost,
   purchasedMessage,
   reservedMessage,
   reservedTitle,
 } from './model';
-import type { GiftItem, GiftList, GiftPayload } from './model';
+import type { GiftItem, GiftList, GiftPayload, GiftPhotoChange } from './model';
 import { giftLink } from './link';
+import { GiftThumb } from './gift-thumb';
+import { PHOTO_CONTENT_TYPE } from '../photo/photo-rules';
 import { ShareSheet } from './share-sheet';
 import { apiConfiguration } from '../../config/environment';
 
 type Change =
-  | { kind: 'save'; item?: GiftItem; payload: GiftPayload }
+  | {
+      kind: 'save';
+      item?: GiftItem;
+      payload: GiftPayload;
+      photo: GiftPhotoChange;
+    }
   | { kind: 'delete'; item: GiftItem };
-
-function ActionPill({
-  label,
-  icon,
-  onPress,
-}: {
-  label: string;
-  icon: ReactNode;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }) => [styles.pill, pressed && { opacity: 0.8 }]}
-    >
-      {icon}
-      <DsText role="label" style={styles.pillLabel} numberOfLines={1}>
-        {label}
-      </DsText>
-    </Pressable>
-  );
-}
 
 export function GiftsScreen() {
   const list = useResource<GiftList>('/api/v1/gifts');
@@ -94,26 +76,53 @@ export function GiftsScreen() {
     busy.current = true;
     setPending(true);
     setError(null);
+    let photoFailed = false;
     const suffix = confirm ? '?confirm=true' : '';
     try {
       if (change.kind === 'delete') {
         await request(`/api/v1/gifts/${change.item.id}${suffix}`, {
           method: 'DELETE',
         });
-      } else if (change.item) {
-        await request(`/api/v1/gifts/${change.item.id}${suffix}`, {
-          method: 'PATCH',
-          body: change.payload,
-        });
       } else {
-        await request('/api/v1/gifts', {
-          method: 'POST',
-          body: change.payload,
-        });
+        let id = change.item?.id;
+        if (!change.item || giftFieldsChanged(change.item, change.payload)) {
+          if (change.item) {
+            await request(`/api/v1/gifts/${change.item.id}${suffix}`, {
+              method: 'PATCH',
+              body: change.payload,
+            });
+          } else {
+            const created = await request<GiftItem>('/api/v1/gifts', {
+              method: 'POST',
+              body: change.payload,
+            });
+            id = created.id;
+          }
+        }
+        if (id && change.photo.kind !== 'keep') {
+          try {
+            if (change.photo.kind === 'set')
+              await request(`/api/v1/gifts/${id}/photo`, {
+                method: 'PUT',
+                rawBody: {
+                  data: change.photo.data,
+                  contentType: PHOTO_CONTENT_TYPE,
+                },
+              });
+            else
+              await request(`/api/v1/gifts/${id}/photo`, { method: 'DELETE' });
+          } catch {
+            photoFailed = true;
+          }
+        }
       }
       if (!mounted.current) return;
       setEditor(null);
       setReserved(null);
+      if (photoFailed)
+        setError(
+          'O presente foi salvo, mas não foi possível salvar a foto. Edite o presente para tentar de novo.',
+        );
       await list.reload();
     } catch (caught) {
       if (!mounted.current) return;
@@ -176,23 +185,103 @@ export function GiftsScreen() {
             name={firstName(user.name)}
             photoUri={user.avatar_url ?? null}
             card={card}
-          />
-        )}
-        {ready && (
-          <View style={styles.actions}>
-            {!empty && (
-              <ActionPill
-                label="Compartilhar"
-                icon={<Share2 size={18} color={tokens.colors.actionText} />}
-                onPress={() => setSharing(true)}
-              />
+            onShare={empty ? undefined : () => setSharing(true)}
+          >
+            {!empty && !list.error && (
+              <>
+                <DsText
+                  accessibilityRole="header"
+                  role="section"
+                  style={styles.sectionTitle}
+                >
+                  Minha lista de presentes
+                </DsText>
+                {full && (
+                  <DsText role="caption" style={styles.muted}>
+                    Sua lista chegou ao limite de {limit} presentes.
+                  </DsText>
+                )}
+                <View style={styles.listCard}>
+                  {items.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={item.title}
+                      disabled={pending}
+                      onPress={() => openEditor(item)}
+                      style={[styles.itemRow, styles.itemDivider]}
+                    >
+                      <GiftThumb uri={item.photo_url} size={40} />
+                      <View style={styles.itemCopy}>
+                        <DsText role="label">{item.title}</DsText>
+                        {(item.description || item.link) && (
+                          <DsText role="caption" style={styles.muted}>
+                            {item.description ?? giftHost(item.link ?? '')}
+                          </DsText>
+                        )}
+                      </View>
+                      <ChevronRight size={18} color={tokens.colors.textMuted} />
+                    </Pressable>
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Adicionar presente"
+                    accessibilityState={{ disabled: pending || full }}
+                    disabled={pending || full}
+                    onPress={() => openEditor()}
+                    style={[
+                      styles.itemRow,
+                      { opacity: pending || full ? 0.5 : 1 },
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={tokens.actionGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.itemIcon}
+                    >
+                      <Plus size={20} color={tokens.colors.onPrimary} />
+                    </LinearGradient>
+                    <View style={styles.itemCopy}>
+                      <DsText role="label" style={styles.addLabel}>
+                        Adicionar presente
+                      </DsText>
+                    </View>
+                    <ChevronRight size={18} color={tokens.colors.textMuted} />
+                  </Pressable>
+                </View>
+              </>
             )}
-            <ActionPill
-              label="Listas dos grupos"
-              icon={<Users size={18} color={tokens.colors.actionText} />}
-              onPress={() => router.navigate('/(tabs)/gifts-groups')}
-            />
-          </View>
+            {empty && (
+              <View style={styles.emptyInvite}>
+                <LinearGradient
+                  colors={tokens.actionGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.emptyIcon}
+                >
+                  <Gift size={28} color={tokens.colors.onPrimary} />
+                </LinearGradient>
+                <View style={styles.emptyCopy}>
+                  <DsText role="section" style={styles.centered}>
+                    Sua lista de presentes
+                  </DsText>
+                  <DsText
+                    role="caption"
+                    style={[styles.centered, styles.muted]}
+                  >
+                    Adicione o que você quer ganhar e compartilhe com seus
+                    grupos para ninguém errar no presente.
+                  </DsText>
+                </View>
+                <DsButton
+                  label="Adicionar meu primeiro presente"
+                  onPress={() => openEditor()}
+                  style={styles.stretch}
+                />
+              </View>
+            )}
+          </BirthdayHero>
         )}
         {list.loading && !list.data && (
           <ActivityIndicator
@@ -213,95 +302,6 @@ export function GiftsScreen() {
               />
             )}
           </View>
-        )}
-        {empty && (
-          <View style={styles.emptyCard}>
-            <LinearGradient
-              colors={tokens.actionGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.emptyIcon}
-            >
-              <Gift size={28} color={tokens.colors.onPrimary} />
-            </LinearGradient>
-            <View style={styles.emptyCopy}>
-              <DsText role="section" style={styles.centered}>
-                Sua lista de presentes
-              </DsText>
-              <DsText role="caption" style={[styles.centered, styles.muted]}>
-                Adicione o que você quer ganhar e compartilhe com seus grupos
-                para ninguém errar no presente.
-              </DsText>
-            </View>
-            <DsButton
-              label="Adicionar meu primeiro presente"
-              onPress={() => openEditor()}
-              style={styles.stretch}
-            />
-          </View>
-        )}
-        {ready && !empty && !list.error && (
-          <>
-            <View style={styles.sectionRow}>
-              <DsText
-                accessibilityRole="header"
-                role="section"
-                style={styles.sectionTitle}
-              >
-                Minha lista de presentes
-              </DsText>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Adicionar presente"
-                accessibilityState={{ disabled: pending || full }}
-                disabled={pending || full}
-                onPress={() => openEditor()}
-                style={{ opacity: pending || full ? 0.5 : 1 }}
-              >
-                <LinearGradient
-                  colors={tokens.actionGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.addButton}
-                >
-                  <Plus size={16} color={tokens.colors.onPrimary} />
-                  <DsText role="label" style={styles.addLabel}>
-                    Adicionar
-                  </DsText>
-                </LinearGradient>
-              </Pressable>
-            </View>
-            {full && (
-              <DsText role="caption" style={styles.muted}>
-                Sua lista chegou ao limite de {limit} presentes.
-              </DsText>
-            )}
-            <View style={styles.listCard}>
-              {items.map((item, index) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.title}
-                  disabled={pending}
-                  onPress={() => openEditor(item)}
-                  style={[styles.itemRow, index > 0 && styles.itemDivider]}
-                >
-                  <View style={styles.itemIcon}>
-                    <Gift size={20} color={tokens.colors.brand} />
-                  </View>
-                  <View style={styles.itemCopy}>
-                    <DsText role="label">{item.title}</DsText>
-                    {(item.description || item.link) && (
-                      <DsText role="caption" style={styles.muted}>
-                        {item.description ?? giftHost(item.link ?? '')}
-                      </DsText>
-                    )}
-                  </View>
-                  <ChevronRight size={18} color={tokens.colors.textMuted} />
-                </Pressable>
-              ))}
-            </View>
-          </>
         )}
       </ScrollView>
       {sharing && user && (
@@ -329,8 +329,11 @@ export function GiftsScreen() {
                 }
               : undefined
           }
-          onSave={(payload) => {
-            void apply({ kind: 'save', item: editor.item, payload }, false);
+          onSave={(payload, photo) => {
+            void apply(
+              { kind: 'save', item: editor.item, payload, photo },
+              false,
+            );
           }}
         />
       )}
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 20,
     paddingBottom: tokens.tabBarClearance,
     gap: 12,
   },
@@ -361,16 +364,13 @@ const styles = StyleSheet.create({
   muted: { color: tokens.colors.textMuted },
   centered: { textAlign: 'center' },
   stretch: { alignSelf: 'stretch' },
-  emptyCard: {
-    padding: 20,
-    paddingVertical: 24,
+  emptyInvite: {
+    marginTop: 4,
+    paddingTop: 20,
     alignItems: 'center',
     gap: 14,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.surface,
-    boxShadow: tokens.shadows.card,
+    borderTopWidth: 1,
+    borderTopColor: tokens.colors.border,
   },
   emptyIcon: {
     width: 60,
@@ -380,35 +380,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyCopy: { gap: 6, alignItems: 'center' },
-  sectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  sectionTitle: { flex: 1, fontSize: 17, lineHeight: 22 },
-  addButton: {
-    height: 40,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  addLabel: { color: tokens.colors.onPrimary },
-  actions: { flexDirection: 'row', gap: 10 },
-  pill: {
-    flex: 1,
-    height: 44,
-    borderRadius: 22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 8,
-    backgroundColor: tokens.colors.iconSurface,
-  },
-  pillLabel: { color: tokens.colors.actionText, flexShrink: 1 },
+  sectionTitle: { fontSize: 17, lineHeight: 22 },
+  addLabel: { color: tokens.colors.brand },
   listCard: {
     borderRadius: 22,
     borderWidth: 1,
@@ -425,7 +398,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  itemDivider: { borderTopWidth: 1, borderTopColor: tokens.colors.border },
+  itemDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: tokens.colors.border,
+  },
   itemIcon: {
     width: 40,
     height: 40,

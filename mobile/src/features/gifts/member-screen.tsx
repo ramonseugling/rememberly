@@ -1,6 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Gift } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -28,10 +27,15 @@ import {
 import { availabilityLabel, reserveError, reserveRequest } from './member';
 import type { MemberGiftItem, MemberList, ReserveAction } from './member';
 import { birthdayCountdown, firstName, giftHost } from './model';
+import { GiftThumb } from './gift-thumb';
 import { ReserveDialog } from './reserve-dialog';
 
 export function GiftMemberScreen() {
-  const params = useLocalSearchParams<{ userId?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    userId?: string | string[];
+    from?: string | string[];
+  }>();
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
   const userId = Array.isArray(params.userId)
     ? params.userId[0]
     : params.userId;
@@ -108,8 +112,16 @@ export function GiftMemberScreen() {
         }
       >
         <DsBackHeader
-          label="Listas dos grupos"
-          onPress={() => router.navigate('/(tabs)/gifts-groups')}
+          label={from === 'birthday' ? 'Aniversário' : 'Listas dos grupos'}
+          onPress={() => {
+            if (from === 'birthday' && userId)
+              router.navigate({
+                pathname: '/(tabs)/birthday',
+                params: { userId },
+              });
+            else if (router.canGoBack()) router.back();
+            else router.navigate('/(tabs)/gifts-groups');
+          }}
         />
         {list.loading && !data && (
           <ActivityIndicator
@@ -177,7 +189,7 @@ export function GiftMemberScreen() {
                     item.description ??
                     (item.link ? giftHost(item.link) : undefined)
                   }
-                  icon={<Gift size={20} color={tokens.colors.brand} />}
+                  icon={<GiftThumb uri={item.photo_url} size={44} />}
                   trailing={
                     label ? (
                       <DsBadge
@@ -204,6 +216,7 @@ export function GiftMemberScreen() {
         <ReserveDialog
           item={selected}
           ownerName={ownerName}
+          ownerPhotoUri={data?.owner.avatar_url}
           pending={pending}
           error={error}
           onAction={(action) => {

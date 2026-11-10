@@ -1,7 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Crown } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { Share2 } from 'lucide-react-native';
+import type { ReactNode } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { DsAvatar, DsGradientText, DsText, tokens } from '../../design-system';
+import { BirthdayHat } from './birthday-hat';
 import { ConfettiLayer } from './confetti';
 import type { ConfettiPiece } from './confetti';
 import type { BirthdayCard } from './model';
@@ -10,6 +12,8 @@ interface BirthdayHeroProps {
   name: string;
   photoUri: string | null;
   card: BirthdayCard | null;
+  onShare?: () => void;
+  children?: ReactNode;
 }
 
 const CARD_WIDTH = 358;
@@ -29,81 +33,102 @@ const confetti: readonly ConfettiPiece[] = [
   { left: 96, top: 150, w: 6, h: 6, rotate: 0, color: '#F7A8C4' },
 ];
 
-export const BirthdayHero = ({ name, photoUri, card }: BirthdayHeroProps) => {
+export const BirthdayHero = ({
+  name,
+  photoUri,
+  card,
+  onShare,
+  children,
+}: BirthdayHeroProps) => {
   const today = card?.days === 0;
   return (
-    <LinearGradient
-      colors={tokens.celebration}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.4, y: 1 }}
-      style={styles.card}
-    >
-      <ConfettiLayer pieces={confetti} width={CARD_WIDTH} />
-      <View style={styles.photo}>
-        <DsAvatar name={name} size={92} photoUri={photoUri} />
-        {today && (
-          <View style={styles.crown}>
-            <Crown
-              size={38}
-              color={tokens.colors.brand}
-              fill="#FEC8A0"
-              strokeWidth={1.6}
-            />
+    <View style={styles.shadow}>
+      <LinearGradient
+        colors={tokens.celebration}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.4, y: 1 }}
+        style={[styles.card, today && styles.cardToday]}
+      >
+        <ConfettiLayer pieces={confetti} width={CARD_WIDTH} />
+        {onShare && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Compartilhar lista"
+            onPress={onShare}
+            style={({ pressed }) => [styles.share, pressed && { opacity: 0.8 }]}
+          >
+            <Share2 size={20} color={tokens.colors.actionText} />
+          </Pressable>
+        )}
+        <View style={styles.photo}>
+          <DsAvatar name={name} size={92} photoUri={photoUri} />
+          {today && (
+            <View style={styles.crown}>
+              <BirthdayHat />
+            </View>
+          )}
+        </View>
+        {card && today ? (
+          <View style={styles.copy}>
+            <DsGradientText style={styles.today}>
+              {`Feliz aniversário, ${name}! 🎉`}
+            </DsGradientText>
+            <DsText style={styles.muted}>
+              Hoje é o seu dia. Sua lista de presentes está pronta para quem
+              quiser te surpreender.
+            </DsText>
+          </View>
+        ) : card ? (
+          <View style={styles.copy}>
+            <DsGradientText style={styles.number}>
+              {`${card.days} `}
+              <DsText style={styles.unit}>
+                {card.days === 1 ? 'dia' : 'dias'}
+              </DsText>
+            </DsGradientText>
+            <DsText role="label" style={styles.label}>
+              para o seu aniversário
+            </DsText>
+            <DsText role="caption" style={styles.muted}>
+              {card.age
+                ? `${card.dateLabel} · você faz ${card.age} anos`
+                : card.dateLabel}
+            </DsText>
+          </View>
+        ) : (
+          <View style={styles.copy}>
+            <DsText role="section" style={styles.centered}>
+              Sua lista de presentes
+            </DsText>
+            <DsText role="caption" style={styles.muted}>
+              Informe sua data de nascimento no perfil para ver quantos dias
+              faltam para o seu aniversário.
+            </DsText>
           </View>
         )}
-      </View>
-      {card && today ? (
-        <View style={styles.copy}>
-          <DsGradientText style={styles.today}>
-            {`Feliz aniversário, ${name}! 🎉`}
-          </DsGradientText>
-          <DsText style={styles.muted}>
-            Hoje é o seu dia. Sua lista de presentes está pronta para quem
-            quiser te surpreender.
-          </DsText>
-        </View>
-      ) : card ? (
-        <View style={styles.copy}>
-          <DsGradientText style={styles.number}>
-            {`${card.days} `}
-            <DsText style={styles.unit}>
-              {card.days === 1 ? 'dia' : 'dias'}
-            </DsText>
-          </DsGradientText>
-          <DsText role="label" style={styles.label}>
-            para o seu aniversário
-          </DsText>
-          <DsText role="caption" style={styles.muted}>
-            {card.age
-              ? `${card.dateLabel} · você faz ${card.age} anos`
-              : card.dateLabel}
-          </DsText>
-        </View>
-      ) : (
-        <View style={styles.copy}>
-          <DsText role="section" style={styles.centered}>
-            Sua lista de presentes
-          </DsText>
-          <DsText role="caption" style={styles.muted}>
-            Informe sua data de nascimento no perfil para ver quantos dias
-            faltam para o seu aniversário.
-          </DsText>
-        </View>
-      )}
-    </LinearGradient>
+        {children && <View style={styles.children}>{children}</View>}
+      </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  shadow: {
+    borderRadius: 28,
+    backgroundColor: tokens.celebration[0],
+    boxShadow: '0 8px 24px rgba(108, 39, 77, 0.10)',
+  },
+  cardToday: { paddingTop: 44 },
   card: {
     borderRadius: 28,
+    borderWidth: 1,
+    borderColor: '#F7D9E4',
     paddingTop: 26,
     paddingBottom: 18,
     paddingHorizontal: 16,
     alignItems: 'center',
     gap: 6,
     overflow: 'hidden',
-    boxShadow: '0 8px 24px rgba(108, 39, 77, 0.10)',
   },
   photo: {
     width: 100,
@@ -116,10 +141,24 @@ const styles = StyleSheet.create({
   },
   crown: {
     position: 'absolute',
-    right: -12,
-    top: -22,
-    transform: [{ rotate: '18deg' }],
+    right: 7,
+    top: -38,
+    transform: [{ rotate: '20deg' }],
   },
+  share: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    boxShadow: '0 2px 8px rgba(108, 39, 77, 0.12)',
+  },
+  children: { alignSelf: 'stretch', gap: 10, marginTop: 14 },
   copy: { alignItems: 'center', gap: 2, marginTop: 6 },
   number: {
     fontFamily: tokens.fonts.headingBold,

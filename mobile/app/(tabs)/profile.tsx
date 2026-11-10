@@ -18,8 +18,6 @@ import {
   DsText,
   tokens,
 } from '../../src/design-system';
-import { isDesignCatalogEnabled } from '../../src/design-system/availability';
-import { apiConfiguration } from '../../src/config/environment';
 import { useResource } from '../../src/data/hooks';
 import type { ProfileUser } from '../../src/features/account/forms';
 import { useSession } from '../../src/session/provider';
@@ -97,7 +95,7 @@ function ProfileContent() {
         />
         <DsListCard
           title="Datas especiais"
-          subtitle="Seus lembretes de Dia das Mães, dia dos Pais e mais..."
+          subtitle="Seus lembretes de Dia das Mães, Dia dos Pais e mais..."
           icon={<CalendarHeart size={22} color={tokens.colors.brand} />}
           onPress={() => router.navigate('/(tabs)/occasions')}
         />
@@ -120,13 +118,6 @@ function ProfileContent() {
           iconTone="neutral"
           onPress={() => router.navigate('/(tabs)/account')}
         />
-        {isDesignCatalogEnabled(apiConfiguration.environment, __DEV__) && (
-          <DsButton
-            label="Catálogo do design system"
-            variant="text"
-            onPress={() => router.push('/design-system')}
-          />
-        )}
       </ScrollView>
       <PhotoSheet
         visible={photoOpen}

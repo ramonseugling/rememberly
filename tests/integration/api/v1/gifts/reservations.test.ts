@@ -66,6 +66,7 @@ describe('secret gift reservations', () => {
       'description',
       'id',
       'link',
+      'photo_url',
       'title',
       'updated_at',
     ]);

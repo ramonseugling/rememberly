@@ -30,6 +30,7 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
   const today = item.days_until === 0;
   const dimmed = item.is_next_year && !today;
   const Icon = eventIcon(item.type);
+  const personal = item.source.kind !== 'group_birthday';
   const shortDate = `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`;
   const badge = daysBadge(item.days_until, shortDate, item.is_next_year);
   const group =
@@ -40,10 +41,9 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
         name={item.title}
         size={48}
         photoUri={item.avatar_url}
-        background={dimmed ? tokens.colors.surfaceMuted : undefined}
         fallback={
-          dimmed ? (
-            <Icon size={22} color={tokens.colors.textMuted} />
+          personal ? (
+            <Icon size={22} color={tokens.colors.onPrimary} />
           ) : undefined
         }
       />
@@ -55,10 +55,12 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
           {item.title}
         </DsText>
         <View style={styles.type}>
-          <Icon
-            size={16}
-            color={dimmed ? tokens.colors.textMuted : tokens.colors.brand}
-          />
+          {!personal && (
+            <Icon
+              size={16}
+              color={dimmed ? tokens.colors.textMuted : tokens.colors.brand}
+            />
+          )}
           <DsText style={styles.subtitle} numberOfLines={2}>
             {eventTypeLabel(item)}
             {group ? ` · ${group}` : ''}

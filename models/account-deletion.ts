@@ -29,6 +29,7 @@ export type DeletionCredential =
 
 async function deleteAccount(token: string, credential: DeletionCredential) {
   let avatarUrl: string | null = null;
+  let giftPhotoUrls: string[] = [];
   const client = await database.getNewClient();
   try {
     await client.query('BEGIN');
@@ -78,6 +79,13 @@ async function deleteAccount(token: string, credential: DeletionCredential) {
       [user.id],
     );
     avatarUrl = avatar.rows[0]?.avatar_url ?? null;
+    const giftPhotos = await client.query(
+      `SELECT i.photo_url FROM gift_items i
+       JOIN gift_lists l ON l.id = i.list_id
+       WHERE l.user_id = $1 AND i.photo_url IS NOT NULL`,
+      [user.id],
+    );
+    giftPhotoUrls = giftPhotos.rows.map((row) => row.photo_url as string);
     await client.query('DELETE FROM users WHERE id = $1', [user.id]);
     await client.query('COMMIT');
   } catch (error) {
@@ -87,6 +95,7 @@ async function deleteAccount(token: string, credential: DeletionCredential) {
     await client.end();
   }
   await photo.removeQuietly(avatarUrl);
+  for (const url of giftPhotoUrls) await photo.removeQuietly(url);
 }
 
 export default { deleteAccount };

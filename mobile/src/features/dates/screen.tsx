@@ -226,7 +226,7 @@ export function DatesScreen() {
                 >
                   Eventos
                 </DsText>
-                <DsText style={styles.description}>
+                <DsText role="caption" style={styles.description}>
                   Acompanhe suas celebrações em ordem cronológica.
                 </DsText>
                 <DsButton
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 20,
     paddingBottom: tokens.tabBarClearance,
   },
   header: { gap: 6, marginBottom: 24 },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     lineHeight: tokens.typography.title.lineHeight,
     fontWeight: '700',
   },
-  description: { color: tokens.colors.textMuted, fontSize: 16, lineHeight: 23 },
+  description: { color: tokens.colors.textMuted },
   sectionHeading: { marginBottom: 10, marginTop: 8 },
   sectionTitle: {
     fontWeight: '700',

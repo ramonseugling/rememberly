@@ -546,10 +546,10 @@ function GroupContent({ userId }: { userId: string }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: theme.colors.background },
+  safeArea: { flex: 1, backgroundColor: tokens.colors.background },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 28,
+    paddingTop: 20,
     paddingBottom: tokens.tabBarClearance,
     gap: 24,
   },

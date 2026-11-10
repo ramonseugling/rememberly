@@ -34,6 +34,9 @@ async function clearDatabase() {
       password_reset_tokens,
       sessions,
       events,
+      gift_reservations,
+      gift_items,
+      gift_lists,
       group_members,
       groups,
       users
@@ -109,6 +112,44 @@ async function createEvent(
     `INSERT INTO events (title, type, event_day, event_month, user_id)
      VALUES ($1, $2, $3, $4, $5)`,
     [input.title, input.type, input.event_day, input.event_month, userId],
+  );
+}
+
+async function createGiftList(
+  userId: string,
+  items: { title: string; link?: string; description?: string }[],
+) {
+  const list = await database.query(
+    `INSERT INTO gift_lists (user_id) VALUES ($1) RETURNING id`,
+    [userId],
+  );
+  const ids: string[] = [];
+  for (const [position, item] of items.entries()) {
+    const created = await database.query(
+      `INSERT INTO gift_items (list_id, title, link, description, created_at)
+       VALUES ($1, $2, $3, $4, now() - ($5 || ' minutes')::interval)
+       RETURNING id`,
+      [
+        list.rows[0].id,
+        item.title,
+        item.link ?? null,
+        item.description ?? null,
+        String(position),
+      ],
+    );
+    ids.push(created.rows[0].id);
+  }
+  return ids;
+}
+
+async function reserveGift(
+  itemId: string,
+  userId: string,
+  status: 'reserved' | 'purchased',
+) {
+  await database.query(
+    `INSERT INTO gift_reservations (item_id, user_id, status) VALUES ($1, $2, $3)`,
+    [itemId, userId, status],
   );
 }
 
@@ -244,6 +285,55 @@ async function seed() {
   });
 
   console.log('✓ Events created');
+
+  // --- Gift lists ---
+
+  await createGiftList(dev.id, [
+    {
+      title: 'Fone de ouvido sem fio',
+      link: 'https://example.com/fone',
+      description: 'Preto, de preferência com cancelamento de ruído',
+    },
+    { title: 'Livro: O Hobbit', description: 'Edição de capa dura' },
+    { title: 'Cafeteira italiana', link: 'https://example.com/cafeteira' },
+  ]);
+
+  const [lucasTenis, lucasLivro] = await createGiftList(lucas.id, [
+    {
+      title: 'Tênis de corrida',
+      link: 'https://example.com/tenis',
+      description: 'Tamanho 42',
+    },
+    { title: 'Livro: Hábitos Atômicos' },
+    { title: 'Mochila para notebook', link: 'https://example.com/mochila' },
+  ]);
+  await reserveGift(lucasTenis!, carla.id, 'reserved');
+  await reserveGift(lucasLivro!, dev.id, 'reserved');
+
+  const [mariaVela, mariaVinho] = await createGiftList(maria.id, [
+    { title: 'Kit de velas aromáticas', description: 'Cheiro de lavanda' },
+    { title: 'Vinho tinto', link: 'https://example.com/vinho' },
+    { title: 'Jogo de panelas' },
+  ]);
+  await reserveGift(mariaVela!, dev.id, 'reserved');
+  await reserveGift(mariaVinho!, ana.id, 'purchased');
+
+  const [joaoCamisa] = await createGiftList(joao.id, [
+    { title: 'Camisa do time', description: 'Tamanho M' },
+    { title: 'Churrasqueira portátil', link: 'https://example.com/churras' },
+  ]);
+  await reserveGift(joaoCamisa!, dev.id, 'purchased');
+
+  await createGiftList(ana.id, [
+    { title: 'Vaso de cerâmica' },
+    { title: 'Caderno de sketch', description: 'Folhas pretas' },
+  ]);
+
+  await createGiftList(carla.id, [
+    { title: 'Câmera instantânea', link: 'https://example.com/camera' },
+  ]);
+
+  console.log('✓ Gift lists created');
 
   // --- Summary ---
 

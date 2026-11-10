@@ -9,6 +9,7 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <AppTabBar {...props} />}
+      backBehavior="history"
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index" options={{ title: 'Início' }} />

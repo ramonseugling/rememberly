@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Crown, Gift, Users } from 'lucide-react-native';
+import { ChevronLeft, Users } from 'lucide-react-native';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -16,6 +17,7 @@ import {
   DsChip,
   DsFeedback,
   DsListCard,
+  DsSheet,
   DsText,
   tokens,
 } from '../../design-system';
@@ -25,6 +27,8 @@ import type { ConfettiPiece } from './confetti';
 import type { MemberList } from './member';
 import { birthdayCard, firstName, giftHost } from './model';
 import { birthdayHeadline, groupsLabel } from './birthday-copy';
+import { BirthdayHat } from './birthday-hat';
+import { GiftThumb } from './gift-thumb';
 
 const WIDTH = 390;
 
@@ -49,6 +53,7 @@ export function BirthdayScreen() {
   const list = useResource<MemberList>(
     userId ? `/api/v1/users/${encodeURIComponent(userId)}/gifts` : null,
   );
+  const [groupsOpen, setGroupsOpen] = useState(false);
   const data = list.data;
   const name = data ? firstName(data.owner.name) : '';
   const card = data
@@ -64,7 +69,7 @@ export function BirthdayScreen() {
   const open = () =>
     router.navigate({
       pathname: '/(tabs)/gifts-member',
-      params: { userId },
+      params: { userId, from: 'birthday' },
     });
 
   return (
@@ -102,7 +107,7 @@ export function BirthdayScreen() {
           )}
           {data && (
             <>
-              <View style={styles.hero}>
+              <View style={[styles.hero, today && styles.heroToday]}>
                 <View style={styles.photo}>
                   <DsAvatar
                     name={data.owner.name}
@@ -111,12 +116,7 @@ export function BirthdayScreen() {
                   />
                   {today && (
                     <View style={styles.crown}>
-                      <Crown
-                        size={40}
-                        color={tokens.colors.brand}
-                        fill="#FEC8A0"
-                        strokeWidth={1.6}
-                      />
+                      <BirthdayHat />
                     </View>
                   )}
                 </View>
@@ -146,6 +146,8 @@ export function BirthdayScreen() {
                   <DsChip
                     label={groupsLabel(data.groups)}
                     icon={<Users size={14} color={tokens.colors.textMuted} />}
+                    style={styles.groupsChip}
+                    onPress={() => setGroupsOpen(true)}
                   />
                 )}
               </View>
@@ -168,7 +170,7 @@ export function BirthdayScreen() {
                       item.description ??
                       (item.link ? giftHost(item.link) : undefined)
                     }
-                    icon={<Gift size={20} color={tokens.colors.brand} />}
+                    icon={<GiftThumb uri={item.photo_url} size={44} />}
                     onPress={open}
                   />
                 ))}
@@ -183,6 +185,29 @@ export function BirthdayScreen() {
             </>
           )}
         </ScrollView>
+        {data && (
+          <DsSheet
+            visible={groupsOpen}
+            title={`Grupos de ${name}`}
+            onClose={() => setGroupsOpen(false)}
+          >
+            <DsText role="caption" style={styles.muted}>
+              {`Grupos que você e ${name} têm em comum.`}
+            </DsText>
+            <View style={styles.groupList}>
+              {data.groups.map((group) => (
+                <View key={group} style={styles.groupRow}>
+                  <View style={styles.groupIcon}>
+                    <Users size={20} color={tokens.colors.brand} />
+                  </View>
+                  <DsText role="label" style={styles.groupName}>
+                    {group}
+                  </DsText>
+                </View>
+              ))}
+            </View>
+          </DsSheet>
+        )}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -207,6 +232,29 @@ const styles = StyleSheet.create({
   stack: { gap: 12 },
   muted: { color: tokens.colors.textMuted },
   hero: { alignItems: 'center', gap: 8, paddingTop: 4 },
+  heroToday: { paddingTop: 30 },
+  groupsChip: { alignSelf: 'center' },
+  groupList: { gap: 8, marginTop: 12 },
+  groupRow: {
+    minHeight: 56,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    backgroundColor: tokens.colors.surface,
+  },
+  groupIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.iconSurface,
+  },
+  groupName: { flex: 1, minWidth: 0 },
   photo: {
     width: 112,
     height: 112,
@@ -218,9 +266,9 @@ const styles = StyleSheet.create({
   },
   crown: {
     position: 'absolute',
-    right: -8,
-    top: -22,
-    transform: [{ rotate: '18deg' }],
+    right: 13,
+    top: -38,
+    transform: [{ rotate: '20deg' }],
   },
   title: { textAlign: 'center', marginTop: 6 },
   meta: {

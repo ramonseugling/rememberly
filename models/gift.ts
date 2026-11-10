@@ -3,6 +3,7 @@ import database from 'infra/database';
 import { ConflictError, NotFoundError, ValidationError } from 'infra/errors';
 import giftNotification from 'models/gift-notification';
 import giftReservation from 'models/gift-reservation';
+import photo from 'models/photo';
 
 export const MAX_GIFT_ITEMS = 50;
 const MAX_TITLE = 100;
@@ -21,6 +22,7 @@ export interface GiftItem {
   title: string;
   link: string | null;
   description: string | null;
+  photo_url: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -245,11 +247,14 @@ async function deleteItem(
   { confirm = false }: { confirm?: boolean } = {},
 ) {
   let released: { id: string | null; title: string } = { id: null, title: '' };
+  let photoUrl: string | null = null;
   await giftReservation.withClient(async (client) => {
     const locked = await lockItemForChange(client, userId, itemId, confirm);
     released = { id: locked.releasedUserId, title: locked.item.title };
+    photoUrl = locked.item.photo_url ?? null;
     await client.query('DELETE FROM gift_items WHERE id = $1', [itemId]);
   });
+  await photo.removeQuietly(photoUrl);
   if (released.id)
     await giftNotification.notifyReleased({
       reserverId: released.id,
@@ -265,6 +270,7 @@ export function presentGiftItem(item: GiftItem) {
     title: item.title,
     link: item.link,
     description: item.description,
+    photo_url: item.photo_url ?? null,
     created_at: item.created_at,
     updated_at: item.updated_at,
   };

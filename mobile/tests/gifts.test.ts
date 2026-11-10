@@ -140,3 +140,31 @@ test('writes the birthday page headline and group chip', async () => {
   assert.equal(groupsLabel(['Amigos', 'Time']), 'Amigos e mais 1 grupo');
   assert.equal(groupsLabel(['A', 'B', 'C']), 'A e mais 2 grupos');
 });
+
+test('giftFieldsChanged ignores identical text and normalises empty values', async () => {
+  const { giftFieldsChanged } = await import('../src/features/gifts/model.ts');
+  const item = {
+    id: '1',
+    title: 'Fone',
+    link: null,
+    description: null,
+    created_at: '',
+    updated_at: '',
+  };
+  assert.equal(
+    giftFieldsChanged(item, { title: 'Fone', link: null, description: null }),
+    false,
+  );
+  assert.equal(
+    giftFieldsChanged(item, { title: 'Fone 2', link: null, description: null }),
+    true,
+  );
+  assert.equal(
+    giftFieldsChanged(item, {
+      title: 'Fone',
+      link: 'https://a.com',
+      description: null,
+    }),
+    true,
+  );
+});

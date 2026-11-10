@@ -1,5 +1,6 @@
 import { dateOnly, referenceDay } from '@/lib/mobile-calendar';
 import database from 'infra/database';
+import photo from 'models/photo';
 
 export const EXPIRY_DAYS_AFTER_BIRTHDAY = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,6 +31,7 @@ export async function expireGiftLists(today = referenceDay()) {
     if (today < cutoff) continue;
     if (list.expired_for && list.expired_for >= birthdayKey) continue;
     const createdAfterCutoff = new Date(list.created_at) >= cutoff;
+    const photoUrls: string[] = [];
     const client = await database.getNewClient();
     try {
       await client.query('BEGIN');
@@ -39,13 +41,19 @@ export async function expireGiftLists(today = referenceDay()) {
       if (!createdAfterCutoff) {
         const removed = await client.query(
           `DELETE FROM gift_items i USING gift_reservations r
-           WHERE i.list_id = $1 AND r.item_id = i.id AND r.status = 'purchased'`,
+           WHERE i.list_id = $1 AND r.item_id = i.id AND r.status = 'purchased'
+           RETURNING i.photo_url`,
           [list.id],
         );
         const released = await client.query(
           `DELETE FROM gift_reservations r USING gift_items i
            WHERE r.item_id = i.id AND i.list_id = $1`,
           [list.id],
+        );
+        photoUrls.push(
+          ...removed.rows
+            .map((row) => row.photo_url as string | null)
+            .filter((url): url is string => !!url),
         );
         summary.removed += removed.rowCount ?? 0;
         summary.released += released.rowCount ?? 0;
@@ -55,6 +63,7 @@ export async function expireGiftLists(today = referenceDay()) {
         [list.id, birthdayKey],
       );
       await client.query('COMMIT');
+      for (const url of photoUrls) await photo.removeQuietly(url);
       summary.lists += 1;
     } catch (error) {
       await client.query('ROLLBACK');

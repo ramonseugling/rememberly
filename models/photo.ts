@@ -1,5 +1,5 @@
 import database from 'infra/database';
-import { ValidationError } from 'infra/errors';
+import { NotFoundError, ValidationError } from 'infra/errors';
 import { getStorage } from 'infra/storage';
 
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
@@ -102,7 +102,54 @@ async function removeGroupPhoto(groupId: string) {
   await removeQuietly(previous.rows[0]?.photo_url);
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function assertGiftOwner(userId: string, itemId: string) {
+  const found = UUID.test(itemId)
+    ? await database.query(
+        `SELECT i.photo_url FROM gift_items i
+         JOIN gift_lists l ON l.id = i.list_id
+         WHERE i.id = $1 AND l.user_id = $2`,
+        [itemId, userId],
+      )
+    : null;
+  if (!found?.rows[0])
+    throw new NotFoundError({
+      message: 'Presente não encontrado.',
+      action: 'Atualize a lista e tente novamente.',
+    });
+  return (found.rows[0].photo_url ?? null) as string | null;
+}
+
+async function setGiftPhoto(userId: string, itemId: string, input: Buffer) {
+  const previous = await assertGiftOwner(userId, itemId);
+  const processed = await processPhoto(input);
+  const url = await getStorage().put(
+    `gifts/${itemId}.webp`,
+    processed,
+    'image/webp',
+  );
+  await database.query(
+    'UPDATE gift_items SET photo_url = $1, updated_at = NOW() WHERE id = $2',
+    [url, itemId],
+  );
+  await removeQuietly(previous);
+  return { photo_url: url as string };
+}
+
+async function removeGiftPhoto(userId: string, itemId: string) {
+  const previous = await assertGiftOwner(userId, itemId);
+  await database.query(
+    'UPDATE gift_items SET photo_url = NULL, updated_at = NOW() WHERE id = $1',
+    [itemId],
+  );
+  await removeQuietly(previous);
+}
+
 const photo = {
+  assertGiftOwner,
+  setGiftPhoto,
+  removeGiftPhoto,
   setUserAvatar,
   removeUserAvatar,
   setGroupPhoto,

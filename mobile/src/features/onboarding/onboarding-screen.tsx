@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DsButton, DsText, tokens } from '../../design-system';
 import { OnboardingArt } from './onboarding-art';
 import {
@@ -16,6 +16,7 @@ interface OnboardingScreenProps {
 }
 
 export const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
+  const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const step = ONBOARDING_STEPS[index]!;
   const last = isLastStep(index);
@@ -26,8 +27,20 @@ export const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
   }
 
   return (
-    <LinearGradient colors={tokens.backgroundGradient} style={styles.fill}>
-      <SafeAreaView style={styles.fill}>
+    <View style={styles.fill}>
+      <LinearGradient
+        colors={tokens.backgroundGradient}
+        style={StyleSheet.absoluteFill}
+      />
+      <View
+        style={[
+          styles.fill,
+          {
+            paddingTop: insets.top,
+            paddingBottom: Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
         <View style={styles.top}>
           {step.skippable && (
             <DsButton
@@ -40,6 +53,7 @@ export const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
           )}
         </View>
         <ScrollView
+          style={styles.scroll}
           contentContainerStyle={styles.body}
           showsVerticalScrollIndicator={false}
         >
@@ -83,15 +97,17 @@ export const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
             style={styles.action}
           />
         </View>
-      </SafeAreaView>
-    </LinearGradient>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  scroll: { flex: 1, minHeight: 0 },
   top: {
-    minHeight: 48,
+    flexShrink: 0,
+    height: 56,
     paddingHorizontal: 24,
     paddingTop: 8,
     alignItems: 'flex-end',
@@ -108,7 +124,7 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   title: { fontSize: 26, lineHeight: 32 },
   description: { fontSize: 15, lineHeight: 22, color: tokens.colors.textMuted },
-  bottom: { paddingHorizontal: 24, paddingBottom: 24, gap: 24 },
+  bottom: { flexShrink: 0, paddingHorizontal: 24, paddingTop: 8, gap: 24 },
   dots: {
     flexDirection: 'row',
     alignItems: 'center',

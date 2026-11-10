@@ -5,6 +5,7 @@ export interface GiftItem {
   title: string;
   link: string | null;
   description: string | null;
+  photo_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +25,19 @@ export interface GiftPayload {
   title: string;
   link: string | null;
   description: string | null;
+}
+
+export type GiftPhotoChange =
+  | { kind: 'keep' }
+  | { kind: 'set'; data: Uint8Array }
+  | { kind: 'remove' };
+
+export function giftFieldsChanged(item: GiftItem, payload: GiftPayload) {
+  return (
+    item.title !== payload.title ||
+    (item.link ?? null) !== payload.link ||
+    (item.description ?? null) !== payload.description
+  );
 }
 
 export const emptyGiftForm: GiftForm = { title: '', link: '', description: '' };

@@ -107,6 +107,20 @@ export const EventEditor = ({
       <View style={styles.field}>
         <DsText role="label">Data</DsText>
         <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <DsField
+              accessibilityLabel="Dia do evento"
+              placeholder="Dia"
+              value={form.day}
+              onChangeText={(value) =>
+                change('day', sanitizeDay(value, form.month))
+              }
+              keyboardType="number-pad"
+              maxLength={2}
+              editable={!pending}
+              style={{ textAlign: 'center' }}
+            />
+          </View>
           <View style={{ flex: 2 }}>
             <DsSelect
               label="Mês"
@@ -120,21 +134,6 @@ export const EventEditor = ({
                 change('month', value);
                 change('day', clampDay(form.day, value));
               }}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <DsField
-              label="Dia"
-              accessibilityLabel="Dia do evento"
-              placeholder="Dia"
-              value={form.day}
-              onChangeText={(value) =>
-                change('day', sanitizeDay(value, form.month))
-              }
-              keyboardType="number-pad"
-              maxLength={2}
-              editable={!pending}
-              style={{ textAlign: 'center' }}
             />
           </View>
         </View>
