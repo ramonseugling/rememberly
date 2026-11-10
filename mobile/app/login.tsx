@@ -1,144 +1,123 @@
-import { useCallback, useState } from 'react';
-import { router, useFocusEffect } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
-import { DsText } from '../src/design-system';
+import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Mail } from 'lucide-react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  DsBrandHeader,
+  DsButton,
+  DsFeedback,
+  DsText,
+  tokens,
+} from '../src/design-system';
 import { useSession } from '../src/session/provider';
 import { authorizeGoogle } from '../src/features/auth/google-native';
-import { emailError } from '../src/features/auth/api';
 import {
   AuthAction,
-  AuthField,
   AuthGoogleButton,
   AuthLink,
-  AuthPage,
+  LegalLinksText,
   styles,
 } from '../src/features/auth/ui';
 
 export default function LoginScreen() {
   const { state, controller } = useSession();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [validation, setValidation] = useState<string | null>(null);
   const busy = state.status === 'restoring' || state.status === 'signing-in';
-  useFocusEffect(
-    useCallback(
-      () => () => {
-        setPassword('');
-        setValidation(null);
-      },
-      [],
-    ),
-  );
-
-  function submit() {
-    if (controller.getSnapshot().status !== 'signed-out') return;
-    const error =
-      emailError(email) ?? (!password ? 'Informe sua senha.' : null);
-    if (error) {
-      setValidation(error);
-      return;
-    }
-    setValidation(null);
-    const submittedPassword = password;
-    setPassword('');
-    void controller.login(email.trim(), submittedPassword);
-  }
   return (
-    <AuthPage
-      title="Bem-vindo de volta"
-      subtitle="Entre para continuar lembrando eventos importantes."
-      pending={busy}
-      message={validation ?? state.message}
-    >
-      {state.status === 'unavailable' ? (
-        <>
-          <AuthAction
-            label="Tentar conexão novamente"
-            onPress={() => {
-              void controller.restore();
-            }}
-          />
-          <AuthLink
-            label="Sair da conta"
-            onPress={() => {
-              void controller.logout();
-            }}
-          />
-        </>
-      ) : (
-        <>
-          <AuthGoogleButton
-            disabled={busy}
-            onPress={() => {
-              if (controller.getSnapshot().status === 'signed-out') {
-                setValidation(null);
-                void controller.loginWithGoogle(authorizeGoogle);
-              }
-            }}
-          />
-          <AuthField
-            label="E-mail"
-            icon="email"
-            placeholder="seu@email.com"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              setValidation(null);
-            }}
-            editable={!busy}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-            textContentType="username"
-            returnKeyType="next"
-          />
-          <AuthField
-            label="Senha"
-            icon="password"
-            value={password}
-            onChangeText={(value) => {
-              setPassword(value);
-              setValidation(null);
-            }}
-            editable={!busy}
-            autoCapitalize="none"
-            autoComplete="current-password"
-            textContentType="password"
-            returnKeyType="go"
-            onSubmitEditing={submit}
-          />
-          <AuthLink
-            label="Esqueci minha senha"
-            align="right"
-            onPress={() => router.push('/forgot-password')}
-          />
-          <AuthAction
-            label="Entrar"
-            onPress={submit}
-            pending={busy}
-            disabled={!busy && (!email.trim() || !password)}
-          />
-          <View style={local.footer}>
-            <DsText style={styles.text}>Ainda não tem conta?</DsText>
-            <AuthLink
-              label="Criar conta"
-              onPress={() => router.push('/signup')}
-            />
+    <LinearGradient colors={tokens.backgroundGradient} style={local.fill}>
+      <SafeAreaView style={local.fill}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={local.content}
+        >
+          <DsBrandHeader />
+          <View style={local.actions}>
+            <View style={local.copy}>
+              <DsText role="title" style={local.center}>
+                Bem-vindo!
+              </DsText>
+              <DsText role="caption" style={[local.center, local.muted]}>
+                Entre para nunca mais esquecer uma data importante.
+              </DsText>
+            </View>
+            {state.message && (
+              <DsFeedback tone="error" message={state.message} />
+            )}
+            {state.status === 'unavailable' ? (
+              <>
+                <AuthAction
+                  label="Tentar conexão novamente"
+                  onPress={() => {
+                    void controller.restore();
+                  }}
+                />
+                <AuthLink
+                  label="Sair da conta"
+                  onPress={() => {
+                    void controller.logout();
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <AuthGoogleButton
+                  disabled={busy}
+                  onPress={() => {
+                    if (controller.getSnapshot().status === 'signed-out')
+                      void controller.loginWithGoogle(authorizeGoogle);
+                  }}
+                />
+                <DsButton
+                  label="Entrar com e-mail e senha"
+                  icon={<Mail size={20} color={tokens.colors.onPrimary} />}
+                  disabled={busy}
+                  onPress={() => router.push('/login-email')}
+                  style={styles.action}
+                />
+                <View style={local.footer}>
+                  <DsText style={styles.text}>Ainda não tem conta?</DsText>
+                  <AuthLink
+                    label="Criar conta"
+                    onPress={() => router.push('/signup')}
+                  />
+                </View>
+                {state.logoutUnconfirmed && (
+                  <AuthLink
+                    label="Tentar encerrar sessão novamente"
+                    onPress={() => {
+                      void controller.logout();
+                    }}
+                  />
+                )}
+              </>
+            )}
           </View>
-          {state.logoutUnconfirmed && (
-            <AuthLink
-              label="Tentar encerrar sessão novamente"
-              onPress={() => {
-                void controller.logout();
-              }}
-            />
-          )}
-        </>
-      )}
-    </AuthPage>
+        </ScrollView>
+        <View style={local.legal}>
+          <LegalLinksText
+            prefix="Ao entrar com Google, você concorda com os "
+            style={styles.legalCentered}
+          />
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
+
 const local = StyleSheet.create({
+  fill: { flex: 1 },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 28,
+  },
+  actions: { width: '100%', maxWidth: 448, gap: 14 },
+  copy: { gap: 6, marginBottom: 6 },
+  center: { textAlign: 'center' },
+  muted: { color: tokens.colors.textMuted },
   footer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -146,5 +125,5 @@ const local = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  centered: { ...styles.text, textAlign: 'center' },
+  legal: { paddingHorizontal: 24, paddingBottom: 16 },
 });

@@ -314,3 +314,45 @@ test('registration refuses an unchecked terms box and always posts accepted_term
   await api.register({ ...input, accepted_terms: false });
   assert.equal(body.accepted_terms, true);
 });
+
+test('verifyCode posts to the fixed endpoint and returns only a well-formed token', async () => {
+  const token = 'a'.repeat(64);
+  const calls: { url: string; body: unknown }[] = [];
+  const api = createPublicAuthApi(
+    'https://api.example.com',
+    async (url, init) => {
+      calls.push({ url, body: JSON.parse(String(init.body)) });
+      return response({ verification_token: token });
+    },
+  );
+
+  assert.equal(await api.verifyCode(' SAM@example.com ', '123456'), token);
+  assert.deepEqual(calls, [
+    {
+      url: 'https://api.example.com/api/v1/otp/verify',
+      body: { email: 'sam@example.com', otp_code: '123456' },
+    },
+  ]);
+
+  const broken = createPublicAuthApi('https://api.example.com', async () =>
+    response({ verification_token: 'short' }),
+  );
+  await assert.rejects(broken.verifyCode('sam@example.com', '123456'));
+});
+
+test('register accepts a verification token instead of the code', async () => {
+  const bodies: Record<string, unknown>[] = [];
+  const api = createPublicAuthApi(
+    'https://api.example.com',
+    async (_url, init) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return response({ id: 'created-user' });
+    },
+  );
+  const { otp_code: _code, ...details } = input;
+
+  await api.register({ ...details, verification_token: 'b'.repeat(64) });
+
+  assert.equal(bodies[0]?.verification_token, 'b'.repeat(64));
+  assert.equal('otp_code' in (bodies[0] ?? {}), false);
+});

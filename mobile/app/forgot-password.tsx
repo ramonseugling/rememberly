@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen() {
           <DsText style={styles.text}>
             {result === 'sent'
               ? 'Pode levar alguns minutos. Verifique também a caixa de spam.'
-              : 'Esta conta foi criada usando o Google e não possui senha. Use a opção Continuar com Google na tela de login.'}
+              : 'Esta conta foi criada usando o Google e não possui senha. Use a opção Entrar com Google na tela de login.'}
           </DsText>
           {result === 'google' && (
             <>

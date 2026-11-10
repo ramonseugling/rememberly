@@ -11,20 +11,19 @@ import {
 import {
   AuthAction,
   AuthField,
-  AuthGoogleButton,
   AuthLink,
   AuthPage,
+  AuthStepDots,
   LegalLinksText,
   publicAuth,
   styles,
   useAuthTask,
 } from '../src/features/auth/ui';
 import {
+  emailError,
+  passwordError,
   registrationDetailsError,
-  registrationError,
-  type Registration,
 } from '../src/features/auth/api';
-import { authorizeGoogle } from '../src/features/auth/google-native';
 import {
   profileDaysInMonth,
   profileMonths,
@@ -37,14 +36,39 @@ const years = Array.from({ length: currentYear - 1900 + 1 }, (_, index) => ({
   label: String(currentYear - index),
 }));
 
+const STEPS = 5;
+
+const copy = [
+  {
+    title: 'Qual é o seu nome?',
+    subtitle: 'Assim seus amigos e grupos sabem quem é você.',
+  },
+  {
+    title: 'Qual é o seu e-mail?',
+    subtitle: 'Vamos enviar um código para confirmar que ele é seu.',
+  },
+  { title: 'Verifique seu e-mail', subtitle: '' },
+  {
+    title: 'Crie uma senha',
+    subtitle: 'Você vai usá-la para entrar no Rememberly.',
+  },
+  {
+    title: 'Quando é o seu aniversário?',
+    subtitle: 'Para os seus amigos lembrarem de você.',
+  },
+] as const;
+
 export default function SignupScreen() {
   const { state, controller } = useSession();
   const task = useAuthTask();
-  const [email, setEmail] = useState('');
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
   const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const [verificationToken, setVerificationToken] = useState<string | null>(
+    null,
+  );
+  const [password, setPassword] = useState('');
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
@@ -54,20 +78,76 @@ export default function SignupScreen() {
   const sessionBusy =
     state.status === 'restoring' || state.status === 'signing-in';
   const busy = task.pending || sessionBusy;
+  const address = email.trim().toLowerCase();
 
   useFocusEffect(
     useCallback(
       () => () => {
         setPassword('');
         setCode('');
-        setVerifiedEmail(null);
+        setVerificationToken(null);
       },
       [],
     ),
   );
 
-  function details(address: string): Omit<Registration, 'otp_code'> {
-    return {
+  function go(next: number) {
+    task.setMessage(null);
+    setStep(next);
+  }
+  function submitName() {
+    const length = name.trim().length;
+    if (length < 2 || length > 100) {
+      task.setMessage('Use um nome entre 2 e 100 caracteres.');
+      return;
+    }
+    go(2);
+  }
+  function sendCode() {
+    if (busy) return;
+    const error = emailError(address);
+    if (error) {
+      task.setMessage(error);
+      return;
+    }
+    void task.run(async (signal) => {
+      await publicAuth.sendCode(address, signal);
+      if (signal.aborted) return;
+      setCode('');
+      setVerificationToken(null);
+      setStep(3);
+    });
+  }
+  function resendCode() {
+    if (busy) return;
+    void task.run(async (signal) => {
+      await publicAuth.sendCode(address, signal);
+      if (signal.aborted) return;
+      setCode('');
+      return 'Novo código enviado. Confira sua caixa de entrada e o spam.';
+    });
+  }
+  function verifyCode() {
+    if (busy || code.length !== 6) return;
+    void task.run(async (signal) => {
+      const token = await publicAuth.verifyCode(address, code, signal);
+      if (signal.aborted) return;
+      setVerificationToken(token);
+      setCode('');
+      setStep(4);
+    });
+  }
+  function submitPassword() {
+    const error = passwordError(password, password);
+    if (error) {
+      task.setMessage(error);
+      return;
+    }
+    go(5);
+  }
+  function submit() {
+    if (busy || !verificationToken) return;
+    const details = {
       name: name.trim(),
       email: address,
       password,
@@ -77,47 +157,20 @@ export default function SignupScreen() {
       marketing_consent: marketing,
       accepted_terms: acceptedTerms,
     };
-  }
-  function sendCode() {
-    if (busy) return;
-    const address = email.trim().toLowerCase();
-    const error = registrationDetailsError(details(address), password);
+    const error = registrationDetailsError(details, password);
     if (error) {
       task.setMessage(error);
       return;
     }
     void task.run(async (signal) => {
-      await publicAuth.sendCode(address, signal);
-      if (signal.aborted) return;
-      setVerifiedEmail(address);
-      setCode('');
-    });
-  }
-  function resendCode() {
-    if (busy || !verifiedEmail) return;
-    const address = verifiedEmail;
-    void task.run(async (signal) => {
-      await publicAuth.sendCode(address, signal);
-      if (signal.aborted) return;
-      setCode('');
-      return 'Novo código enviado. Confira sua caixa de entrada e o spam.';
-    });
-  }
-  function submit() {
-    if (busy || !verifiedEmail) return;
-    const input = { ...details(verifiedEmail), otp_code: code };
-    const error = registrationError(input, password);
-    if (error) {
-      task.setMessage(error);
-      return;
-    }
-    void task.run(async (signal) => {
-      await publicAuth.register(input, signal);
+      await publicAuth.register(
+        { ...details, verification_token: verificationToken },
+        signal,
+      );
       if (signal.aborted) return;
       setPassword('');
-      setCode('');
       setRegistered(true);
-      await controller.login(input.email, input.password);
+      await controller.login(details.email, details.password);
       if (signal.aborted) return;
       return 'Sua conta foi criada. Entre com sua senha se o acesso não tiver sido concluído.';
     });
@@ -132,25 +185,24 @@ export default function SignupScreen() {
     setDay(value.slice(0, 2));
   }
 
+  const current = copy[step - 1]!;
+  const birthdayFilled = !!day && !!month && !!year;
+
   return (
     <AuthPage
-      compactBrand
-      title={
-        registered
-          ? 'Sua conta está pronta!'
-          : verifiedEmail
-            ? 'Verifique seu e-mail'
-            : 'Crie sua conta'
-      }
+      title={registered ? 'Sua conta está pronta!' : current.title}
       subtitle={
         registered
           ? undefined
-          : verifiedEmail
-            ? `Enviamos um código de 6 dígitos para ${verifiedEmail}`
-            : 'Leva menos de um minuto.'
+          : step === 3
+            ? `Enviamos um código de 6 dígitos para ${address}`
+            : current.subtitle
       }
       pending={busy}
       message={task.message ?? state.message}
+      footer={
+        registered ? undefined : <AuthStepDots step={step} total={STEPS} />
+      }
     >
       {registered ? (
         <>
@@ -163,147 +215,174 @@ export default function SignupScreen() {
             onPress={() => router.replace('/login')}
           />
         </>
-      ) : !verifiedEmail ? (
-        <>
-          <AuthGoogleButton
-            disabled={busy}
-            onPress={() => {
-              if (!busy) void controller.loginWithGoogle(authorizeGoogle);
-            }}
-          />
-          <AuthField
-            label="Nome"
-            icon="name"
-            placeholder="Seu nome"
-            value={name}
-            onChangeText={setName}
-            editable={!busy}
-            autoComplete="name"
-            autoCapitalize="words"
-            maxLength={100}
-          />
-          <AuthField
-            label="E-mail"
-            icon="email"
-            placeholder="seu@email.com"
-            value={email}
-            onChangeText={setEmail}
-            editable={!busy}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-          />
-          <AuthField
-            label="Senha"
-            icon="password"
-            placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
-            editable={!busy}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="new-password"
-            textContentType="newPassword"
-            maxLength={72}
-          />
-          <View style={localStyles.field}>
-            <DsText role="label">Data de aniversário</DsText>
-            <View style={localStyles.birthday}>
-              <TextInput
-                accessibilityLabel="Dia de nascimento"
-                value={day}
-                onChangeText={changeDay}
-                editable={!busy}
-                keyboardType="number-pad"
-                maxLength={2}
-                style={localStyles.day}
-                placeholder="Dia"
-                placeholderTextColor={tokens.colors.textMuted}
-              />
-              <View style={localStyles.month}>
-                <DsSelect
-                  label="Mês"
-                  value={month}
-                  options={profileMonths}
-                  disabled={busy}
-                  onChange={(value) => {
-                    setMonth(value);
-                    if (Number(day) > profileDaysInMonth(value))
-                      setDay(String(profileDaysInMonth(value)));
-                  }}
-                />
-              </View>
-              <View style={localStyles.year}>
-                <DsSelect
-                  label="Ano"
-                  value={year}
-                  options={years}
-                  disabled={busy}
-                  onChange={setYear}
-                />
-              </View>
-            </View>
-          </View>
-          <DsCheckbox
-            label="Li e concordo com os Termos de Uso e a Política de Privacidade"
-            checked={acceptedTerms}
-            disabled={busy}
-            onChange={setAcceptedTerms}
-            content={
-              <LegalLinksText
-                prefix="Li e concordo com os "
-                style={localStyles.consent}
-              />
-            }
-          />
-          <DsCheckbox
-            label="Quero receber novidades e dicas por e-mail"
-            checked={marketing}
-            disabled={busy}
-            onChange={setMarketing}
-          />
-          <AuthAction
-            label="Continuar"
-            pending={task.pending}
-            disabled={busy}
-            onPress={sendCode}
-          />
-          <View style={localStyles.login}>
-            <DsText style={styles.text}>Já tem conta?</DsText>
-            <AuthLink
-              label="Entrar"
-              onPress={() => router.replace('/login')}
-              disabled={busy}
-            />
-          </View>
-        </>
       ) : (
         <>
           <AuthLink
-            label="← Voltar"
+            label={step === 1 ? '← Entrar' : '← Voltar'}
             align="left"
             disabled={busy}
             onPress={() => {
-              setVerifiedEmail(null);
-              setCode('');
-              task.setMessage(null);
+              if (step === 1) router.replace('/login');
+              else if (step === 4) {
+                setVerificationToken(null);
+                go(2);
+              } else go(step - 1);
             }}
           />
-          <DsOtpInput value={code} onChange={setCode} disabled={busy} />
-          <DsText role="caption" style={localStyles.otpHint}>
-            O código expira em 10 minutos. Solicitar outro código substitui o
-            anterior.
-          </DsText>
-          <AuthAction
-            label="Verificar e criar conta"
-            pending={task.pending}
-            disabled={busy || code.length !== 6}
-            onPress={submit}
-          />
-          <View style={localStyles.resend}>
-            <DsText style={styles.text}>Não recebeu o código?</DsText>
-            <AuthLink label="Reenviar" disabled={busy} onPress={resendCode} />
-          </View>
+          {step === 1 && (
+            <>
+              <AuthField
+                label="Nome"
+                icon="name"
+                placeholder="Seu nome"
+                value={name}
+                onChangeText={setName}
+                editable={!busy}
+                autoComplete="name"
+                autoCapitalize="words"
+                maxLength={100}
+                returnKeyType="next"
+                onSubmitEditing={submitName}
+              />
+              <AuthAction
+                label="Continuar"
+                disabled={busy || !name.trim()}
+                onPress={submitName}
+              />
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <AuthField
+                label="E-mail"
+                icon="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChangeText={setEmail}
+                editable={!busy}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                returnKeyType="next"
+                onSubmitEditing={sendCode}
+              />
+              <AuthAction
+                label="Continuar"
+                pending={task.pending}
+                disabled={busy || !email.trim()}
+                onPress={sendCode}
+              />
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <DsOtpInput value={code} onChange={setCode} disabled={busy} />
+              <AuthAction
+                label="Verificar"
+                pending={task.pending}
+                disabled={busy || code.length !== 6}
+                onPress={verifyCode}
+              />
+              <View style={localStyles.resend}>
+                <DsText style={styles.text}>Não recebeu o código?</DsText>
+                <AuthLink
+                  label="Reenviar"
+                  disabled={busy}
+                  onPress={resendCode}
+                />
+              </View>
+            </>
+          )}
+          {step === 4 && (
+            <>
+              <AuthField
+                label="Senha"
+                icon="password"
+                placeholder="••••••••"
+                value={password}
+                onChangeText={setPassword}
+                editable={!busy}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
+                maxLength={72}
+                returnKeyType="next"
+                onSubmitEditing={submitPassword}
+              />
+              <AuthAction
+                label="Continuar"
+                disabled={busy || !password}
+                onPress={submitPassword}
+              />
+            </>
+          )}
+          {step === 5 && (
+            <>
+              <View style={localStyles.field}>
+                <DsText role="label">Aniversário</DsText>
+                <View style={localStyles.birthday}>
+                  <TextInput
+                    accessibilityLabel="Dia do aniversário"
+                    value={day}
+                    onChangeText={changeDay}
+                    editable={!busy}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    style={localStyles.day}
+                    placeholder="Dia"
+                    placeholderTextColor={tokens.colors.textMuted}
+                  />
+                  <View style={localStyles.month}>
+                    <DsSelect
+                      label="Mês"
+                      value={month}
+                      options={profileMonths}
+                      disabled={busy}
+                      onChange={(value) => {
+                        setMonth(value);
+                        if (Number(day) > profileDaysInMonth(value))
+                          setDay(String(profileDaysInMonth(value)));
+                      }}
+                    />
+                  </View>
+                  <View style={localStyles.year}>
+                    <DsSelect
+                      label="Ano"
+                      value={year}
+                      options={years}
+                      disabled={busy}
+                      onChange={setYear}
+                    />
+                  </View>
+                </View>
+              </View>
+              <DsCheckbox
+                label="Li e concordo com os Termos de Uso e a Política de Privacidade"
+                checked={acceptedTerms}
+                disabled={busy}
+                onChange={setAcceptedTerms}
+                content={
+                  <LegalLinksText
+                    prefix="Li e concordo com os "
+                    style={localStyles.consent}
+                  />
+                }
+              />
+              <DsCheckbox
+                label="Quero receber novidades e dicas por e-mail"
+                checked={marketing}
+                disabled={busy}
+                onChange={setMarketing}
+              />
+              <AuthAction
+                label="Criar minha conta"
+                pending={task.pending}
+                disabled={busy || !birthdayFilled || !acceptedTerms}
+                onPress={submit}
+              />
+            </>
+          )}
         </>
       )}
     </AuthPage>
@@ -336,24 +415,11 @@ const localStyles = StyleSheet.create({
   },
   month: { flexBasis: 112, flexGrow: 3 },
   year: { flexBasis: 88, flexGrow: 1 },
-  login: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'center',
-    columnGap: 4,
-  },
   resend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
     columnGap: 4,
-  },
-  otpHint: {
-    fontSize: 12,
-    color: tokens.colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 18,
   },
 });

@@ -1,7 +1,7 @@
 import { fetch as expoFetch } from 'expo/fetch';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -88,12 +88,14 @@ interface AuthPageProps {
   pending: boolean;
   message: string | null;
   compactBrand?: boolean;
+  footer?: ReactNode;
 }
 export function AuthPage({
   title,
   subtitle,
   message,
   compactBrand,
+  footer,
   children,
 }: PropsWithChildren<AuthPageProps>) {
   return (
@@ -122,6 +124,7 @@ export function AuthPage({
               {message && <DsFeedback tone="error" message={message} />}
               {children}
             </View>
+            {footer}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -289,6 +292,31 @@ export function LegalLinksText({
   );
 }
 
+export function AuthStepDots({ step, total }: { step: number; total: number }) {
+  return (
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={`Passo ${step} de ${total}`}
+      style={styles.dots}
+    >
+      {Array.from({ length: total }, (_, index) =>
+        index + 1 === step ? (
+          <LinearGradient
+            key={index}
+            colors={tokens.actionGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.dotActive}
+          />
+        ) : (
+          <View key={index} style={styles.dot} />
+        ),
+      )}
+    </View>
+  );
+}
+
 export function AuthGoogleButton({
   disabled,
   onPress,
@@ -298,7 +326,7 @@ export function AuthGoogleButton({
     <View style={styles.googleSection}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Continuar com Google"
+        accessibilityLabel="Entrar com Google"
         accessibilityState={{ disabled: inactive }}
         disabled={inactive}
         onPress={onPress}
@@ -323,13 +351,9 @@ export function AuthGoogleButton({
           />
         </Svg>
         <DsText role="label" style={styles.googleText}>
-          Continuar com Google
+          Entrar com Google
         </DsText>
       </Pressable>
-      <LegalLinksText
-        prefix="Ao continuar com o Google, você concorda com os "
-        style={styles.legalCentered}
-      />
       {googleNeedsBuild && (
         <DsText role="caption" style={styles.hint}>
           O login com Google não está disponível no Expo Go. Use uma versão de
@@ -411,6 +435,19 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
   },
+  dots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: tokens.colors.border,
+  },
+  dotActive: { width: 28, height: 8, borderRadius: 4 },
   googleSection: { gap: 12 },
   googleButton: {
     borderWidth: 1.5,

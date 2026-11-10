@@ -12,6 +12,8 @@ const KNOWN_BAD_REQUESTS: Record<string, string> = {
     'O código está incorreto. Confira o e-mail e tente de novo.',
   'Código de verificação inválido, expirado ou tentativas esgotadas.':
     'O código expirou ou as tentativas acabaram. Solicite um novo código.',
+  'A verificação do e-mail é inválida ou expirou.':
+    'A confirmação do e-mail expirou. Volte ao e-mail e peça um novo código.',
 };
 
 export class PublicAuthError extends Error {
@@ -55,6 +57,10 @@ export interface Registration {
   marketing_consent: boolean;
   accepted_terms: boolean;
 }
+
+export type RegistrationRequest = Omit<Registration, 'otp_code'> & {
+  verification_token: string;
+};
 
 export function createPublicAuthApi(
   origin: string,
@@ -134,7 +140,23 @@ export function createPublicAuthApi(
       );
       if (typeof data.message !== 'string') throw new PublicAuthError();
     },
-    async register(input: Registration, signal?: AbortSignal) {
+    async verifyCode(email: string, code: string, signal?: AbortSignal) {
+      const data = await post(
+        '/api/v1/otp/verify',
+        { email: email.trim().toLowerCase(), otp_code: code },
+        signal,
+      );
+      if (
+        typeof data.verification_token !== 'string' ||
+        !/^[0-9a-f]{64}$/.test(data.verification_token)
+      )
+        throw new PublicAuthError();
+      return data.verification_token;
+    },
+    async register(
+      input: Registration | RegistrationRequest,
+      signal?: AbortSignal,
+    ) {
       const data = await post(
         '/api/v1/users',
         { ...input, accepted_terms: true },
