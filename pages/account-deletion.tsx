@@ -4,7 +4,9 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { getValidUser } from 'infra/page-guard';
 
-type Props = { user: { name: string; email: string } | null };
+type Props = {
+  user: { name: string; email: string; avatar_url: string | null } | null;
+};
 
 export const getServerSideProps: GetServerSideProps<Props> = async (
   context,
@@ -13,7 +15,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
   const identity = await getValidUser(context);
   return {
     props: {
-      user: identity ? { name: identity.name, email: identity.email } : null,
+      user: identity
+        ? {
+            name: identity.name,
+            email: identity.email,
+            avatar_url: identity.avatar_url ?? null,
+          }
+        : null,
     },
   };
 };

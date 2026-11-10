@@ -31,6 +31,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           id: user.id,
           name: user.name,
           email: user.email,
+          avatar_url: user.avatar_url ?? null,
           birth_day: user.birth_day,
           birth_month: user.birth_month,
           birth_year: user.birth_year,

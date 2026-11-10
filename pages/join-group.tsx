@@ -8,7 +8,12 @@ import { getValidUser, isValidNextUrl } from 'infra/page-guard';
 import group from 'models/group';
 
 interface JoinGroupProps {
-  user: { id: string; name: string; email: string };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url: string | null;
+  };
   code: string;
   groupName: string;
 }
@@ -38,6 +43,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatar_url: user.avatar_url ?? null,
       },
       code,
       groupName: foundGroup?.name ?? '',

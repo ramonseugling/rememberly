@@ -62,7 +62,11 @@ test('authenticated SSR exposes only a safe identity and renders password confir
     html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)![1],
   ).props.pageProps;
   expect(props).toEqual({
-    user: { name: identity.user.name, email: identity.user.email },
+    user: {
+      name: identity.user.name,
+      email: identity.user.email,
+      avatar_url: null,
+    },
   });
   expect(html).toContain('Permanently delete my account');
   expect(html).not.toContain(identity.session.token);

@@ -1,0 +1,38 @@
+name: Push check
+
+# Vercel Hobby only runs cron jobs once a day. Push delivery also needs a pass
+# every few minutes (retries and Expo receipts), so GitHub calls the endpoint.
+# The job stays off until the repository variable PUSH_CHECK_ENABLED is "true".
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: push-check
+  cancel-in-progress: false
+
+jobs:
+  push-check:
+    name: Run the push delivery pass
+    if: ${{ vars.PUSH_CHECK_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call the push endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PUSH_CHECK_URL: ${{ vars.PUSH_CHECK_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Add the CRON_SECRET repository secret (same value as in Vercel)."
+            exit 1
+          fi
+          url="${PUSH_CHECK_URL:-https://www.rememberly.com.br/api/v1/notifications/push}"
+          curl --fail --silent --show-error --max-time 70 \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "$url"
+          echo

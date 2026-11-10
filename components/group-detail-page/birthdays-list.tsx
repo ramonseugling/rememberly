@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Cake, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Avatar } from '@/components/avatar/avatar';
 import { formatDaysLabel } from '@/lib/date-utils';
 import { cn } from '@/lib/utils';
 
 export interface BirthdayListEntry {
   id: string;
   name: string;
+  avatarUrl: string | null;
   date: string;
   weekday: string;
   daysUntil: number;
@@ -50,9 +52,13 @@ export const BirthdaysList = ({ entries }: BirthdaysListProps) => {
                 index !== visible.length - 1 && 'border-b border-border/30',
               )}
             >
-              <div className="shrink-0 w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                <Cake className="w-4 h-4" />
-              </div>
+              <Avatar
+                src={entry.avatarUrl}
+                alt={entry.name}
+                className="shrink-0 w-9 h-9 rounded-full gradient-warm text-white flex items-center justify-center text-sm font-semibold"
+              >
+                {entry.name.charAt(0).toUpperCase()}
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-sm text-foreground truncate">

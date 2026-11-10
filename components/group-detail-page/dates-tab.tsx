@@ -33,6 +33,7 @@ export const DatesTab = ({
         return {
           id: m.id,
           name: m.name,
+          avatarUrl: m.avatar_url ?? null,
           date: `${day} de ${MONTHS[month - 1]}`,
           weekday: m.weekday,
           daysUntil: m.daysUntil ?? 0,

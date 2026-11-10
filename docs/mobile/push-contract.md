@@ -55,6 +55,10 @@ Ticket receipt checks have a separate durable three-check budget and fifteen-min
 
 The daily-only schedule is insufficient for reliable receipt retrieval: Expo receipts expire after roughly 24 hours, so the next daily run can miss them. It also does not provide timely retries or drain batches beyond the cap. Before enabling delivery, approve and configure a supported more frequent invocation/worker, including a receipt pass about fifteen minutes after sending, plus monitoring of pending/unknown/failed states. Do not advertise timely retries, confirmed receipts, or a larger daily capacity until that scheduling exists and has been validated.
 
+### Scheduled check from GitHub Actions
+
+Vercel Hobby only runs cron jobs once a day, so the frequent pass (retries and receipt checks, about every 15 minutes) is run by `.github/workflows/push-check.yml`, which calls `GET /api/v1/notifications/push` with `Authorization: Bearer <CRON_SECRET>`. The workflow is off until the repository variable `PUSH_CHECK_ENABLED` is `true`, and it needs the repository secret `CRON_SECRET` with the same value as in Vercel. An optional `PUSH_CHECK_URL` variable overrides the endpoint. Turn it on only together with `PUSH_DELIVERY_ENABLED` and after the release validation below. GitHub may delay scheduled runs by a few minutes.
+
 ## Release validation still required
 
 Keep `PUSH_DELIVERY_ENABLED` unset/false until real iOS and Android development/release builds, APNs/FCM configuration, Expo access security, OS permission flows, token refresh/rebinding, logout/revocation, notification tapping, and approved scheduling/receipt retrieval have been exercised. Expo Go installation is not evidence of remote notification support or end-to-end delivery. Automated backend tests inject the provider transport and perform no real provider requests.
