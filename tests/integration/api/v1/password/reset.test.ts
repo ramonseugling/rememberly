@@ -22,7 +22,11 @@ async function createUserAndToken() {
   await fetch('http://localhost:3000/api/v1/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...userBody, otp_code: otpRecord.code }),
+    body: JSON.stringify({
+      ...userBody,
+      accepted_terms: true,
+      otp_code: otpRecord.code,
+    }),
   });
 
   const userResult = await database.query(
@@ -146,7 +150,11 @@ describe('POST /api/v1/password/reset', () => {
     await fetch('http://localhost:3000/api/v1/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...userBody, otp_code: otpRecord.code }),
+      body: JSON.stringify({
+        ...userBody,
+        accepted_terms: true,
+        otp_code: otpRecord.code,
+      }),
     });
 
     const userResult = await database.query(

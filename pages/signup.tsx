@@ -36,6 +36,7 @@ export default function Signup() {
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [marketingConsent, setMarketingConsent] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -117,6 +118,13 @@ export default function Signup() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError(
+        'Aceite os Termos de Uso e a Política de Privacidade para criar a conta.',
+      );
+      return;
+    }
+
     setLoading(true);
 
     const otpRes = await fetch('/api/v1/otp', {
@@ -162,6 +170,7 @@ export default function Signup() {
         birth_month: Number(birthMonth),
         birth_year: Number(birthYear),
         marketing_consent: marketingConsent,
+        accepted_terms: true,
       }),
     });
 
@@ -253,6 +262,27 @@ export default function Signup() {
               Continuar com Google
             </Button>
           </a>
+          <p className="text-center text-xs text-muted-foreground mt-3">
+            Ao continuar com o Google, você concorda com os{' '}
+            <Link
+              href="/termos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Termos de Uso
+            </Link>{' '}
+            e a{' '}
+            <Link
+              href="/privacidade"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </p>
 
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
@@ -418,6 +448,39 @@ export default function Signup() {
                 className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
               >
                 Quero receber novidades e dicas por e-mail
+              </label>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <input
+                id="accepted_terms"
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-border accent-primary cursor-pointer flex-shrink-0"
+              />
+              <label
+                htmlFor="accepted_terms"
+                className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
+              >
+                Li e concordo com os{' '}
+                <Link
+                  href="/termos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  Termos de Uso
+                </Link>{' '}
+                e a{' '}
+                <Link
+                  href="/privacidade"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  Política de Privacidade
+                </Link>
               </label>
             </div>
 

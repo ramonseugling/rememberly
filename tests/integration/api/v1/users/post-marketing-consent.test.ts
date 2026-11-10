@@ -21,6 +21,7 @@ describe('POST /api/v1/users — marketing_consent', () => {
         name: faker.person.fullName(),
         email,
         password: 'senha12345',
+        accepted_terms: true,
         otp_code: otpRecord.code,
         birth_day: 10,
         birth_month: 5,

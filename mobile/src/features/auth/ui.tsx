@@ -11,7 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { TextInputProps } from 'react-native';
+import type { TextInputProps, TextStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -24,6 +24,8 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
+import * as WebBrowser from 'expo-web-browser';
+import { LEGAL_LINKS } from '../legal/links';
 import { createPublicAuthApi } from './api';
 import { googleNeedsBuild } from './google-native';
 
@@ -251,6 +253,42 @@ export function AuthLink({
     </Pressable>
   );
 }
+const openLegal = (url: string) => {
+  void WebBrowser.openBrowserAsync(url).catch(() => undefined);
+};
+
+export function LegalLinksText({
+  prefix,
+  style,
+}: {
+  prefix: string;
+  style?: TextStyle;
+}) {
+  return (
+    <DsText role="caption" style={[styles.legalText, style]}>
+      {prefix}
+      <DsText
+        role="caption"
+        accessibilityRole="link"
+        style={styles.legalLink}
+        onPress={() => openLegal(LEGAL_LINKS.terms)}
+      >
+        Termos de Uso
+      </DsText>
+      {' e a '}
+      <DsText
+        role="caption"
+        accessibilityRole="link"
+        style={styles.legalLink}
+        onPress={() => openLegal(LEGAL_LINKS.privacy)}
+      >
+        Política de Privacidade
+      </DsText>
+      .
+    </DsText>
+  );
+}
+
 export function AuthGoogleButton({
   disabled,
   onPress,
@@ -288,6 +326,10 @@ export function AuthGoogleButton({
           Continuar com Google
         </DsText>
       </Pressable>
+      <LegalLinksText
+        prefix="Ao continuar com o Google, você concorda com os "
+        style={styles.legalCentered}
+      />
       {googleNeedsBuild && (
         <DsText role="caption" style={styles.hint}>
           O login com Google não está disponível no Expo Go. Use uma versão de
@@ -325,6 +367,14 @@ export const styles = StyleSheet.create({
   subtitle: { color: tokens.colors.textMuted, textAlign: 'center' },
   text: { color: tokens.colors.textMuted, fontSize: 14, lineHeight: 21 },
   hint: { color: tokens.colors.textMuted },
+  legalText: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 18 },
+  legalCentered: { textAlign: 'center' },
+  legalLink: {
+    color: tokens.colors.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
+    textDecorationLine: 'underline',
+  },
   field: { gap: 6 },
   inputRow: {
     flexDirection: 'row',

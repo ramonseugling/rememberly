@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -9,12 +10,14 @@ interface DsCheckboxProps {
   checked: boolean;
   onChange: (value: boolean) => void;
   disabled?: boolean;
+  content?: ReactNode;
 }
 export const DsCheckbox = ({
   label,
   checked,
   onChange,
   disabled,
+  content,
 }: DsCheckboxProps) => (
   <Pressable
     accessibilityRole="checkbox"
@@ -36,7 +39,7 @@ export const DsCheckbox = ({
     ) : (
       <View style={styles.box} />
     )}
-    <DsText style={{ flex: 1 }}>{label}</DsText>
+    {content ?? <DsText style={{ flex: 1 }}>{label}</DsText>}
   </Pressable>
 );
 const styles = StyleSheet.create({

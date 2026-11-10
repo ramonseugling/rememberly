@@ -41,6 +41,9 @@ async function errorMessage(response: { json: () => Promise<unknown> }) {
   }
 }
 
+export const TERMS_REQUIRED_MESSAGE =
+  'Aceite os Termos de Uso e a Política de Privacidade para criar a conta.';
+
 export interface Registration {
   name: string;
   email: string;
@@ -50,6 +53,7 @@ export interface Registration {
   birth_month: number;
   birth_year: number;
   marketing_consent: boolean;
+  accepted_terms: boolean;
 }
 
 export function createPublicAuthApi(
@@ -131,7 +135,11 @@ export function createPublicAuthApi(
       if (typeof data.message !== 'string') throw new PublicAuthError();
     },
     async register(input: Registration, signal?: AbortSignal) {
-      const data = await post('/api/v1/users', input, signal);
+      const data = await post(
+        '/api/v1/users',
+        { ...input, accepted_terms: true },
+        signal,
+      );
       if (typeof data.id !== 'string') throw new PublicAuthError();
     },
     async forgotPassword(email: string, signal?: AbortSignal) {
@@ -202,6 +210,7 @@ export function registrationDetailsError(
   confirmation: string,
   now = new Date(),
 ): string | null {
+  if (!input.accepted_terms) return TERMS_REQUIRED_MESSAGE;
   if (input.name.trim().length < 2 || input.name.trim().length > 100)
     return 'Use um nome entre 2 e 100 caracteres.';
   const basic =

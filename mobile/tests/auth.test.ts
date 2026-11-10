@@ -22,6 +22,7 @@ const input: Registration = {
   birth_month: 2,
   birth_year: 2000,
   marketing_consent: false,
+  accepted_terms: true,
 };
 const response = (data: unknown, status = 200, url = '') => ({
   status,
@@ -279,4 +280,37 @@ test('registration refuses people younger than 12 and accepts exactly 12', () =>
     at(2020, 1, 1),
     'É preciso ter 12 anos ou mais para criar uma conta.',
   );
+});
+
+test('registration refuses an unchecked terms box and always posts accepted_terms true', async () => {
+  const today = new Date(2026, 10, 6);
+  const message =
+    'Aceite os Termos de Uso e a Política de Privacidade para criar a conta.';
+  assert.equal(
+    registrationError(
+      { ...input, accepted_terms: false },
+      input.password,
+      today,
+    ),
+    message,
+  );
+  const { otp_code: _code, ...details } = input;
+  assert.equal(
+    registrationDetailsError(
+      { ...details, accepted_terms: false },
+      details.password,
+      today,
+    ),
+    message,
+  );
+  let body: Record<string, unknown> = {};
+  const api = createPublicAuthApi(
+    'https://api.example.com',
+    async (_url, init) => {
+      body = JSON.parse(init.body as string) as Record<string, unknown>;
+      return response({ id: 'created-user' });
+    },
+  );
+  await api.register({ ...input, accepted_terms: false });
+  assert.equal(body.accepted_terms, true);
 });

@@ -1,5 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { JWTVerifyGetKey } from 'jose';
+import { LEGAL_VERSION } from '@/lib/legal/shared';
 import database from 'infra/database';
 import {
   NativeSocialAuthError,
@@ -101,8 +102,8 @@ export async function exchangeNativeSocialIdentity(
       if (existing.rows.length) throw new NativeSocialAuthError('collision');
       user = (
         await client.query(
-          `INSERT INTO users (name, email, marketing_consent) VALUES ($1, $2, false) RETURNING id, name, email`,
-          [identity.name, identity.email],
+          `INSERT INTO users (name, email, marketing_consent, terms_accepted_at, terms_version) VALUES ($1, $2, false, NOW(), $3) RETURNING id, name, email`,
+          [identity.name, identity.email, LEGAL_VERSION],
         )
       ).rows[0];
       await createDefaults(client, user.id, false);

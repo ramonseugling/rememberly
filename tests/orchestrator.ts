@@ -118,7 +118,11 @@ async function createAuthCookie(
   await fetch('http://localhost:3000/api/v1/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...data, otp_code: otpRecord.code }),
+    body: JSON.stringify({
+      ...data,
+      accepted_terms: true,
+      otp_code: otpRecord.code,
+    }),
   });
 
   const loginRes = await fetch('http://localhost:3000/api/v1/sessions', {

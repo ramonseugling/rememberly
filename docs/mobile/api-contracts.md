@@ -48,6 +48,12 @@ Reference inventory by source paths; keep final request/response definitions in 
 
 The app is open to people aged 12 or older. `POST /api/v1/users` (registration) and `PATCH /api/v1/users` (profile) answer `400 ValidationError` with message `É preciso ter 12 anos ou mais para usar o Rememberly.` when `birth_day`/`birth_month`/`birth_year` make the person younger than 12 on the current date in `America/Sao_Paulo` (turning 12 today is allowed; a Feb 29 birthday counts on Mar 1 in non-leap years). On `PATCH`, partial birth fields are combined with the stored ones before checking. Without a birth year the age cannot be verified and the request is allowed. Social sign-up (Google, native) has no birth date, so nothing is checked there. The mobile app repeats the check before calling the API (`É preciso ter 12 anos ou mais para criar uma conta.` on sign-up).
 
+## Terms acceptance
+
+`POST /api/v1/users` requires `accepted_terms: true` (boolean, literally `true`) in the JSON body, together with the existing fields. A missing, `false` or non-boolean value answers `400 ValidationError` with message `Aceite os Termos de Uso e a Política de Privacidade para criar a conta.` and no user is created. On `201` the server stores `users.terms_accepted_at = now()` and `users.terms_version = LEGAL_VERSION` (`lib/legal/shared.ts`, currently `2026-11-10`; bump it whenever the Terms or Privacy texts change). Neither column is returned by any API response.
+
+Social sign-up (Google web callback, mobile Google login, native Google/Apple) sends no field: continuing past the "Ao continuar..." notice is the acceptance, and the same two columns are recorded when the account row is created. Signing in again never changes them. Accounts created before this feature keep both columns `NULL` and are not prompted.
+
 ## Photos (profile and group)
 
 Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.

@@ -81,6 +81,28 @@ export default function Login() {
         </Button>
       </a>
 
+      <p className="text-center text-xs text-muted-foreground mt-3">
+        Ao continuar com o Google, você concorda com os{' '}
+        <Link
+          href="/termos"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-foreground"
+        >
+          Termos de Uso
+        </Link>{' '}
+        e a{' '}
+        <Link
+          href="/privacidade"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-foreground"
+        >
+          Política de Privacidade
+        </Link>
+        .
+      </p>
+
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />

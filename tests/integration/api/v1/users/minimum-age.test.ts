@@ -30,6 +30,7 @@ async function signUp(birth: Record<string, number>) {
       name: faker.person.fullName(),
       email,
       password: 'senha12345',
+      accepted_terms: true,
       otp_code: otpRecord.code,
       ...birth,
     }),

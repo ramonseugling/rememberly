@@ -1,5 +1,6 @@
 import { MIN_AGE, MIN_AGE_MESSAGE, isAtLeastAge } from '@/lib/age';
 import { getToday } from '@/lib/date-utils';
+import { LEGAL_VERSION } from '@/lib/legal/shared';
 import database from 'infra/database';
 import { NotFoundError, ValidationError } from 'infra/errors';
 import { createDefaults } from 'models/notification-preferences';
@@ -37,8 +38,8 @@ async function create(input: CreateUserInput) {
 
   async function runInsertQuery(values: CreateUserInput) {
     const result = await database.query(
-      `INSERT INTO users (name, email, password, birth_day, birth_month, birth_year, marketing_consent)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (name, email, password, birth_day, birth_month, birth_year, marketing_consent, terms_accepted_at, terms_version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
        RETURNING id, name, email, birth_day, birth_month, birth_year, marketing_consent, created_at, updated_at`,
       [
         values.name,
@@ -48,6 +49,7 @@ async function create(input: CreateUserInput) {
         values.birth_month,
         values.birth_year,
         values.marketing_consent ?? true,
+        LEGAL_VERSION,
       ],
     );
     await createDefaults(

@@ -14,6 +14,7 @@ import {
   AuthGoogleButton,
   AuthLink,
   AuthPage,
+  LegalLinksText,
   publicAuth,
   styles,
   useAuthTask,
@@ -48,6 +49,7 @@ export default function SignupScreen() {
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
   const [marketing, setMarketing] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [registered, setRegistered] = useState(false);
   const sessionBusy =
     state.status === 'restoring' || state.status === 'signing-in';
@@ -73,6 +75,7 @@ export default function SignupScreen() {
       birth_month: Number(month),
       birth_year: Number(year),
       marketing_consent: marketing,
+      accepted_terms: acceptedTerms,
     };
   }
   function sendCode() {
@@ -247,6 +250,18 @@ export default function SignupScreen() {
             disabled={busy}
             onChange={setMarketing}
           />
+          <DsCheckbox
+            label="Li e concordo com os Termos de Uso e a Política de Privacidade"
+            checked={acceptedTerms}
+            disabled={busy}
+            onChange={setAcceptedTerms}
+            content={
+              <LegalLinksText
+                prefix="Li e concordo com os "
+                style={localStyles.consent}
+              />
+            }
+          />
           <AuthAction
             label="Continuar"
             pending={task.pending}
@@ -297,6 +312,7 @@ export default function SignupScreen() {
 
 const localStyles = StyleSheet.create({
   field: { gap: 8 },
+  consent: { flex: 1, fontSize: 14, lineHeight: 21 },
   birthday: {
     flexDirection: 'row',
     flexWrap: 'wrap',

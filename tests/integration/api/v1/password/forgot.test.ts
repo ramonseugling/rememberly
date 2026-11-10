@@ -20,6 +20,7 @@ async function createUserWithOtp() {
       birth_day: faker.number.int({ min: 1, max: 28 }),
       birth_month: faker.number.int({ min: 1, max: 12 }),
       birth_year: faker.number.int({ min: 1950, max: 2005 }),
+      accepted_terms: true,
       otp_code: otpRecord.code,
     }),
   });
