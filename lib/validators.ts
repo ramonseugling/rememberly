@@ -29,43 +29,51 @@ const birthdayFields = {
     .max(new Date().getFullYear(), 'O ano não pode ser no futuro.'),
 };
 
-export const createUserSchema = z.object({
-  name: z
-    .string({
-      required_error: 'O nome é obrigatório.',
-    })
-    .trim()
-    .min(2, 'O nome deve ter pelo menos 2 caracteres.')
-    .max(100, 'O nome deve ter no máximo 100 caracteres.'),
-  email: z
-    .string({
-      required_error: 'O e-mail é obrigatório.',
-    })
-    .trim()
-    .email('E-mail inválido.')
-    .max(254, 'O e-mail deve ter no máximo 254 caracteres.')
-    .transform((val) => val.toLowerCase()),
-  password: z
-    .string({
-      required_error: 'A senha é obrigatória.',
-    })
-    .min(8, 'A senha deve ter pelo menos 8 caracteres.')
-    .max(72, 'A senha deve ter no máximo 72 caracteres.'),
-  otp_code: z
-    .string({
-      required_error: 'O código de verificação é obrigatório.',
-    })
-    .length(6, 'O código de verificação deve ter 6 dígitos.')
-    .regex(/^\d{6}$/, 'O código de verificação deve conter apenas números.'),
-  marketing_consent: z.boolean().optional().default(true),
-  accepted_terms: z.literal(true, {
-    errorMap: () => ({
-      message:
-        'Aceite os Termos de Uso e a Política de Privacidade para criar a conta.',
+export const createUserSchema = z
+  .object({
+    name: z
+      .string({
+        required_error: 'O nome é obrigatório.',
+      })
+      .trim()
+      .min(2, 'O nome deve ter pelo menos 2 caracteres.')
+      .max(100, 'O nome deve ter no máximo 100 caracteres.'),
+    email: z
+      .string({
+        required_error: 'O e-mail é obrigatório.',
+      })
+      .trim()
+      .email('E-mail inválido.')
+      .max(254, 'O e-mail deve ter no máximo 254 caracteres.')
+      .transform((val) => val.toLowerCase()),
+    password: z
+      .string({
+        required_error: 'A senha é obrigatória.',
+      })
+      .min(8, 'A senha deve ter pelo menos 8 caracteres.')
+      .max(72, 'A senha deve ter no máximo 72 caracteres.'),
+    otp_code: z
+      .string()
+      .length(6, 'O código de verificação deve ter 6 dígitos.')
+      .regex(/^\d{6}$/, 'O código de verificação deve conter apenas números.')
+      .optional(),
+    verification_token: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/, 'A verificação do e-mail é inválida.')
+      .optional(),
+    marketing_consent: z.boolean().optional().default(true),
+    accepted_terms: z.literal(true, {
+      errorMap: () => ({
+        message:
+          'Aceite os Termos de Uso e a Política de Privacidade para criar a conta.',
+      }),
     }),
-  }),
-  ...birthdayFields,
-});
+    ...birthdayFields,
+  })
+  .refine((data) => !!data.otp_code || !!data.verification_token, {
+    message: 'O código de verificação é obrigatório.',
+    path: ['otp_code'],
+  });
 
 export const updateUserSchema = z
   .object({
@@ -93,6 +101,16 @@ export const createOtpSchema = z.object({
     .email('E-mail inválido.')
     .max(254, 'O e-mail deve ter no máximo 254 caracteres.')
     .transform((val) => val.toLowerCase()),
+});
+
+export const verifyOtpSchema = z.object({
+  email: createOtpSchema.shape.email,
+  otp_code: z
+    .string({
+      required_error: 'O código de verificação é obrigatório.',
+    })
+    .length(6, 'O código de verificação deve ter 6 dígitos.')
+    .regex(/^\d{6}$/, 'O código de verificação deve conter apenas números.'),
 });
 
 export const createSessionSchema = z.object({

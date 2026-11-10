@@ -8,6 +8,7 @@ import controller, {
   type AuthenticatedRequest,
   authenticatedController,
 } from 'infra/controller';
+import emailVerification from 'models/email-verification';
 import otp from 'models/otp';
 import user from 'models/user';
 
@@ -30,13 +31,16 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     email,
     password,
     otp_code,
+    verification_token,
     birth_day,
     birth_month,
     birth_year,
     marketing_consent,
   } = parseSchema(createUserSchema, req.body);
 
-  const otpRecord = await otp.verify(email, otp_code);
+  const markVerified = verification_token
+    ? await verifyToken(email, verification_token)
+    : await verifyCode(email, otp_code ?? '');
 
   const createdUser = await user.create({
     name,
@@ -48,9 +52,19 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     marketing_consent,
   });
 
-  await otp.markAsUsed(otpRecord.id);
+  await markVerified();
 
   res.status(201).json(createdUser);
+}
+
+async function verifyToken(email: string, token: string) {
+  const record = await emailVerification.verify(email, token);
+  return () => emailVerification.markAsUsed(record.id);
+}
+
+async function verifyCode(email: string, code: string) {
+  const record = await otp.verify(email, code);
+  return () => otp.markAsUsed(record.id);
 }
 
 async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {

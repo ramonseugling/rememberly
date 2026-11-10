@@ -54,6 +54,14 @@ The app is open to people aged 12 or older. `POST /api/v1/users` (registration) 
 
 Social sign-up (Google web callback, mobile Google login, native Google/Apple) sends no field: continuing past the "Ao continuar..." notice is the acceptance, and the same two columns are recorded when the account row is created. Signing in again never changes them. Accounts created before this feature keep both columns `NULL` and are not prompted.
 
+## E-mail verification before sign-up
+
+The sign-up steps can confirm the e-mail before the account exists:
+
+1. `POST /api/v1/otp` with `{ email }` sends the 6-digit code (`400` when the e-mail already has an account).
+2. `POST /api/v1/otp/verify` with `{ email, otp_code }` consumes the code and answers `200 { verification_token }` (64 hex characters, valid for 30 minutes, only a SHA-256 hash is stored). A wrong code answers `400` and counts as an attempt (5 per code).
+3. `POST /api/v1/users` accepts `verification_token` instead of `otp_code`. The token must belong to the same e-mail, be unused and unexpired. It is only consumed after the account is created, so a rejected request (for example under-age or terms not accepted) can be retried with the same token. The old `otp_code` field still works, so the web sign-up is unchanged; one of the two is required.
+
 ## Photos (profile and group)
 
 Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.

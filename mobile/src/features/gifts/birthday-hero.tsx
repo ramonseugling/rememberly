@@ -81,10 +81,7 @@ export const BirthdayHero = ({
         ) : card ? (
           <View style={styles.copy}>
             <DsGradientText style={styles.number}>
-              {`${card.days} `}
-              <DsText style={styles.unit}>
-                {card.days === 1 ? 'dia' : 'dias'}
-              </DsText>
+              {card.days === 1 ? 'Falta 1 dia' : `Faltam ${card.days} dias`}
             </DsGradientText>
             <DsText role="label" style={styles.label}>
               para o seu aniversário
@@ -163,15 +160,9 @@ const styles = StyleSheet.create({
   number: {
     fontFamily: tokens.fonts.headingBold,
     fontWeight: '700',
-    fontSize: 60,
-    lineHeight: 66,
+    fontSize: 38,
+    lineHeight: 46,
     textAlign: 'center',
-  },
-  unit: {
-    fontFamily: tokens.fonts.headingBold,
-    fontWeight: '700',
-    fontSize: 32,
-    lineHeight: 66,
   },
   today: {
     fontFamily: tokens.fonts.headingBold,
