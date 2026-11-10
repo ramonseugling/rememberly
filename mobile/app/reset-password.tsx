@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DsText, tokens } from '../src/design-system';
 import { resetToken } from '../src/navigation/intents';
+import { backToLogin } from '../src/features/auth/navigation';
 import { passwordError } from '../src/features/auth/api';
 import {
   AuthAction,
@@ -75,7 +76,7 @@ export default function ResetPasswordScreen() {
           </DsText>
           <AuthAction
             label="Voltar para o login"
-            onPress={() => router.replace('/login')}
+            onPress={() => backToLogin()}
           />
         </View>
       ) : !showForm ? (
@@ -102,7 +103,7 @@ export default function ResetPasswordScreen() {
           <AuthLink
             label="Voltar para o login"
             disabled={task.pending}
-            onPress={() => router.replace('/login')}
+            onPress={() => backToLogin()}
           />
         </View>
       ) : (
@@ -185,7 +186,7 @@ export default function ResetPasswordScreen() {
               <AuthLink
                 label="Voltar para o login"
                 disabled={task.pending}
-                onPress={() => router.replace('/login')}
+                onPress={() => backToLogin()}
               />
             </>
           )}

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { router, useFocusEffect } from 'expo-router';
+import { backToLogin } from '../src/features/auth/navigation';
+import { useFocusEffect } from 'expo-router';
 import { StyleSheet, TextInput, View } from 'react-native';
 import {
   DsCheckbox,
@@ -200,6 +201,22 @@ export default function SignupScreen() {
       }
       pending={busy}
       message={task.message ?? state.message}
+      back={
+        registered ? undefined : (
+          <AuthLink
+            label={step === 1 ? '← Entrar' : '← Voltar'}
+            align="left"
+            disabled={busy}
+            onPress={() => {
+              if (step === 1) backToLogin();
+              else if (step === 4) {
+                setVerificationToken(null);
+                go(2);
+              } else go(step - 1);
+            }}
+          />
+        )
+      }
       footer={
         registered ? undefined : <AuthStepDots step={step} total={STEPS} />
       }
@@ -212,23 +229,11 @@ export default function SignupScreen() {
           <AuthAction
             label="Entrar"
             disabled={busy}
-            onPress={() => router.replace('/login')}
+            onPress={() => backToLogin()}
           />
         </>
       ) : (
         <>
-          <AuthLink
-            label={step === 1 ? '← Entrar' : '← Voltar'}
-            align="left"
-            disabled={busy}
-            onPress={() => {
-              if (step === 1) router.replace('/login');
-              else if (step === 4) {
-                setVerificationToken(null);
-                go(2);
-              } else go(step - 1);
-            }}
-          />
           {step === 1 && (
             <>
               <AuthField

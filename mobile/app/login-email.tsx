@@ -42,6 +42,17 @@ export default function LoginEmailScreen() {
     <AuthPage
       title="Entrar com e-mail"
       subtitle="Use o e-mail e a senha da sua conta."
+      back={
+        <AuthLink
+          label="← Voltar"
+          align="left"
+          disabled={busy}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/login');
+          }}
+        />
+      }
       pending={busy}
       message={validation ?? state.message}
     >
@@ -62,15 +73,6 @@ export default function LoginEmailScreen() {
         </>
       ) : (
         <>
-          <AuthLink
-            label="← Voltar"
-            align="left"
-            disabled={busy}
-            onPress={() => {
-              if (router.canGoBack()) router.back();
-              else router.replace('/login');
-            }}
-          />
           <AuthField
             label="E-mail"
             icon="email"

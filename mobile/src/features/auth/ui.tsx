@@ -89,6 +89,7 @@ interface AuthPageProps {
   message: string | null;
   compactBrand?: boolean;
   footer?: ReactNode;
+  back?: ReactNode;
 }
 export function AuthPage({
   title,
@@ -96,6 +97,7 @@ export function AuthPage({
   message,
   compactBrand,
   footer,
+  back,
   children,
 }: PropsWithChildren<AuthPageProps>) {
   return (
@@ -111,6 +113,7 @@ export function AuthPage({
           >
             <DsBrandHeader compact={compactBrand} />
             <View style={styles.card}>
+              {back}
               <View style={styles.header}>
                 <DsText role="title" style={styles.title}>
                   {title}
@@ -354,12 +357,6 @@ export function AuthGoogleButton({
           Entrar com Google
         </DsText>
       </Pressable>
-      {googleNeedsBuild && (
-        <DsText role="caption" style={styles.hint}>
-          O login com Google não está disponível no Expo Go. Use uma versão de
-          desenvolvimento instalada.
-        </DsText>
-      )}
     </View>
   );
 }
@@ -390,7 +387,6 @@ export const styles = StyleSheet.create({
   title: { textAlign: 'center' },
   subtitle: { color: tokens.colors.textMuted, textAlign: 'center' },
   text: { color: tokens.colors.textMuted, fontSize: 14, lineHeight: 21 },
-  hint: { color: tokens.colors.textMuted },
   legalText: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 18 },
   legalCentered: { textAlign: 'center' },
   legalLink: {

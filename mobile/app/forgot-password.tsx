@@ -2,8 +2,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DsText, tokens } from '../src/design-system';
+import { backToLogin } from '../src/features/auth/navigation';
 import { emailError } from '../src/features/auth/api';
-import { googleNeedsBuild } from '../src/features/auth/google-native';
 import {
   AuthAction,
   AuthField,
@@ -52,20 +52,14 @@ export default function ForgotPasswordScreen() {
               <AuthAction
                 label="Ir para o login com Google"
                 disabled={task.pending}
-                onPress={() => router.replace('/login')}
+                onPress={() => backToLogin()}
               />
-              {googleNeedsBuild && (
-                <DsText style={styles.text}>
-                  No Expo Go, o login com Google requer uma versão de
-                  desenvolvimento instalada.
-                </DsText>
-              )}
             </>
           )}
           <AuthLink
             label="Voltar para o login"
             disabled={task.pending}
-            onPress={() => router.replace('/login')}
+            onPress={() => backToLogin()}
           />
           {result === 'sent' && (
             <AuthLink
@@ -112,7 +106,7 @@ export default function ForgotPasswordScreen() {
             <AuthLink
               label="Entrar"
               disabled={task.pending}
-              onPress={() => router.replace('/login')}
+              onPress={() => backToLogin()}
             />
           </View>
         </>

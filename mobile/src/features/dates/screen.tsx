@@ -204,7 +204,7 @@ export function DatesScreen() {
           ) : undefined
         }
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.content, isEmpty && styles.contentEmpty]}
+        contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
             tintColor={tokens.colors.primary}
@@ -404,6 +404,5 @@ const styles = StyleSheet.create({
   },
   errorCard: { gap: 12, marginBottom: 24 },
   emptyContainer: { gap: 24 },
-  contentEmpty: { flexGrow: 1, justifyContent: 'center' },
   addButton: { marginTop: 6, minHeight: 52 },
 });
