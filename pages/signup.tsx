@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AuthShell } from '@/components/auth-shell/auth-shell';
+import { MIN_AGE, MIN_AGE_MESSAGE, isAtLeastAge } from '@/lib/age';
 import { DAYS_IN_MONTH, MONTHS } from '@/lib/constants';
 import { withGuest } from 'infra/page-guard';
 
@@ -96,8 +97,27 @@ export default function Signup() {
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (
+      birthDay &&
+      birthMonth &&
+      birthYear &&
+      !isAtLeastAge(
+        {
+          day: Number(birthDay),
+          month: Number(birthMonth),
+          year: Number(birthYear),
+        },
+        MIN_AGE,
+        new Date(),
+      )
+    ) {
+      setError(MIN_AGE_MESSAGE);
+      return;
+    }
+
+    setLoading(true);
 
     const otpRes = await fetch('/api/v1/otp', {
       method: 'POST',

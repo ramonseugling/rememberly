@@ -1,11 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { LandingFooter } from '@/components/landing-footer/landing-footer';
-import {
-  DRAFT_NOTICE,
-  LEGAL_LAST_UPDATED,
-  type LegalDocument,
-} from '@/lib/legal/shared';
+import { LEGAL_LAST_UPDATED, type LegalDocument } from '@/lib/legal/shared';
 
 interface LegalPageProps {
   document: LegalDocument;
@@ -34,13 +30,6 @@ export const LegalPage = ({ document, otherPage }: LegalPageProps) => {
 
       <div className="flex-1">
         <div className="container mx-auto max-w-3xl px-4 sm:px-6 py-8">
-          <div
-            role="note"
-            className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900"
-          >
-            {DRAFT_NOTICE}
-          </div>
-
           <article>
             <h1 className="text-3xl font-bold text-foreground">
               {document.title}

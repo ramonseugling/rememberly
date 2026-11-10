@@ -90,7 +90,6 @@ async function sendAnnouncement(announcementKey: string) {
     } catch (err) {
       failed++;
       log.error('broadcast_send_failed', {
-        to: recipient.email,
         announcementKey,
         error: String(err),
       });

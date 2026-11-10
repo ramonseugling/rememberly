@@ -244,10 +244,11 @@ Migrations are applied automatically on every deploy before the new code goes li
 
 **Cron Jobs** (configured in `vercel.json`):
 
-| Endpoint                                    | Schedule           | Purpose                                    |
-| ------------------------------------------- | ------------------ | ------------------------------------------ |
-| `POST /api/v1/notifications/send`           | Daily at 12:00 UTC | Send email for each event happening today  |
-| `POST /api/v1/notifications/send-reminders` | Daily at 12:00 UTC | Send advance reminders for upcoming events |
+| Endpoint                                    | Schedule           | Purpose                                                     |
+| ------------------------------------------- | ------------------ | ----------------------------------------------------------- |
+| `POST /api/v1/notifications/send`           | Daily at 12:00 UTC | Send email for each event happening today                   |
+| `POST /api/v1/notifications/send-reminders` | Daily at 12:00 UTC | Send advance reminders for upcoming events                  |
+| `GET /api/v1/notifications/purge-logs`      | Daily at 05:00 UTC | Delete `error_logs` and `cron_runs` rows older than 90 days |
 
 ---
 

@@ -315,7 +315,6 @@ async function sendEmails(
       failed++;
       log.error('communication_email_failed', {
         communicationId: communication.id,
-        to: recipient.email,
         error: String(err),
       });
     }

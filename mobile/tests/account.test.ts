@@ -82,3 +82,19 @@ test('civil dates render their exact calendar components without timezone conver
   assert.equal(daysUntilLabel(1), 'Em 1 dia');
   assert.equal(daysUntilLabel(51), 'Em 51 dias');
 });
+
+test('profile refuses a birth date under 12 and accepts exactly 12', () => {
+  const today = new Date(2026, 10, 6);
+  const update = (year: string, month: string, day: string) =>
+    profileUpdate({ name: 'Alex', day, month, year }, user, 2026, today);
+  assert.equal(update('2014', '11', '6').birth_year, 2014);
+  assert.throws(
+    () => update('2014', '11', '7'),
+    /É preciso ter 12 anos ou mais para usar o Rememberly\./,
+  );
+  assert.deepEqual(update('', '11', '7'), {
+    name: 'Alex',
+    birth_day: 7,
+    birth_month: 11,
+  });
+});

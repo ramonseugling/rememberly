@@ -44,6 +44,10 @@ Existing controller errors generally contain `name`, `message`, `action`, and `s
 
 Reference inventory by source paths; keep final request/response definitions in this document or a linked machine-readable specification when one is introduced. Avoid separate competing TypeScript, Markdown, and schema definitions maintained manually.
 
+## Minimum age
+
+The app is open to people aged 12 or older. `POST /api/v1/users` (registration) and `PATCH /api/v1/users` (profile) answer `400 ValidationError` with message `É preciso ter 12 anos ou mais para usar o Rememberly.` when `birth_day`/`birth_month`/`birth_year` make the person younger than 12 on the current date in `America/Sao_Paulo` (turning 12 today is allowed; a Feb 29 birthday counts on Mar 1 in non-leap years). On `PATCH`, partial birth fields are combined with the stored ones before checking. Without a birth year the age cannot be verified and the request is allowed. Social sign-up (Google, native) has no birth date, so nothing is checked there. The mobile app repeats the check before calling the API (`É preciso ter 12 anos ou mais para criar uma conta.` on sign-up).
+
 ## Photos (profile and group)
 
 Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.

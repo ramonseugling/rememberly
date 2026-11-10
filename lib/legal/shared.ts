@@ -13,10 +13,6 @@ export interface LegalDocument {
   sections: LegalSection[];
 }
 
-// Delete this constant (and the banner in LegalPage) once a lawyer reviews the texts.
-export const DRAFT_NOTICE =
-  'Rascunho em revisão. Este texto ainda não foi revisado por um advogado.';
-
 export const LEGAL_LAST_UPDATED = '10 de novembro de 2026';
 
 // Controller details. CPF and street address are intentionally not published; a lawyer confirms whether they are required.

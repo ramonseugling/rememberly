@@ -33,7 +33,7 @@ export const termsDocument: LegalDocument = {
             'Você deve informar dados verdadeiros e mantê-los atualizados.',
             'Você é responsável por manter sua senha e seu acesso em segurança e por tudo o que acontece na sua conta. Avise-nos se suspeitar de uso indevido.',
             'A conta é pessoal e não pode ser transferida ou compartilhada.',
-            'O serviço não é destinado a menores de 13 anos. Pessoas entre 13 e 17 anos devem usar o serviço com o conhecimento e a autorização de um responsável legal. [A CONFIRMAR COM ADVOGADO]',
+            'O Rememberly é para pessoas com 12 anos ou mais: o cadastro recusa quem informar uma data de nascimento que indique menos de 12 anos. Adolescentes de 12 a 17 anos devem usar o serviço com o conhecimento de um responsável legal.',
           ],
         },
       ],
@@ -117,7 +117,7 @@ export const termsDocument: LegalDocument = {
       title: '8. Disponibilidade e ausência de garantias',
       blocks: [
         {
-          p: 'O Rememberly é oferecido "como está". Buscamos mantê-lo disponível e funcionando, mas não garantimos que será ininterrupto ou livre de erros, nem que os lembretes serão sempre entregues. Podemos alterar, suspender ou encerrar funcionalidades, inclusive para manutenção. [A REVISAR PELO ADVOGADO]',
+          p: 'O Rememberly é oferecido "como está". Buscamos mantê-lo disponível e funcionando, mas não garantimos que será ininterrupto ou livre de erros, nem que os lembretes serão sempre entregues. Podemos alterar, suspender ou encerrar funcionalidades, inclusive para manutenção.',
         },
       ],
     },
@@ -126,7 +126,7 @@ export const termsDocument: LegalDocument = {
       title: '9. Limitação de responsabilidade',
       blocks: [
         {
-          p: 'Na máxima extensão permitida pela lei, o Rememberly não responde por danos indiretos, lucros cessantes ou perdas decorrentes de lembretes não recebidos ou atrasados, indisponibilidade do serviço, conteúdo publicado por outros usuários ou conduta de terceiros. Nada nestes Termos exclui direitos que a lei, inclusive o Código de Defesa do Consumidor, não permita limitar. [TEXTO A SER REVISADO PELO ADVOGADO]',
+          p: 'Na máxima extensão permitida pela lei, o Rememberly não responde por danos indiretos, lucros cessantes ou perdas decorrentes de lembretes não recebidos ou atrasados, indisponibilidade do serviço, conteúdo publicado por outros usuários ou conduta de terceiros. Nada nestes Termos exclui direitos que a lei, inclusive o Código de Defesa do Consumidor, não permita limitar.',
         },
       ],
     },
@@ -156,7 +156,7 @@ export const termsDocument: LegalDocument = {
       title: '12. Lei aplicável e foro',
       blocks: [
         {
-          p: `Estes Termos são regidos pelas leis do Brasil. Fica eleito o foro de ${GOVERNING_CITY} para resolver conflitos, ressalvado o direito do consumidor de ajuizar ação no foro do seu domicílio. [A CONFIRMAR COM ADVOGADO]`,
+          p: `Estes Termos são regidos pelas leis do Brasil. Fica eleito o foro de ${GOVERNING_CITY} para resolver conflitos, ressalvado o direito do consumidor de ajuizar ação no foro do seu domicílio.`,
         },
       ],
     },

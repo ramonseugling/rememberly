@@ -70,7 +70,7 @@ export const privacyDocument: LegalDocument = {
           ],
         },
         {
-          p: 'Não vendemos dados pessoais e não usamos seus dados para publicidade de terceiros. [BASES LEGAIS A CONFIRMAR COM ADVOGADO]',
+          p: 'Não vendemos dados pessoais e não usamos seus dados para publicidade de terceiros. Usamos estas bases legais (LGPD, art. 7): execução de contrato, para criar e manter sua conta, guardar seus eventos e listas, enviar os lembretes e e-mails que você pediu e mostrar aos seus grupos o que você escolheu compartilhar; consentimento, para notificações push, e-mails de novidades e a foto de perfil, que você pode retirar a qualquer momento; legítimo interesse, para segurança, prevenção de fraudes e abusos e registros de erro; e cumprimento de obrigação legal ou regulatória, quando houver.',
         },
       ],
     },
@@ -111,13 +111,13 @@ export const privacyDocument: LegalDocument = {
             'Vercel: hospedagem do site e da API, execução das tarefas diárias (cron), armazenamento de fotos (Vercel Blob) e estatísticas de acesso (Vercel Analytics).',
             'Neon: banco de dados PostgreSQL onde ficam os dados da sua conta.',
             'Resend: envio de e-mails (código de verificação, lembretes, recuperação de senha e novidades). Recebe seu e-mail e o conteúdo da mensagem.',
-            'Axiom: armazenamento de logs técnicos da aplicação.',
+            'Axiom: armazenamento de logs técnicos da aplicação (tipo de e-mail enviado, erros e resumo das tarefas diárias), sem o e-mail do destinatário nem o título dos seus eventos. O prazo de guarda é definido na configuração do serviço.',
             'Expo (Expo Push Service) e, por meio dele, Apple e Google: entrega de notificações push. Recebem o token do dispositivo e o conteúdo da notificação.',
             'Google: login com a conta Google (Google Sign-In/OAuth).',
           ],
         },
         {
-          p: 'Também podemos compartilhar dados quando a lei, uma ordem judicial ou autoridade competente exigir. [LISTA DE OPERADORES A CONFIRMAR PELO RESPONSÁVEL ANTES DE PUBLICAR]',
+          p: 'Também podemos compartilhar dados quando a lei, uma ordem judicial ou autoridade competente exigir. Esta é a lista atual de prestadores; se ela mudar, atualizaremos esta página.',
         },
       ],
     },
@@ -126,7 +126,7 @@ export const privacyDocument: LegalDocument = {
       title: '6. Cookies e tecnologias semelhantes',
       blocks: [
         {
-          p: 'Usamos um cookie essencial de sessão, chamado session_token (HttpOnly, validade de até 30 dias), para manter você conectado no site. No aplicativo, o token de sessão fica no armazenamento seguro do dispositivo. Não usamos cookies de publicidade. Usamos o Vercel Analytics para medir o uso do site; segundo a Vercel, ele opera sem cookies de rastreamento. [A CONFIRMAR]',
+          p: 'Usamos um cookie essencial de sessão, chamado session_token (HttpOnly, validade de até 30 dias), para manter você conectado no site. No aplicativo, o token de sessão fica no armazenamento seguro do dispositivo. Não usamos cookies de publicidade. Usamos o Vercel Analytics para medir o uso do site; segundo a Vercel, ele opera sem cookies de rastreamento.',
         },
       ],
     },
@@ -135,7 +135,7 @@ export const privacyDocument: LegalDocument = {
       title: '7. Por quanto tempo guardamos os dados',
       blocks: [
         {
-          p: 'Mantemos seus dados enquanto sua conta existir. Dados temporários têm prazo próprio: códigos de verificação valem por poucos minutos, contadores de tentativas de login expiram em cerca de 15 minutos e sessões expiram conforme sua validade (até 30 dias no site). Ainda não definimos um prazo fixo de retenção para os registros de erro e logs de sistema nem para cópias de segurança dos provedores. [DEFINIR PRAZOS]',
+          p: 'Mantemos seus dados enquanto sua conta existir. Dados temporários têm prazo próprio: códigos de verificação valem por poucos minutos, contadores de tentativas de login expiram em cerca de 15 minutos e sessões expiram conforme sua validade (até 30 dias no site). Registros de erro e de execução das tarefas automáticas são apagados automaticamente após 90 dias. Cópias de segurança e logs mantidos pelos provedores seguem os prazos deles, que são limitados e fora do nosso controle.',
         },
       ],
     },
@@ -161,7 +161,7 @@ export const privacyDocument: LegalDocument = {
           p: 'Se você é proprietário de algum grupo, é preciso excluir esses grupos antes de excluir a conta. Grupos de outras pessoas e os dados dos outros integrantes continuam existindo.',
         },
         {
-          p: 'Ficam retidos: registros agregados de execução das tarefas automáticas, registros de erro não atribuídos a você e contadores temporários de limite de tentativas (que não guardam e-mail ou IP puros). A exclusão não apaga cópias de segurança, logs retidos pelos provedores citados na seção 5, nem e-mails ou notificações já entregues. Podemos manter dados quando a lei exigir. [PRAZOS DE BACKUP E LOGS A CONFIRMAR]',
+          p: 'Ficam retidos: registros agregados de execução das tarefas automáticas, registros de erro não atribuídos a você e contadores temporários de limite de tentativas (que não guardam e-mail ou IP puros). A exclusão não apaga cópias de segurança, logs retidos pelos provedores citados na seção 5, nem e-mails ou notificações já entregues. Os registros de erro e de execução são apagados automaticamente em até 90 dias; cópias de segurança e logs dos provedores seguem os prazos deles. Podemos manter dados quando a lei exigir.',
         },
       ],
     },
@@ -194,7 +194,7 @@ export const privacyDocument: LegalDocument = {
       title: '10. Crianças e adolescentes',
       blocks: [
         {
-          p: 'O Rememberly não é destinado a menores de 13 anos e não coletamos intencionalmente dados de crianças. Se soubermos que uma conta pertence a uma criança, ela poderá ser excluída. O uso por adolescentes (13 a 17 anos) deve ocorrer com autorização de um responsável legal, e o tratamento de dados de crianças e adolescentes deve observar o seu melhor interesse (LGPD, art. 14). [A CONFIRMAR COM ADVOGADO: idade mínima e regras de consentimento parental]',
+          p: `O Rememberly é aberto a pessoas com 12 anos ou mais. Não é destinado a crianças menores de 12 anos, e o cadastro recusa quem informar uma data de nascimento que indique menos de 12 anos. Não coletamos intencionalmente dados de crianças; se soubermos que uma conta pertence a uma criança, ela será excluída. O tratamento de dados de adolescentes (12 a 17 anos) observa o seu melhor interesse (LGPD, art. 14), e recomendamos que usem o serviço com o conhecimento de um responsável. Um responsável que identifique dados de uma criança pode pedir a exclusão pelo e-mail ${CONTACT_EMAIL}.`,
         },
       ],
     },
@@ -203,7 +203,7 @@ export const privacyDocument: LegalDocument = {
       title: '11. Transferência internacional de dados',
       blocks: [
         {
-          p: 'Alguns prestadores citados (como Vercel, Resend, Axiom, Expo e Google) podem processar dados em servidores fora do Brasil, inclusive nos Estados Unidos. Nesses casos, buscamos prestadores que adotem salvaguardas adequadas, conforme a LGPD (arts. 33 a 36). [LOCALIZAÇÃO DOS SERVIDORES E MECANISMO DE TRANSFERÊNCIA A CONFIRMAR]',
+          p: 'Nosso banco de dados fica em servidores da Amazon Web Services na região Leste dos Estados Unidos (N. Virginia), operados pelo Neon, ou seja, fora do Brasil. A hospedagem e a execução do site e da API (Vercel), os registros técnicos (Axiom), as notificações push (Expo) e o login com Google também podem envolver servidores fora do Brasil, inclusive nos Estados Unidos. As fotos ficam no armazenamento da Vercel em São Paulo. Essas transferências são necessárias para prestar o serviço que você pediu (LGPD, art. 33, IX), e os prestadores aplicam salvaguardas contratuais e de segurança próprias.',
         },
       ],
     },
@@ -212,7 +212,7 @@ export const privacyDocument: LegalDocument = {
       title: '12. Segurança',
       blocks: [
         {
-          p: 'Adotamos medidas técnicas para proteger seus dados: senhas guardadas apenas como hash (bcrypt), conexão criptografada (HTTPS e SSL no banco de dados), cookie de sessão HttpOnly, limite de tentativas de login e códigos de verificação com validade curta. Nenhum sistema é totalmente seguro; em caso de incidente relevante, comunicaremos você e a ANPD conforme a lei. As fotos enviadas ficam em endereços públicos difíceis de adivinhar, mas acessíveis a quem tiver o link. [A REVISAR]',
+          p: 'Adotamos medidas técnicas para proteger seus dados: senhas guardadas apenas como hash (bcrypt), conexão criptografada (HTTPS e SSL no banco de dados), cookie de sessão HttpOnly, limite de tentativas de login e códigos de verificação com validade curta. Nenhum sistema é totalmente seguro; em caso de incidente relevante, comunicaremos você e a ANPD conforme a lei. As fotos enviadas ficam em endereços públicos difíceis de adivinhar, mas acessíveis a quem tiver o link.',
         },
       ],
     },

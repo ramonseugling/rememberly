@@ -137,9 +137,7 @@ async function sendEventNotification(input: SendEventNotificationInput) {
   });
 
   log.info('event_notification_sent', {
-    to: input.to,
     eventType: input.eventType,
-    eventTitle: input.eventTitle,
   });
 }
 
@@ -190,9 +188,7 @@ async function sendReminderNotification(input: SendReminderNotificationInput) {
   });
 
   log.info('reminder_notification_sent', {
-    to: input.to,
     eventType: input.eventType,
-    eventTitle: input.eventTitle,
     daysUntil: input.daysUntil,
   });
 }
@@ -230,7 +226,7 @@ async function sendPasswordResetEmail(input: SendPasswordResetEmailInput) {
     html: buildPasswordResetHtml(safeUserName, safeResetUrl),
   });
 
-  log.info('password_reset_email_sent', { to: input.to });
+  log.info('password_reset_email_sent');
 }
 
 export function buildPasswordResetHtml(userName: string, resetUrl: string) {
@@ -274,7 +270,7 @@ async function sendOtpEmail(input: SendOtpEmailInput) {
     html: buildOtpHtml(safeCode),
   });
 
-  log.info('otp_email_sent', { to: input.to });
+  log.info('otp_email_sent');
 }
 
 async function sendAccountDeletionCodeEmail(input: SendOtpEmailInput) {
@@ -289,7 +285,7 @@ async function sendAccountDeletionCodeEmail(input: SendOtpEmailInput) {
     html: buildAccountDeletionCodeHtml(safeCode),
   });
 
-  log.info('account_deletion_code_email_sent', { to: input.to });
+  log.info('account_deletion_code_email_sent');
 }
 
 export function buildAccountDeletionCodeHtml(code: string) {
@@ -552,7 +548,6 @@ async function sendAnnouncementEmail(input: SendAnnouncementEmailInput) {
   });
 
   log.info('announcement_email_sent', {
-    to: input.to,
     announcementKey: input.announcement.key,
   });
 }
@@ -601,7 +596,7 @@ async function sendCommunicationEmail(input: SendCommunicationEmailInput) {
 
   if (error) throw new Error(error.message);
 
-  log.info('communication_email_sent', { to: input.to });
+  log.info('communication_email_sent');
 }
 
 interface SendCommemorativeReminderInput {
@@ -628,7 +623,6 @@ async function sendCommemorativeReminder(
   });
 
   log.info('commemorative_reminder_sent', {
-    to: input.to,
     label: input.label,
     daysUntil: input.daysUntil,
   });
@@ -674,7 +668,7 @@ async function sendGiftReleasedEmail(input: SendGiftReleasedEmailInput) {
     ),
   });
 
-  log.info('gift_released_email_sent', { to: input.to });
+  log.info('gift_released_email_sent');
 }
 
 export function buildGiftReleasedHtml(

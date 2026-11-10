@@ -260,3 +260,23 @@ test('explains known bad requests with app copy, never the raw server text', asy
     );
   }
 });
+
+test('registration refuses people younger than 12 and accepts exactly 12', () => {
+  const { otp_code: _code, ...details } = input;
+  const today = new Date(2026, 10, 6);
+  const at = (birth_year: number, birth_month: number, birth_day: number) =>
+    registrationDetailsError(
+      { ...details, birth_year, birth_month, birth_day },
+      details.password,
+      today,
+    );
+  assert.equal(at(2014, 11, 6), null);
+  assert.equal(
+    at(2014, 11, 7),
+    'É preciso ter 12 anos ou mais para criar uma conta.',
+  );
+  assert.equal(
+    at(2020, 1, 1),
+    'É preciso ter 12 anos ou mais para criar uma conta.',
+  );
+});

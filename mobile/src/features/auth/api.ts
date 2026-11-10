@@ -1,3 +1,5 @@
+import { isAtLeastAge, MIN_AGE } from '../account/age.ts';
+
 export type PublicTransport = (
   url: string,
   init: RequestInit,
@@ -224,5 +226,7 @@ export function registrationDetailsError(
     date > now
   )
     return 'Informe uma data de nascimento válida no passado.';
+  if (!isAtLeastAge({ day, month, year }, MIN_AGE, now))
+    return 'É preciso ter 12 anos ou mais para criar uma conta.';
   return null;
 }

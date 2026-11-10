@@ -100,8 +100,6 @@ async function sendTodayNotifications() {
     } catch (err) {
       failed++;
       log.error('cron_notification_failed', {
-        to: event.user_email,
-        eventTitle: event.event_title,
         error: String(err),
       });
     }
@@ -188,8 +186,6 @@ async function sendReminderNotifications() {
     } catch (err) {
       failed++;
       log.error('cron_reminder_failed', {
-        to: event.user_email,
-        eventTitle: event.event_title,
         daysUntil: event.reminder_days_before,
         error: String(err),
       });
@@ -258,7 +254,6 @@ async function sendCommemorativeReminders() {
       } catch (err) {
         failed++;
         log.error('cron_commemorative_reminder_failed', {
-          to: subscriber.email,
           label: def.label,
           error: String(err),
         });

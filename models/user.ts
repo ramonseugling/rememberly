@@ -1,3 +1,5 @@
+import { MIN_AGE, MIN_AGE_MESSAGE, isAtLeastAge } from '@/lib/age';
+import { getToday } from '@/lib/date-utils';
 import database from 'infra/database';
 import { NotFoundError, ValidationError } from 'infra/errors';
 import { createDefaults } from 'models/notification-preferences';
@@ -21,6 +23,7 @@ interface UpdateUserInput {
 }
 
 async function create(input: CreateUserInput) {
+  validateMinimumAge(input);
   await validateUniqueEmail(input.email);
 
   const hashedPassword = await password.hash(input.password);
@@ -58,6 +61,25 @@ async function create(input: CreateUserInput) {
 }
 
 async function update(userId: string, input: UpdateUserInput) {
+  if (
+    input.birth_day !== undefined ||
+    input.birth_month !== undefined ||
+    input.birth_year !== undefined
+  ) {
+    const current = await database.query(
+      'SELECT birth_day, birth_month, birth_year FROM users WHERE id = $1',
+      [userId],
+    );
+    const row = current.rows[0];
+    if (row) {
+      validateMinimumAge({
+        birth_day: input.birth_day ?? row.birth_day,
+        birth_month: input.birth_month ?? row.birth_month,
+        birth_year: input.birth_year ?? row.birth_year,
+      });
+    }
+  }
+
   const result = await database.query(
     `UPDATE users
      SET name = COALESCE($1, name),
@@ -98,6 +120,27 @@ async function findOneByEmail(email: string) {
     );
 
     return result.rows[0] ?? null;
+  }
+}
+
+function validateMinimumAge(birth: {
+  birth_day?: number | null;
+  birth_month?: number | null;
+  birth_year?: number | null;
+}) {
+  if (!birth.birth_day || !birth.birth_month) return;
+
+  const allowed = isAtLeastAge(
+    { day: birth.birth_day, month: birth.birth_month, year: birth.birth_year },
+    MIN_AGE,
+    getToday(),
+  );
+
+  if (!allowed) {
+    throw new ValidationError({
+      message: MIN_AGE_MESSAGE,
+      action: 'Confira a data de nascimento informada e tente novamente.',
+    });
   }
 }
 

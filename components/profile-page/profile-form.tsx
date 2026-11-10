@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { MIN_AGE, MIN_AGE_MESSAGE, isAtLeastAge } from '@/lib/age';
 import { DAYS_IN_MONTH, MONTHS } from '@/lib/constants';
 
 interface ProfileUser {
@@ -66,6 +67,20 @@ export const ProfileForm = ({ user }: ProfileFormProps) => {
     }
     if (name.trim().length < 2) {
       setError('O nome deve ter pelo menos 2 caracteres.');
+      return;
+    }
+
+    if (
+      day &&
+      month &&
+      year &&
+      !isAtLeastAge(
+        { day: Number(day), month: Number(month), year: Number(year) },
+        MIN_AGE,
+        new Date(),
+      )
+    ) {
+      setError(MIN_AGE_MESSAGE);
       return;
     }
 

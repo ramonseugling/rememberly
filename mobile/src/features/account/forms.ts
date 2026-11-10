@@ -1,3 +1,5 @@
+import { isAtLeastAge, MIN_AGE } from './age.ts';
+
 export type ProfileUser = {
   id: string;
   name: string;
@@ -29,6 +31,7 @@ export function profileUpdate(
   form: ProfileForm,
   original: ProfileUser,
   currentYear = new Date().getFullYear(),
+  today = new Date(),
 ): {
   name: string;
   birth_day?: number;
@@ -62,6 +65,12 @@ export function profileUpdate(
       );
     }
     body[key] = Number(raw);
+  }
+  const day = body.birth_day ?? original.birth_day;
+  const month = body.birth_month ?? original.birth_month;
+  const year = body.birth_year ?? original.birth_year;
+  if (day && month && !isAtLeastAge({ day, month, year }, MIN_AGE, today)) {
+    throw new Error('É preciso ter 12 anos ou mais para usar o Rememberly.');
   }
   return body;
 }
