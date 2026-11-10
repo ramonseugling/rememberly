@@ -11,7 +11,6 @@ import type { GroupMember } from '../src/features/groups/model.ts';
 const member = (overrides: Partial<GroupMember>): GroupMember => ({
   id: 'u1',
   name: 'Ana',
-  email: 'ana@example.com',
   role: 'member',
   birth_day: 14,
   birth_month: 3,

@@ -70,7 +70,6 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           (m: {
             id: string;
             name: string;
-            email: string;
             avatar_url: string | null;
             birth_day: number | null;
             birth_month: number | null;
@@ -80,7 +79,6 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           }) => ({
             id: m.id,
             name: m.name,
-            email: m.email,
             avatar_url: m.avatar_url ?? null,
             birth_day: m.birth_day,
             birth_month: m.birth_month,

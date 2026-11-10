@@ -23,7 +23,6 @@ export interface GroupBirthday {
 export interface GroupMember {
   id: string;
   name: string;
-  email: string;
   avatar_url?: string | null;
   role: GroupRole;
   birth_day: number | null;

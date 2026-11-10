@@ -85,7 +85,6 @@ export const privacyDocument: LegalDocument = {
           ul: [
             'seu nome e sua foto de perfil;',
             'sua data de aniversário (dia, mês e, se você informou, o ano);',
-            'seu e-mail (a lista de integrantes do grupo hoje inclui o e-mail) [A CONFIRMAR: avaliar se o e-mail deve continuar visível];',
             'sua lista de presentes (visível a quem divide ao menos um grupo com você).',
           ],
         },

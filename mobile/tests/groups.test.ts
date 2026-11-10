@@ -43,7 +43,6 @@ test('birthday presentation handles absent dates, leap days, and today', () => {
   const member: GroupMember = {
     id: '1',
     name: 'Sam',
-    email: 'sam@example.com',
     role: 'member',
     birth_day: null,
     birth_month: null,
@@ -77,7 +76,6 @@ test('group dates sort shared birthdays and omit missing dates without mutating 
   const base: GroupMember = {
     id: 'a',
     name: 'A',
-    email: 'a@example.com',
     role: 'member',
     birth_day: 15,
     birth_month: 12,

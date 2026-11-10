@@ -102,7 +102,7 @@ async function remove(
 
 async function findAllByGroupId(groupId: string) {
   const result = await database.query(
-    `SELECT u.id, u.name, u.email, u.avatar_url, u.birth_day, u.birth_month, u.birth_year,
+    `SELECT u.id, u.name, u.avatar_url, u.birth_day, u.birth_month, u.birth_year,
             gm.role, gm.created_at AS joined_at
      FROM group_members gm
      JOIN users u ON u.id = gm.user_id
