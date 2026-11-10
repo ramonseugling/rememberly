@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Avatar } from '@/components/avatar/avatar';
 import { MONTHS } from '@/lib/constants';
 import { formatDaysLabel } from '@/lib/date-utils';
 import type { GroupMemberInfo } from '@/lib/types';
@@ -68,11 +69,15 @@ export const GroupMembersList = ({
               className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 hover:bg-muted/60 transition-smooth"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary shrink-0">
+                <Avatar
+                  src={member.avatar_url}
+                  alt={member.name}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary shrink-0"
+                >
                   <span className="text-sm font-semibold">
                     {member.name.charAt(0).toUpperCase()}
                   </span>
-                </div>
+                </Avatar>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm text-foreground truncate">

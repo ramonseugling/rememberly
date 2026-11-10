@@ -81,6 +81,7 @@ test('preferences default off and expose a fixed delivery schedule', async () =>
     push_enabled: false,
     email_events: true,
     email_marketing: true,
+    push_marketing: false,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });

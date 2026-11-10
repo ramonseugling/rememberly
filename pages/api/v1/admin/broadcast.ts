@@ -1,30 +1,14 @@
 import type { NextApiResponse } from 'next';
 import { getAnnouncement } from '@/lib/announcements';
+import { assertAdmin } from 'infra/admin-guard';
 import {
   AuthenticatedRequest,
   authenticatedController,
 } from 'infra/controller';
-import { UnauthorizedError, ValidationError } from 'infra/errors';
+import { ValidationError } from 'infra/errors';
 import broadcastModel from 'models/broadcast';
-import session from 'models/session';
 
 export default authenticatedController({ GET: handleGet, POST: handlePost });
-
-async function assertAdmin(req: AuthenticatedRequest) {
-  const token =
-    req.cookies?.session_token ??
-    req.headers.authorization?.replace('Bearer ', '') ??
-    '';
-
-  const foundSession = await session.findOneValidByToken(token);
-
-  if (!foundSession?.is_admin) {
-    throw new UnauthorizedError({
-      message: 'Acesso restrito a administradores.',
-      action: 'Faça login com uma conta de administrador.',
-    });
-  }
-}
 
 async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
   await assertAdmin(req);

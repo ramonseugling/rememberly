@@ -29,6 +29,7 @@ interface GroupSummary {
   id: string;
   name: string;
   invite_code: string;
+  photo_url: string | null;
   role: GroupRole;
   member_count: number;
   created_at: string;
@@ -60,6 +61,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           id: groupData.id,
           name: groupData.name,
           invite_code: groupData.invite_code,
+          photo_url: groupData.photo_url ?? null,
           role: membership.role as GroupRole,
           member_count: members.length,
           created_at: String(groupData.created_at),
@@ -69,6 +71,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
             id: string;
             name: string;
             email: string;
+            avatar_url: string | null;
             birth_day: number | null;
             birth_month: number | null;
             birth_year: number | null;
@@ -78,6 +81,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
             id: m.id,
             name: m.name,
             email: m.email,
+            avatar_url: m.avatar_url ?? null,
             birth_day: m.birth_day,
             birth_month: m.birth_month,
             birth_year: m.birth_year,
@@ -139,6 +143,7 @@ export default function GroupDetailPage({
         <ConfigurationsTab
           groupId={group.id}
           groupName={group.name}
+          photoUrl={group.photo_url}
           isOwner={isOwner}
           currentUserId={user.id}
         />

@@ -9,7 +9,12 @@ import {
 import database from 'infra/database';
 import { type PushProvider, expoProvider } from 'models/push-provider';
 
-const eligible = `d.disabled_at IS NULL AND p.push_events=true AND s.user_id=d.user_id
+// Announcements follow push_marketing; admin test sends only need a live device.
+// Every other kind keeps depending on push_events.
+const eligible = (kind: string) => `d.disabled_at IS NULL AND (CASE ${kind}
+ WHEN 'announcement' THEN p.push_marketing
+ WHEN 'announcement_test' THEN true
+ ELSE p.push_events END) AND s.user_id=d.user_id
  AND (s.expires_at IS NULL OR s.expires_at>now())`;
 export async function enqueuePushReminders(today = referenceDay()) {
   const day = dateOnly(today);
@@ -80,7 +85,7 @@ export async function enqueuePush(
     `INSERT INTO push_deliveries(device_id,user_id,session_id,dedup_key,data)
       SELECT d.id,d.user_id,d.session_id,$2,$3::jsonb FROM push_devices d
       JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
-      WHERE d.user_id=$1 AND ${eligible} ON CONFLICT(device_id,dedup_key) DO NOTHING`,
+      WHERE d.user_id=$1 AND ${eligible("($3::jsonb->>'kind')")} ON CONFLICT(device_id,dedup_key) DO NOTHING`,
     [userId, key, JSON.stringify(data)],
   );
   return result.rowCount ?? 0;
@@ -97,7 +102,7 @@ async function claim(limit: number) {
     await client.query(`UPDATE push_deliveries q SET status='cancelled',updated_at=now() WHERE q.status='pending' AND NOT EXISTS(
       SELECT 1 FROM push_devices d JOIN notification_preferences p ON p.user_id=d.user_id
       JOIN sessions s ON s.id=d.session_id WHERE d.id=q.device_id AND d.session_id=q.session_id
-      AND d.user_id=q.user_id AND ${eligible})`);
+      AND d.user_id=q.user_id AND ${eligible("q.data->>'kind'")})`);
     await client.query(`UPDATE push_deliveries SET status='failed',last_error='Expired',updated_at=now()
       WHERE status='pending' AND created_at<now()-interval '24 hours'`);
     const selected = await client.query(
@@ -137,28 +142,60 @@ function pushBody(data: { kind?: string }, birthdayName?: string | null) {
   return 'You have a date to remember. Open Rememberly to see it.';
 }
 
+function announcementContent(row: {
+  data: { kind?: string };
+  announcement_title: string | null;
+  announcement_body: string | null;
+}) {
+  if (
+    (row.data.kind !== 'announcement' &&
+      row.data.kind !== 'announcement_test') ||
+    !row.announcement_title ||
+    !row.announcement_body
+  )
+    return null;
+  const prefix = row.data.kind === 'announcement_test' ? '[Teste] ' : '';
+  return {
+    title: `${prefix}${row.announcement_title}`,
+    body: row.announcement_body,
+  };
+}
+
 async function deliverBatch(provider: PushProvider) {
   const claimed = await claim(provider.sendBatch ? 100 : 4);
   if (!claimed.length) return 0;
   // Recheck session binding and opt-in immediately before the external request.
   const current = await database.query(
-    `SELECT q.*,d.expo_push_token,bu.name AS birthday_name FROM push_deliveries q
+    `SELECT q.*,d.expo_push_token,bu.name AS birthday_name,
+    c.push_title AS announcement_title,c.push_body AS announcement_body FROM push_deliveries q
     JOIN push_devices d ON d.id=q.device_id AND d.user_id=q.user_id AND d.session_id=q.session_id
     JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
     LEFT JOIN users bu ON q.data->>'kind'='birthday' AND bu.id=(q.data->>'user_id')::uuid
-    WHERE q.id=ANY($1::uuid[]) AND q.status='sending' AND ${eligible}`,
+    LEFT JOIN communications c ON q.data->>'kind' IN ('announcement','announcement_test')
+      AND c.id::text=q.data->>'communication_id'
+    WHERE q.id=ANY($1::uuid[]) AND q.status='sending' AND ${eligible("q.data->>'kind'")}`,
     [claimed.map((row) => row.id)],
   );
-  const ids = new Set(current.rows.map((row) => row.id));
+  // An announcement whose composed content is gone must never fall back to generic copy.
+  const sendable = current.rows.filter(
+    (row) =>
+      (row.data.kind !== 'announcement' &&
+        row.data.kind !== 'announcement_test') ||
+      announcementContent(row),
+  );
+  const ids = new Set(sendable.map((row) => row.id));
   for (const row of claimed)
     if (!ids.has(row.id)) await finish(row, 'cancelled', 'Ineligible');
-  const messages = current.rows.map((row) => ({
-    to: row.expo_push_token,
-    title: 'Rememberly',
-    channelId: 'reminders' as const,
-    body: pushBody(row.data, row.birthday_name),
-    data: row.data,
-  }));
+  const messages = sendable.map((row) => {
+    const announcement = announcementContent(row);
+    return {
+      to: row.expo_push_token,
+      title: announcement?.title ?? 'Rememberly',
+      channelId: 'reminders' as const,
+      body: announcement?.body ?? pushBody(row.data, row.birthday_name),
+      data: row.data,
+    };
+  });
   let results: Awaited<ReturnType<PushProvider['send']>>[];
   try {
     results = provider.sendBatch
@@ -167,8 +204,8 @@ async function deliverBatch(provider: PushProvider) {
   } catch {
     results = messages.map(() => ({ status: 'unknown' }));
   }
-  for (let index = 0; index < current.rows.length; index++) {
-    const row = current.rows[index];
+  for (let index = 0; index < sendable.length; index++) {
+    const row = sendable[index];
     const result = results[index] ?? { status: 'unknown' };
     if (result.status === 'accepted')
       await finish(row, 'ticket', 'Accepted', result.id);
@@ -187,7 +224,7 @@ async function deliverBatch(provider: PushProvider) {
       );
     }
   }
-  return current.rows.length;
+  return sendable.length;
 }
 async function finish(
   row: { id: string; lease_id: string; attempts: number },

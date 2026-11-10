@@ -33,6 +33,7 @@ import type { PermissionSnapshot } from '../../src/features/notifications/push-s
 import {
   updateNotifications,
   type NotificationPreferences,
+  type PushPreferenceField,
 } from '../../src/features/notifications/workflow';
 import { useSession } from '../../src/session/provider';
 
@@ -94,7 +95,10 @@ function NotificationsContent() {
     }
   }
 
-  function setPush(enabled: boolean) {
+  function setPush(
+    enabled: boolean,
+    field: PushPreferenceField = 'push_enabled',
+  ) {
     const identity = controller.getSnapshot().identity;
     void run(async () => {
       const result = await updateNotifications(
@@ -103,6 +107,13 @@ function NotificationsContent() {
         { request },
         () => focused.current && controller.getSnapshot().identity === identity,
         new AbortController().signal,
+        {
+          field,
+          keepDevice:
+            field === 'push_enabled'
+              ? (preferences.data?.push_marketing ?? false)
+              : (preferences.data?.push_enabled ?? false),
+        },
       );
       if (result.kind === 'denied')
         setError(
@@ -126,6 +137,15 @@ function NotificationsContent() {
     unsupported,
   });
   const copy = pushStatusCopy(status);
+  const marketingStatus = pushStatus({
+    pushEnabled: data?.push_marketing ?? false,
+    permission,
+    unsupported,
+  });
+  const canTogglePushMarketing =
+    !!data &&
+    !pending &&
+    (marketingStatus === 'on' || marketingStatus === 'off');
   const canTogglePush =
     !!data && !pending && (status === 'on' || status === 'off');
 
@@ -239,7 +259,7 @@ function NotificationsContent() {
                   accessibilityLabel="Push de eventos"
                   value={status === 'on'}
                   disabled={!canTogglePush}
-                  onValueChange={setPush}
+                  onValueChange={(value) => setPush(value)}
                 />
                 <DsToggle
                   accessibilityLabel="E-mail de eventos"
@@ -256,7 +276,12 @@ function NotificationsContent() {
                     Novidades do Rememberly
                   </DsText>
                 </View>
-                <View style={styles.toggleSpacer} />
+                <DsToggle
+                  accessibilityLabel="Push de novidades e dicas"
+                  value={marketingStatus === 'on'}
+                  disabled={!canTogglePushMarketing}
+                  onValueChange={(value) => setPush(value, 'push_marketing')}
+                />
                 <DsToggle
                   accessibilityLabel="E-mail de novidades e dicas"
                   value={data.email_marketing}
@@ -318,6 +343,5 @@ const styles = StyleSheet.create({
   column: { width: 56, textAlign: 'center', color: tokens.colors.textMuted },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   rowCopy: { flex: 1, minWidth: 0, gap: 2, paddingRight: 8 },
-  toggleSpacer: { width: 56 },
   divider: { height: 1, backgroundColor: tokens.colors.border },
 });

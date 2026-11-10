@@ -2,7 +2,17 @@ import { Pressable, View, StyleSheet } from 'react-native';
 import { Calendar, Users, Gift, User, House } from 'lucide-react-native';
 import type { ComponentProps } from 'react';
 import { Tabs } from 'expo-router';
-import { DsText, tokens } from '../../design-system';
+import MaskedViewNative from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
+import type { ComponentType, ReactElement } from 'react';
+import type { ViewProps } from 'react-native';
+import { DsGradientText, DsText, tokens } from '../../design-system';
+
+// The package types its class component with an older React typing.
+const MaskedView = MaskedViewNative as unknown as ComponentType<
+  ViewProps & { maskElement: ReactElement }
+>;
+
 const items = [
   { name: 'index', label: 'Início', Icon: House },
   { name: 'events', label: 'Eventos', Icon: Calendar },
@@ -56,22 +66,42 @@ export const AppTabBar = ({
                   navigateToTab(route.key);
               }}
             >
-              <Icon
-                size={22}
-                color={selected ? tokens.colors.brand : tokens.colors.textMuted}
-              />
-              <DsText
-                role="caption"
-                style={{
-                  fontSize: 12,
-                  fontWeight: selected ? '700' : '500',
-                  color: selected
-                    ? tokens.colors.brand
-                    : tokens.colors.textMuted,
-                }}
-              >
-                {label}
-              </DsText>
+              {selected ? (
+                <MaskedView
+                  accessible={false}
+                  importantForAccessibility="no-hide-descendants"
+                  style={styles.iconBox}
+                  maskElement={<Icon size={22} color="#000" />}
+                >
+                  <LinearGradient
+                    colors={tokens.actionGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.iconBox}
+                  />
+                </MaskedView>
+              ) : (
+                <Icon size={22} color={tokens.colors.textMuted} />
+              )}
+              {selected ? (
+                <DsGradientText
+                  role="caption"
+                  style={{ fontSize: 12, fontWeight: '700' }}
+                >
+                  {label}
+                </DsGradientText>
+              ) : (
+                <DsText
+                  role="caption"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '500',
+                    color: tokens.colors.textMuted,
+                  }}
+                >
+                  {label}
+                </DsText>
+              )}
             </Pressable>
           );
         })}
@@ -112,5 +142,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: 26,
   },
-  tabActive: { backgroundColor: tokens.colors.iconSurface },
+  tabActive: { backgroundColor: 'rgba(254, 230, 232, 0.95)' },
+  iconBox: { width: 22, height: 22 },
 });

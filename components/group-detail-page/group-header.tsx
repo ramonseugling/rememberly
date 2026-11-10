@@ -6,12 +6,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Avatar } from '@/components/avatar/avatar';
 
 interface GroupHeaderProps {
   group: {
     id: string;
     name: string;
     invite_code: string;
+    photo_url: string | null;
     role: 'owner' | 'member';
     member_count: number;
     created_at: string;
@@ -49,9 +51,13 @@ export const GroupHeader = ({
   return (
     <div className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 mb-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
-        <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+        <Avatar
+          src={group.photo_url}
+          alt={group.name}
+          className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center"
+        >
           <Users className="w-7 h-7 sm:w-9 sm:h-9" />
-        </div>
+        </Avatar>
 
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground leading-tight">

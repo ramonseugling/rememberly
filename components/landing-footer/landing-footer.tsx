@@ -36,6 +36,18 @@ export const LandingFooter = () => {
             >
               Grupos
             </a>
+            <Link
+              href="/termos"
+              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+            >
+              Termos
+            </Link>
+            <Link
+              href="/privacidade"
+              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+            >
+              Privacidade
+            </Link>
             <a
               href="mailto:ramonseugling@gmail.com"
               className="text-sm text-muted-foreground hover:text-primary transition-smooth"

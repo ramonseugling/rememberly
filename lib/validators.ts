@@ -363,3 +363,78 @@ export function parseSchema<T>(schema: z.ZodSchema<T>, data: unknown): T {
 
   return result.data;
 }
+
+export const PUSH_TITLE_MAX = 65;
+export const PUSH_BODY_MAX = 178;
+
+const optionalText = (label: string, max: number) =>
+  z
+    .string({ invalid_type_error: `${label} deve ser um texto.` })
+    .trim()
+    .max(max, `${label} deve ter no máximo ${max} caracteres.`)
+    .nullable()
+    .optional()
+    .transform((value) => (value ? value : null));
+
+const communicationFields = {
+  title: z
+    .string({
+      required_error: 'O título do comunicado é obrigatório.',
+      invalid_type_error: 'O título deve ser um texto.',
+    })
+    .trim()
+    .min(2, 'O título deve ter pelo menos 2 caracteres.')
+    .max(120, 'O título deve ter no máximo 120 caracteres.'),
+  push_title: optionalText('O título do push', PUSH_TITLE_MAX),
+  push_body: optionalText('O texto do push', PUSH_BODY_MAX),
+  email_subject: optionalText('O assunto do e-mail', 150),
+  email_body: optionalText('O texto do e-mail', 5000),
+  send_email: z.boolean({
+    invalid_type_error: 'Informe se o comunicado vai por e-mail.',
+  }),
+  send_push: z.boolean({
+    invalid_type_error: 'Informe se o comunicado vai por push.',
+  }),
+};
+
+export const createCommunicationSchema = z
+  .object({
+    ...communicationFields,
+    send_email: communicationFields.send_email.default(true),
+    send_push: communicationFields.send_push.default(false),
+  })
+  .strict();
+
+export const updateCommunicationSchema = z
+  .object(communicationFields)
+  .partial()
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'Informe ao menos um campo para atualizar.',
+  });
+
+export const sendCommunicationSchema = z
+  .object({
+    confirm_recipients: z.object(
+      {
+        email: z
+          .number({ invalid_type_error: 'Informe a contagem de e-mails.' })
+          .int()
+          .min(0),
+        push: z
+          .number({ invalid_type_error: 'Informe a contagem de push.' })
+          .int()
+          .min(0),
+      },
+      {
+        required_error:
+          'Confirme o número de destinatários antes de enviar (confirm_recipients).',
+        invalid_type_error: 'confirm_recipients deve ser um objeto.',
+      },
+    ),
+  })
+  .strict();
+
+export const communicationIdSchema = z.object({
+  id: z.string().uuid('Identificador de comunicado inválido.'),
+});

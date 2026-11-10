@@ -1,6 +1,7 @@
 import { log } from 'next-axiom';
 import { Resend } from 'resend';
 import type { Announcement } from '@/lib/announcements';
+import { renderCommunicationBody } from '@/lib/communication-markdown';
 import { escapeHtml } from '@/lib/sanitize';
 
 const FROM = process.env.EMAIL_FROM ?? 'Rememberly <noreply@rememberly.com.br>';
@@ -556,6 +557,53 @@ async function sendAnnouncementEmail(input: SendAnnouncementEmailInput) {
   });
 }
 
+export interface CommunicationEmailContent {
+  title: string;
+  subject: string;
+  body: string;
+}
+
+export function buildCommunicationHtml(
+  userName: string,
+  communication: Pick<CommunicationEmailContent, 'title' | 'body'>,
+  unsubscribeUrl: string,
+) {
+  return buildEmailLayout({
+    greeting: `Oi, <strong>${escapeHtml(userName)}</strong>! 👋`,
+    content:
+      brandHeroCard('Novidades e dicas', escapeHtml(communication.title)) +
+      renderCommunicationBody(communication.body),
+    footerNote: `Não quer mais receber novidades? <a href="${unsubscribeUrl}" style="color: ${COLOR.textMuted}; text-decoration: underline;">Descadastrar</a>`,
+  });
+}
+
+interface SendCommunicationEmailInput {
+  to: string;
+  userName: string;
+  communication: CommunicationEmailContent;
+  unsubscribeUrl: string;
+  isTest?: boolean;
+}
+
+async function sendCommunicationEmail(input: SendCommunicationEmailInput) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: input.to,
+    subject: `${input.isTest ? '[Teste] ' : ''}${input.communication.subject}`,
+    html: buildCommunicationHtml(
+      input.userName,
+      input.communication,
+      input.unsubscribeUrl,
+    ),
+  });
+
+  if (error) throw new Error(error.message);
+
+  log.info('communication_email_sent', { to: input.to });
+}
+
 interface SendCommemorativeReminderInput {
   to: string;
   userName: string;
@@ -661,6 +709,7 @@ const email = {
   sendDailyDigestEmail,
   sendCommemorativeReminder,
   sendAnnouncementEmail,
+  sendCommunicationEmail,
   sendGiftReleasedEmail,
 };
 

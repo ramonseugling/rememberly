@@ -77,6 +77,14 @@ Added with BE-GIFT-02. Shared routes through `authenticatedController` (Bearer o
 
 Reserved and purchased items (BE-GIFT-04, decision 2): `PATCH` and `DELETE` on `/api/v1/gifts/:id` answer `409` with `reason: "reserved"` the first time, without saying who reserved. Repeat the request with `?confirm=true` to proceed; the reservation is cancelled. Items marked purchased always answer `409` with `reason: "purchased"`, even when confirmed. The owner list and item payloads never carry reservation data. When the owner confirms, the person who reserved is notified (push with `data: { kind: "gift_released", user_id: <owner id> }` and e-mail), respecting their `push_enabled` and `email_events` preferences; a failed notification never fails the request.
 
+## Notification preferences
+
+`GET`/`PATCH` `/api/v1/mobile/notification-preferences` now also expose `push_marketing` (boolean, default `false`): push for the "Novidades e dicas" announcements, separate from `push_enabled` (event reminders). `PATCH` accepts `push_enabled`, `email_events`, `email_marketing` and `push_marketing` (booleans, at least one, no other fields). Details and the announcement push payload (`{ kind: "announcement", communication_id }`) are in `push-contract.md`.
+
+## Admin communications (web only)
+
+Admin-only (session of an admin user, otherwise 401), under `/api/v1/admin/communications`; used by the admin page, not by the mobile app. `GET`/`POST` the collection; `GET`/`PATCH` `/:id` (drafts only for `PATCH`, `409 already_sent` otherwise); `GET /:id/recipients` returns `{ email, push }` pending recipient counts; `POST /:id/send-test` sends only to the calling admin; `POST /:id/send` requires `{ "confirm_recipients": { "email": n, "push": n } }` equal to the current counts (`409 recipients_changed` otherwise) and answers `409 already_sent` on a second send; `POST /preview` renders the e-mail HTML.
+
 ## Gift list member view
 
 Lists are visible to everyone who shares at least one group with the owner; there is no per-group sharing step (decision changed on 2026-11-09, the sharing endpoints were removed).

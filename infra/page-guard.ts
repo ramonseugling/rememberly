@@ -5,6 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar_url: string | null;
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;
@@ -42,6 +43,7 @@ async function getValidUser(
     id: foundSession.user_id,
     name: foundSession.name,
     email: foundSession.email,
+    avatar_url: foundSession.avatar_url ?? null,
     birth_day: foundSession.birth_day ?? null,
     birth_month: foundSession.birth_month ?? null,
     birth_year: foundSession.birth_year ?? null,

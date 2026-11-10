@@ -11,6 +11,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar_url?: string | null;
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;

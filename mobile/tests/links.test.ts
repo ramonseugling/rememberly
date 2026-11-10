@@ -167,3 +167,13 @@ test('opens a pending gift list link on the member list after login', () => {
     '/join-group?code=abc12_-3',
   );
 });
+
+test('announcement pushes carry no deep link and are ignored by the parser', () => {
+  assert.equal(
+    parseNotification({
+      kind: 'announcement',
+      communication_id: '3fbb616c-745b-455e-b5fc-1336ff5e2689',
+    }),
+    null,
+  );
+});

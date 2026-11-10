@@ -69,6 +69,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
         id: string;
         name: string;
         invite_code: string;
+        photo_url: string | null;
         role: string;
         member_count: number;
         created_at: string;
@@ -76,6 +77,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
         id: g.id,
         name: g.name,
         invite_code: g.invite_code,
+        photo_url: g.photo_url ?? null,
         role: g.role as 'owner' | 'member',
         member_count: g.member_count,
         created_at: String(g.created_at),

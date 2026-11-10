@@ -85,6 +85,7 @@ test('preference defaults; PATCH accepts only the three boolean preferences and 
     push_enabled: false,
     email_events: true,
     email_marketing: true,
+    push_marketing: false,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -105,6 +106,7 @@ test('preference defaults; PATCH accepts only the three boolean preferences and 
     push_enabled: true,
     email_events: true,
     email_marketing: true,
+    push_marketing: false,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -192,12 +194,14 @@ test('e-mail preferences can be changed independently and persist', async () => 
   const response = await request('/notification-preferences', 'PATCH', {
     email_events: false,
     email_marketing: false,
+    push_marketing: false,
   });
   expect(response.status).toBe(200);
   expect(await response.json()).toEqual({
     push_enabled: true,
     email_events: false,
     email_marketing: false,
+    push_marketing: false,
     time_zone: 'America/Sao_Paulo',
     daily_time: '09:00',
   });
@@ -211,5 +215,6 @@ test('e-mail preferences can be changed independently and persist', async () => 
     push_enabled: true,
     email_events: true,
     email_marketing: false,
+    push_marketing: false,
   });
 });

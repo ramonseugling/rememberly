@@ -2,6 +2,7 @@ export interface NotificationPreferences {
   push_enabled: boolean;
   email_events: boolean;
   email_marketing: boolean;
+  push_marketing: boolean;
   time_zone: string;
   daily_time: string;
 }
@@ -41,23 +42,39 @@ export type NotificationResult = {
   message: string;
 };
 
+export type PushPreferenceField = 'push_enabled' | 'push_marketing';
+
+export interface UpdateNotificationsOptions {
+  /** Which push preference this toggle controls. Defaults to event reminders. */
+  field?: PushPreferenceField;
+  /** The other push preference is still on, so the device registration must stay. */
+  keepDevice?: boolean;
+}
+
 export async function updateNotifications(
   enabled: boolean,
   native: NotificationNative,
   api: NotificationApi,
   active: () => boolean,
   signal: AbortSignal,
+  options: UpdateNotificationsOptions = {},
 ): Promise<NotificationResult> {
+  const field = options.field ?? 'push_enabled';
   const stale = (): NotificationResult => ({ kind: 'stale', message: '' });
   const current = () => active() && !signal.aborted;
   if (!current()) return stale();
   if (!enabled) {
     await api.request('/api/v1/mobile/notification-preferences', {
       method: 'PATCH',
-      body: { push_enabled: false },
+      body: { [field]: false },
       signal,
     });
     if (!current()) return stale();
+    if (options.keepDevice)
+      return {
+        kind: 'disabled',
+        message: 'Push is disabled for this preference.',
+      };
     try {
       const installation = await native.installationId();
       if (!current()) return stale();
@@ -106,7 +123,7 @@ export async function updateNotifications(
   if (!current()) return stale();
   await api.request('/api/v1/mobile/notification-preferences', {
     method: 'PATCH',
-    body: { push_enabled: true },
+    body: { [field]: true },
     signal,
   });
   return current()

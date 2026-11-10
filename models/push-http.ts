@@ -61,7 +61,12 @@ export function pushHandler(kind: 'preferences' | 'register' | 'remove') {
         if (req.method === 'GET')
           return res.status(200).json(await preferences(identity.user_id));
         const body = req.body;
-        const allowed = ['push_enabled', 'email_events', 'email_marketing'];
+        const allowed = [
+          'push_enabled',
+          'email_events',
+          'email_marketing',
+          'push_marketing',
+        ];
         const keys = body && typeof body === 'object' ? Object.keys(body) : [];
         if (
           !keys.length ||

@@ -217,3 +217,49 @@ test('installation keys isolate both API origin and environment', () => {
   assert.notEqual(key, installationStorageKey('staging', 'https://b.example'));
   assert.match(key, /^[\w.-]+$/);
 });
+
+test('announcement push registers the device and enables only push_marketing', async () => {
+  const f = fixture();
+  const result = await updateNotifications(
+    true,
+    f.native,
+    f.api,
+    () => true,
+    f.signal,
+    { field: 'push_marketing' },
+  );
+  assert.equal(result.kind, 'registered');
+  assert.deepEqual(
+    f.calls.map((call) => call.path),
+    ['/api/v1/mobile/push-devices', '/api/v1/mobile/notification-preferences'],
+  );
+  assert.deepEqual(f.calls[1].body, { push_marketing: true });
+});
+
+test('turning announcements off keeps the device when event push is still on', async () => {
+  const f = fixture();
+  const result = await updateNotifications(
+    false,
+    f.native,
+    f.api,
+    () => true,
+    f.signal,
+    { field: 'push_marketing', keepDevice: true },
+  );
+  assert.equal(result.kind, 'disabled');
+  assert.deepEqual(f.calls, [
+    {
+      path: '/api/v1/mobile/notification-preferences',
+      body: { push_marketing: false },
+    },
+  ]);
+});
+
+test('turning announcements off removes the device when nothing else needs it', async () => {
+  const f = fixture();
+  await updateNotifications(false, f.native, f.api, () => true, f.signal, {
+    field: 'push_marketing',
+  });
+  assert.equal(f.calls.length, 2);
+  assert.ok(f.calls[1].path.startsWith('/api/v1/mobile/push-devices/'));
+});

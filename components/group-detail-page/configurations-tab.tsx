@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { LogOut, Trash2 } from 'lucide-react';
+import { LogOut, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PhotoUpload } from '@/components/photo-upload/photo-upload';
 
 interface ConfigurationsTabProps {
   groupId: string;
   groupName: string;
+  photoUrl: string | null;
   isOwner: boolean;
   currentUserId: string;
 }
@@ -14,6 +16,7 @@ interface ConfigurationsTabProps {
 export const ConfigurationsTab = ({
   groupId,
   groupName,
+  photoUrl,
   isOwner,
   currentUserId,
 }: ConfigurationsTabProps) => {
@@ -87,6 +90,20 @@ export const ConfigurationsTab = ({
       {isOwner ? (
         <>
           <div>
+            <p className="text-sm font-semibold text-foreground mb-3">
+              Foto do grupo
+            </p>
+            <PhotoUpload
+              endpoint={`/api/v1/groups/${groupId}/photo`}
+              responseKey="photo_url"
+              currentUrl={photoUrl}
+              alt={groupName}
+              avatarClassName="shrink-0 w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center"
+              fallback={<Users className="w-7 h-7" />}
+            />
+          </div>
+
+          <div className="border-t border-border/40 pt-6">
             <p className="text-sm font-semibold text-foreground mb-2">
               Nome do grupo
             </p>

@@ -42,7 +42,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     id: 'gifts',
     title: 'Sua lista de presentes',
     description:
-      'Monte a lista de presentes que você quer ganhar no seu aniversário.',
+      'Monte sua lista, compartilhe com seus grupos e deixe os amigos reservarem um presente em segredo.',
     action: 'Avançar',
     skippable: true,
   },

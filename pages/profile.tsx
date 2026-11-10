@@ -1,6 +1,8 @@
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
+import { Avatar } from '@/components/avatar/avatar';
+import { PhotoUpload } from '@/components/photo-upload/photo-upload';
 import { LogoutCard } from '@/components/profile-page/logout-card';
 import { ProfileForm } from '@/components/profile-page/profile-form';
 import { withAuth } from 'infra/page-guard';
@@ -9,6 +11,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  avatar_url: string | null;
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;
@@ -26,6 +29,7 @@ export const getServerSideProps: GetServerSideProps = withAuth(
           id: user.id,
           name: user.name,
           email: user.email,
+          avatar_url: user.avatar_url,
           birth_day: user.birth_day,
           birth_month: user.birth_month,
           birth_year: user.birth_year,
@@ -51,9 +55,13 @@ export default function Profile({ user }: ProfileProps) {
 
       <div className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 mb-6 animate-fade-in">
         <div className="flex items-center gap-4">
-          <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl sm:text-3xl font-heading font-bold">
+          <Avatar
+            src={user.avatar_url}
+            alt={user.name}
+            className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl sm:text-3xl font-heading font-bold"
+          >
             {initial}
-          </div>
+          </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-xl sm:text-2xl font-heading font-semibold text-foreground leading-tight truncate">
               {user.name}
@@ -67,6 +75,19 @@ export default function Profile({ user }: ProfileProps) {
       </div>
 
       <div className="flex flex-col gap-6">
+        <div className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 animate-fade-in">
+          <p className="text-sm font-semibold text-foreground mb-3">
+            Foto de perfil
+          </p>
+          <PhotoUpload
+            endpoint="/api/v1/users/avatar"
+            responseKey="avatar_url"
+            currentUrl={user.avatar_url}
+            alt={user.name}
+            avatarClassName="shrink-0 w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl font-heading font-bold"
+            fallback={initial}
+          />
+        </div>
         <ProfileForm user={user} />
         <LogoutCard />
         <Link

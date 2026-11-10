@@ -18,6 +18,7 @@ export interface GroupInfo {
   id: string;
   name: string;
   invite_code: string;
+  photo_url: string | null;
   role: GroupRole;
   member_count: number;
   created_at: string;
@@ -28,6 +29,7 @@ export interface GroupMemberInfo {
   id: string;
   name: string;
   email: string;
+  avatar_url: string | null;
   birth_day: number | null;
   birth_month: number | null;
   birth_year: number | null;

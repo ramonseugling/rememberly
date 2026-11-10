@@ -9,11 +9,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { MobileMenuSheet } from '@/components/app-header/mobile-menu-sheet';
+import { Avatar } from '@/components/avatar/avatar';
 
 interface AppHeaderUser {
   id: string;
   name: string;
   email: string;
+  avatar_url?: string | null;
 }
 
 interface AppHeaderProps {
@@ -86,9 +88,13 @@ export const AppHeader = ({ user }: AppHeaderProps) => {
                   type="button"
                   className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-muted transition-smooth"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-warm text-white text-xs font-semibold">
+                  <Avatar
+                    src={user.avatar_url}
+                    alt={user.name}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full gradient-warm text-white text-xs font-semibold"
+                  >
                     {initials}
-                  </span>
+                  </Avatar>
                   <span className="hidden sm:inline text-sm font-medium text-foreground">
                     {user.name.split(' ')[0]}
                   </span>

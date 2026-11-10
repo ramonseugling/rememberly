@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Avatar } from '@/components/avatar/avatar';
 import { MONTHS } from '@/lib/constants';
 import { formatDaysLabel } from '@/lib/date-utils';
 import type { GroupInfo } from '@/lib/types';
@@ -51,12 +52,13 @@ export const GroupCard = ({ group }: GroupCardProps) => {
         aria-label={`Ver grupo ${group.name}`}
       />
       <div className="flex items-center gap-3 min-w-0">
-        <div
-          aria-hidden
+        <Avatar
+          src={group.photo_url}
+          alt={group.name}
           className="shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-heading font-bold text-xl leading-none"
         >
           {initial}
-        </div>
+        </Avatar>
         <div className="min-w-0">
           <h3 className="font-heading font-semibold text-base text-foreground leading-tight truncate">
             {group.name}
