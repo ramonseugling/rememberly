@@ -78,6 +78,7 @@ test('notification destinations only use validated payload kinds and resources',
     [{ kind: 'event', event_id: id }, '/(tabs)/events'],
     [{ kind: 'birthday', user_id: id }, `/(tabs)/birthday?userId=${id}`],
     [{ kind: 'commemorative', date_key: 'christmas' }, '/(tabs)/occasions'],
+    [{ kind: 'daily' }, '/(tabs)'],
   ] as const) {
     const intent = parseNotification({ ...data, url: 'https://evil.example' });
     assert.ok(intent);

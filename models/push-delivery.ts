@@ -6,6 +6,7 @@ import {
   dateOnly,
   referenceDay,
 } from '@/lib/mobile-calendar';
+import { type DailyPushItem, dailyPushText } from '@/lib/push-text';
 import database from 'infra/database';
 import { type PushProvider, expoProvider } from 'models/push-provider';
 
@@ -16,28 +17,56 @@ const eligible = (kind: string) => `d.disabled_at IS NULL AND (CASE ${kind}
  WHEN 'announcement_test' THEN true
  ELSE p.push_events END) AND s.user_id=d.user_id
  AND (s.expires_at IS NULL OR s.expires_at>now())`;
+type ItemRef =
+  | { k: 'event'; id: string; days: number }
+  | { k: 'birthday'; id: string }
+  | { k: 'commemorative'; key: string };
+const MAX_STORED_ITEMS = 10;
+const ADVANCE_DAYS = [1, 3, 7, 15, 30];
+
+function itemRank(item: ItemRef) {
+  if (item.k === 'birthday') return 0;
+  if (item.k === 'event') return item.days === 0 ? 1 : 2;
+  return 3;
+}
+function itemOrder(a: ItemRef, b: ItemRef) {
+  const days = (item: ItemRef) => (item.k === 'event' ? item.days : 0);
+  const id = (item: ItemRef) =>
+    item.k === 'commemorative' ? item.key : item.id;
+  return (
+    itemRank(a) - itemRank(b) ||
+    days(a) - days(b) ||
+    (id(a) < id(b) ? -1 : id(a) > id(b) ? 1 : 0)
+  );
+}
+// One item keeps the legacy tap payload so the app opens the exact destination.
+function tapPayload(item: ItemRef | undefined): Record<string, string> {
+  if (!item) return { kind: 'daily' };
+  if (item.k === 'event') return { kind: 'event', event_id: item.id };
+  if (item.k === 'birthday') return { kind: 'birthday', user_id: item.id };
+  return { kind: 'commemorative', date_key: item.key };
+}
+
+/** Collects every reminder of the day per person and queues ONE daily push per device. */
 export async function enqueuePushReminders(today = referenceDay()) {
   const day = dateOnly(today);
+  const byUser = new Map<string, ItemRef[]>();
+  const add = (userId: string, item: ItemRef) => {
+    const list = byUser.get(userId) ?? [];
+    list.push(item);
+    byUser.set(userId, list);
+  };
   const events = await database.query(
     'SELECT id,user_id,event_day,event_month,reminder_days_before FROM events',
   );
-  const reminders: {
-    user_id: string;
-    key: string;
-    data: Record<string, string>;
-  }[] = [];
   for (const e of events.rows) {
-    const occurrence = annualOccurrence(e.event_day, e.event_month, today);
+    const days = annualOccurrence(e.event_day, e.event_month, today).days_until;
     if (
-      occurrence.days_until === 0 ||
-      ([1, 3, 7, 15, 30].includes(e.reminder_days_before) &&
-        occurrence.days_until === e.reminder_days_before)
+      days === 0 ||
+      (ADVANCE_DAYS.includes(e.reminder_days_before) &&
+        days === e.reminder_days_before)
     )
-      reminders.push({
-        user_id: e.user_id,
-        key: `event:${e.id}:${day}`,
-        data: { kind: 'event', event_id: e.id },
-      });
+      add(e.user_id, { k: 'event', id: e.id, days });
   }
   const birthdays = await database.query(
     `SELECT DISTINCT recipient.user_id,b.id AS birthday_id FROM group_members member
@@ -46,11 +75,7 @@ export async function enqueuePushReminders(today = referenceDay()) {
     [today.getUTCDate(), today.getUTCMonth() + 1],
   );
   for (const b of birthdays.rows)
-    reminders.push({
-      user_id: b.user_id,
-      key: `birthday:${b.birthday_id}:${day}`,
-      data: { kind: 'birthday', user_id: b.birthday_id },
-    });
+    add(b.user_id, { k: 'birthday', id: b.birthday_id });
   const keys = COMMEMORATIVE_DATES.filter(
     (def) => commemorativeOccurrence(def, today).days_until === 7,
   ).map((def) => def.key);
@@ -60,26 +85,25 @@ export async function enqueuePushReminders(today = referenceDay()) {
       [keys],
     );
     for (const s of subscriptions.rows)
-      reminders.push({
-        user_id: s.user_id,
-        key: `commemorative:${s.date_key}:${day}`,
-        data: { kind: 'commemorative', date_key: s.date_key },
-      });
+      add(s.user_id, { k: 'commemorative', key: s.date_key });
   }
   let enqueued = 0;
-  for (const reminder of reminders)
-    enqueued += await enqueuePush(
-      reminder.user_id,
-      reminder.key,
-      reminder.data,
-    );
+  for (const [userId, list] of byUser) {
+    list.sort(itemOrder);
+    const data = {
+      ...tapPayload(list.length === 1 ? list[0] : undefined),
+      total: list.length,
+      items: list.slice(0, MAX_STORED_ITEMS),
+    };
+    enqueued += await enqueuePush(userId, `daily:${day}`, data);
+  }
   return enqueued;
 }
 
 export async function enqueuePush(
   userId: string,
   key: string,
-  data: Record<string, string>,
+  data: Record<string, unknown>,
 ) {
   const result = await database.query(
     `INSERT INTO push_deliveries(device_id,user_id,session_id,dedup_key,data)
@@ -133,13 +157,90 @@ async function claim(limit: number) {
     await client.end();
   }
 }
-function pushBody(data: { kind?: string }, birthdayName?: string | null) {
+function staticBody(data: { kind?: string }) {
   if (data.kind === 'gift_released')
     return 'Um presente que você reservou mudou. Abra o Rememberly para ver.';
-  const first = birthdayName?.trim().split(/\s+/)[0];
-  if (data.kind === 'birthday' && first)
-    return `Hoje é o aniversário de ${first}! 🎉`;
   return 'You have a date to remember. Open Rememberly to see it.';
+}
+
+type DeliveryRow = { id: string; data: Record<string, unknown> };
+const isDaily = (row: DeliveryRow) => Array.isArray(row.data.items);
+
+/** Resolves the stored item refs against the current database so names are never stale. */
+async function dailyContents(rows: DeliveryRow[]) {
+  const stored = (row: DeliveryRow) => row.data.items as ItemRef[];
+  const daily = rows.filter(isDaily);
+  const pick = (k: ItemRef['k']) => [
+    ...new Set(
+      daily.flatMap((row) =>
+        stored(row)
+          .filter((item) => item.k === k)
+          .map((item) => (item as { id: string }).id),
+      ),
+    ),
+  ];
+  const eventIds = pick('event');
+  const userIds = pick('birthday');
+  const events = new Map<string, { title: string; type: string }>();
+  const people = new Map<string, string>();
+  if (eventIds.length)
+    for (const e of (
+      await database.query(
+        'SELECT id,title,type FROM events WHERE id=ANY($1::uuid[])',
+        [eventIds],
+      )
+    ).rows)
+      events.set(e.id, e);
+  if (userIds.length)
+    for (const u of (
+      await database.query(
+        'SELECT id,name FROM users WHERE id=ANY($1::uuid[])',
+        [userIds],
+      )
+    ).rows)
+      people.set(u.id, u.name);
+  const contents = new Map<
+    string,
+    { body: string; data: Record<string, string> }
+  >();
+  for (const row of daily) {
+    const refs: ItemRef[] = [];
+    const items: DailyPushItem[] = [];
+    for (const item of stored(row)) {
+      if (item.k === 'event') {
+        const event = events.get(item.id);
+        if (event) {
+          refs.push(item);
+          items.push({
+            kind: 'event',
+            title: event.title,
+            type: event.type,
+            days: item.days,
+          });
+        }
+      } else if (item.k === 'birthday') {
+        const name = people.get(item.id);
+        if (name?.trim()) {
+          refs.push(item);
+          items.push({ kind: 'group_birthday', name });
+        }
+      } else {
+        const def = COMMEMORATIVE_DATES.find((d) => d.key === item.key);
+        if (def) {
+          refs.push(item);
+          items.push({ kind: 'commemorative', label: def.label });
+        }
+      }
+    }
+    if (!items.length) continue;
+    const dropped = stored(row).length - items.length;
+    const total = Math.max(Number(row.data.total ?? 0) - dropped, items.length);
+    contents.set(row.id, {
+      body: dailyPushText(items, total),
+      data: tapPayload(total === 1 ? refs[0] : undefined),
+    });
+  }
+  return contents;
 }
 
 function announcementContent(row: {
@@ -166,34 +267,36 @@ async function deliverBatch(provider: PushProvider) {
   if (!claimed.length) return 0;
   // Recheck session binding and opt-in immediately before the external request.
   const current = await database.query(
-    `SELECT q.*,d.expo_push_token,bu.name AS birthday_name,
+    `SELECT q.*,d.expo_push_token,
     c.push_title AS announcement_title,c.push_body AS announcement_body FROM push_deliveries q
     JOIN push_devices d ON d.id=q.device_id AND d.user_id=q.user_id AND d.session_id=q.session_id
     JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
-    LEFT JOIN users bu ON q.data->>'kind'='birthday' AND bu.id=(q.data->>'user_id')::uuid
     LEFT JOIN communications c ON q.data->>'kind' IN ('announcement','announcement_test')
       AND c.id::text=q.data->>'communication_id'
     WHERE q.id=ANY($1::uuid[]) AND q.status='sending' AND ${eligible("q.data->>'kind'")}`,
     [claimed.map((row) => row.id)],
   );
   // An announcement whose composed content is gone must never fall back to generic copy.
-  const sendable = current.rows.filter(
-    (row) =>
-      (row.data.kind !== 'announcement' &&
-        row.data.kind !== 'announcement_test') ||
-      announcementContent(row),
+  const daily = await dailyContents(current.rows);
+  const sendable = current.rows.filter((row) =>
+    isDaily(row)
+      ? daily.has(row.id)
+      : (row.data.kind !== 'announcement' &&
+          row.data.kind !== 'announcement_test') ||
+        announcementContent(row),
   );
   const ids = new Set(sendable.map((row) => row.id));
   for (const row of claimed)
     if (!ids.has(row.id)) await finish(row, 'cancelled', 'Ineligible');
   const messages = sendable.map((row) => {
     const announcement = announcementContent(row);
+    const content = daily.get(row.id);
     return {
       to: row.expo_push_token,
       title: announcement?.title ?? 'Rememberly',
       channelId: 'reminders' as const,
-      body: announcement?.body ?? pushBody(row.data, row.birthday_name),
-      data: row.data,
+      body: announcement?.body ?? content?.body ?? staticBody(row.data),
+      data: content?.data ?? row.data,
     };
   });
   let results: Awaited<ReturnType<PushProvider['send']>>[];

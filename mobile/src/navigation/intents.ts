@@ -4,7 +4,7 @@ export type LinkIntent =
   | { kind: 'gift-list'; userId: string };
 export type NotificationIntent = {
   kind: 'notification';
-  tab: 'dates' | 'groups' | 'occasions' | 'birthday';
+  tab: 'dates' | 'groups' | 'occasions' | 'birthday' | 'home';
   userId?: string;
 };
 export type PendingIntent =
@@ -91,6 +91,7 @@ export function pendingPath(intent: PendingIntent): string {
 export function parseNotification(data: unknown): NotificationIntent | null {
   if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
   const value = data as Record<string, unknown>;
+  if (value.kind === 'daily') return { kind: 'notification', tab: 'home' };
   if (value.kind === 'event' && resourceId(value.event_id))
     return { kind: 'notification', tab: 'dates' };
   if (value.kind === 'birthday' && resourceId(value.user_id))
@@ -113,6 +114,7 @@ export function parseNotification(data: unknown): NotificationIntent | null {
 export function notificationPath(intent: NotificationIntent) {
   if (intent.tab === 'birthday' && intent.userId)
     return `/(tabs)/birthday?userId=${intent.userId}`;
+  if (intent.tab === 'home') return '/(tabs)';
   return intent.tab === 'dates'
     ? '/(tabs)/events'
     : intent.tab === 'groups'

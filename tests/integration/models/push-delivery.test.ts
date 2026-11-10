@@ -1,7 +1,11 @@
 import crypto from 'crypto';
 import orchestrator from 'tests/orchestrator';
 import database from 'infra/database';
-import { enqueuePushReminders, runPushJob } from 'models/push-delivery';
+import {
+  enqueuePush,
+  enqueuePushReminders,
+  runPushJob,
+} from 'models/push-delivery';
 import {
   PushSessionError,
   preferences,
@@ -108,10 +112,11 @@ test('daily retries and repeated registration preserve logical deduplication', a
     to: 'ExpoPushToken[test-installation]',
     title: 'Rememberly',
     channelId: 'reminders',
-    body: 'You have a date to remember. Open Rememberly to see it.',
+    body: 'Hoje é aniversário de Private! 🎉',
     data: { kind: 'event', event_id: event.id },
   });
-  expect(JSON.stringify(sent)).not.toContain('Private event name');
+  expect(sent[0].data).not.toHaveProperty('items');
+  expect((await rows())[0].dedup_key).toBe('daily:2027-01-05');
   expect(
     (await database.query('SELECT * FROM push_attempts')).rows,
   ).toHaveLength(1);
@@ -265,6 +270,23 @@ test('unknown receipts exhaust a bounded persisted check budget', async () => {
   });
   expect(sent).toHaveLength(1);
 });
+async function shareGroups(names: string[], members: string[]) {
+  for (const [index, name] of names.entries()) {
+    const group = await database.query(
+      'INSERT INTO groups(name,created_by,invite_code) VALUES($1,$2,$3) RETURNING id',
+      [name, user.id, `p${index}${crypto.randomBytes(4).toString('hex')}`],
+    );
+    await database.query(
+      "INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'owner')",
+      [group.rows[0].id, user.id],
+    );
+    for (const member of members)
+      await database.query(
+        "INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'member')",
+        [group.rows[0].id, member],
+      );
+  }
+}
 test('personal advance reminders match configured intervals and shared birthdays deduplicate across groups', async () => {
   await setup();
   await orchestrator.createEvent(user.id, {
@@ -281,28 +303,174 @@ test('personal advance reminders match configured intervals and shared birthdays
     birth_day: 5,
     birth_month: 1,
   });
-  // Fixture inserts mirror the real membership schema; ownership itself is not a birthday subscription.
-  const groups = await database.query(
-    "INSERT INTO groups(name,created_by,invite_code) VALUES('One',$1,'push-one'),('Two',$1,'push-two') RETURNING id",
-    [user.id],
-  );
-  for (const g of groups.rows)
-    await database.query(
-      "INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'owner'),($1,$3,'member')",
-      [g.id, user.id, birthday.id],
-    );
-  expect(await enqueuePushReminders(today)).toBe(3);
+  await shareGroups(['One', 'Two'], [birthday.id]);
+  expect(await enqueuePushReminders(today)).toBe(1);
   const queue = await rows();
-  expect(queue.filter((row) => row.data.kind === 'birthday')).toHaveLength(1);
+  expect(queue).toHaveLength(1);
+  expect(queue[0].data.kind).toBe('daily');
+  expect(queue[0].data.total).toBe(3);
+  expect(queue[0].data.items.map((i: { k: string }) => i.k)).toEqual([
+    'birthday',
+    'event',
+    'event',
+  ]);
+});
+test('a person with several reminders gets one summary push with the daily payload', async () => {
+  await setup();
+  await orchestrator.createEvent(user.id, {
+    title: 'Aniversário de casamento',
+    type: 'wedding_anniversary',
+    event_day: 8,
+    event_month: 1,
+    reminder_days_before: 3,
+  });
+  const marina = await orchestrator.createUser({
+    name: 'Marina Souza',
+    birth_day: 5,
+    birth_month: 1,
+  });
+  await shareGroups(['Amigos'], [marina.id]);
+  await runPushJob(provider, today);
+  await runPushJob(provider, today);
+  expect(sent).toHaveLength(1);
+  expect(sent[0].body).toBe('3 eventos hoje: Marina, Private e mais 1');
+  expect(sent[0].title).toBe('Rememberly');
+  expect(sent[0].data).toEqual({ kind: 'daily' });
+  expect(JSON.stringify(sent)).not.toContain('Souza');
+  expect(await rows()).toHaveLength(1);
+});
+test('single-item texts for each kind of personal event', async () => {
+  await setup();
+  const cases: [Record<string, unknown>, string][] = [
+    [{ title: 'Ana', type: 'birthday' }, 'Hoje é aniversário de Ana! 🎉'],
+    [{ title: 'Jantar', type: 'celebration' }, 'Hoje: Jantar'],
+    [
+      { title: 'Ana', type: 'birthday', event_day: 6, reminder_days_before: 1 },
+      'Falta 1 dia para o aniversário de Ana',
+    ],
+    [
+      { title: 'Ana', type: 'birthday', event_day: 8, reminder_days_before: 3 },
+      'Faltam 3 dias para o aniversário de Ana',
+    ],
+    [
+      {
+        title: 'Casamento',
+        type: 'wedding_anniversary',
+        event_day: 12,
+        reminder_days_before: 7,
+      },
+      'Faltam 7 dias para Casamento',
+    ],
+    [
+      {
+        title: 'Casamento',
+        type: 'wedding_anniversary',
+        event_day: 6,
+        reminder_days_before: 1,
+      },
+      'Falta 1 dia para Casamento',
+    ],
+  ];
+  for (const [overrides, body] of cases) {
+    await database.query('DELETE FROM push_deliveries');
+    await database.query('DELETE FROM events');
+    sent.length = 0;
+    const event = await orchestrator.createEvent(user.id, {
+      event_day: 5,
+      event_month: 1,
+      ...overrides,
+    });
+    await runPushJob(provider, today);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].body).toBe(body);
+    expect(sent[0].data).toEqual({ kind: 'event', event_id: event.id });
+  }
+});
+test('a lone group birthday uses the first name and a birthday payload', async () => {
+  await setup();
+  await database.query('DELETE FROM events');
+  const marina = await orchestrator.createUser({
+    name: 'Marina Souza',
+    birth_day: 5,
+    birth_month: 1,
+  });
+  await shareGroups(['Amigos', 'Familia'], [marina.id]);
+  await runPushJob(provider, today);
+  expect(sent).toHaveLength(1);
+  expect(sent[0].body).toBe('Hoje é aniversário de Marina! 🎉');
+  expect(sent[0].data).toEqual({ kind: 'birthday', user_id: marina.id });
+  expect(JSON.stringify(sent)).not.toContain('Souza');
+});
+test('group birthdays never send an advance reminder', async () => {
+  await setup();
+  await database.query('DELETE FROM events');
+  const marina = await orchestrator.createUser({
+    birth_day: 6,
+    birth_month: 1,
+  });
+  await shareGroups(['Amigos'], [marina.id]);
+  expect(await enqueuePushReminders(today)).toBe(0);
+});
+test('texts use the current names at send time', async () => {
+  const event = await setup();
+  await enqueuePushReminders(today);
+  await database.query('UPDATE events SET title=$2 WHERE id=$1', [
+    event.id,
+    'Novo nome',
+  ]);
+  await runPushJob(provider, today);
+  expect(sent[0].body).toBe('Hoje é aniversário de Novo! 🎉');
+});
+test('a deleted item is dropped at send time and an empty push is cancelled', async () => {
+  const event = await setup();
+  await enqueuePushReminders(today);
+  await database.query('DELETE FROM events WHERE id=$1', [event.id]);
+  await runPushJob(provider, today);
+  expect(sent).toHaveLength(0);
+  expect((await rows())[0].status).toBe('cancelled');
+});
+test('each device gets its own single daily delivery', async () => {
+  await setup();
+  await registerDevice(user.id, auth.id, {
+    installation_id: crypto.randomUUID(),
+    expo_push_token: 'ExpoPushToken[second-device]',
+    platform: 'android',
+  });
+  expect(await enqueuePushReminders(today)).toBe(2);
+  expect(await enqueuePushReminders(today)).toBe(0);
+  expect(await rows()).toHaveLength(2);
+});
+test('other push kinds stay separate from the daily push', async () => {
+  await setup();
+  await enqueuePush(user.id, 'gift:1', { kind: 'gift_released' });
+  await runPushJob(provider, today);
+  await ready();
+  await runPushJob(provider, today);
+  expect(sent.map((m) => m.data.kind).sort()).toEqual([
+    'event',
+    'gift_released',
+  ]);
+  expect(sent.find((m) => m.data.kind === 'gift_released')?.body).toBe(
+    'Um presente que você reservou mudou. Abra o Rememberly para ver.',
+  );
+});
+test('push_events opt-out is respected by the daily push', async () => {
+  await setup();
+  await database.query('UPDATE notification_preferences SET push_events=false');
+  expect(await enqueuePushReminders(today)).toBe(0);
 });
 test('each invocation sends at most four queued notifications', async () => {
   await setup();
-  for (let i = 0; i < 6; i++)
-    await orchestrator.createEvent(user.id, { event_day: 5, event_month: 1 });
+  for (let i = 0; i < 5; i++)
+    await registerDevice(user.id, auth.id, {
+      installation_id: crypto.randomUUID(),
+      expo_push_token: `ExpoPushToken[extra-${i}]`,
+      platform: 'ios',
+    });
   await runPushJob(provider, today);
   expect(sent).toHaveLength(4);
   expect((await rows()).filter((row) => row.status === 'pending')).toHaveLength(
-    3,
+    2,
   );
 });
 
@@ -316,17 +484,26 @@ test('commemorative subscriptions produce only the seven-day reminder', async ()
   expect((await rows())[0].data).toEqual({
     kind: 'commemorative',
     date_key: 'christmas',
+    total: 1,
+    items: [{ k: 'commemorative', key: 'christmas' }],
+  });
+  await runPushJob(provider, new Date('2027-12-18T00:00:00Z'));
+  expect(sent[0].body).toBe('Faltam 7 dias para Natal');
+  expect(sent[0].data).toEqual({
+    kind: 'commemorative',
+    date_key: 'christmas',
   });
   expect(await enqueuePushReminders(new Date('2027-12-19T00:00:00Z'))).toBe(0);
 });
 
 test('production batch path claims and maps up to one hundred messages per invocation', async () => {
   await setup();
-  await database.query(
-    `INSERT INTO events(title,type,event_day,event_month,reminder_days_before,user_id)
-    SELECT 'Private batch event','birthday',5,1,0,$1 FROM generate_series(1,100)`,
-    [user.id],
-  );
+  for (let i = 0; i < 100; i++)
+    await registerDevice(user.id, auth.id, {
+      installation_id: crypto.randomUUID(),
+      expo_push_token: `ExpoPushToken[batch-${i}]`,
+      platform: 'ios',
+    });
   let batches = 0;
   provider.sendBatch = async (messages) => {
     batches++;
@@ -375,27 +552,4 @@ test('an abandoned final receipt lease becomes terminal unknown', async () => {
     status: 'failed',
     last_error: 'ReceiptUnknown',
   });
-});
-test('birthday pushes name the person while other pushes stay generic', async () => {
-  await setup();
-  const birthday = await orchestrator.createUser({
-    name: 'Marina Souza',
-    birth_day: 5,
-    birth_month: 1,
-  });
-  const group = await database.query(
-    "INSERT INTO groups(name,created_by,invite_code) VALUES('Amigos',$1,'push-name') RETURNING id",
-    [user.id],
-  );
-  await database.query(
-    "INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'owner'),($1,$3,'member')",
-    [group.rows[0].id, user.id, birthday.id],
-  );
-  await runPushJob(provider, today);
-  const byKind = Object.fromEntries(sent.map((m) => [m.data.kind, m.body]));
-  expect(byKind.birthday).toBe('Hoje é o aniversário de Marina! 🎉');
-  expect(byKind.event).toBe(
-    'You have a date to remember. Open Rememberly to see it.',
-  );
-  expect(JSON.stringify(sent)).not.toContain('Souza');
 });

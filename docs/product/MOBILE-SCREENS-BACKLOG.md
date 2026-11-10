@@ -112,12 +112,44 @@ Maps to the milestone-1 stories in [BACKLOG.md](BACKLOG.md) (REM-101…304).
 
 Decisions: no revocable invite (D-08 stays), announcements also by push through a new `push_marketing` preference, composed in the admin site (send now with a test send, audience = everyone who opted in to the channel), legal texts drafted by the agent and reviewed by the owner and a lawyer.
 
-| ID     | Scope | Task                                                                                                                                                                                                                                                            | Status                                                                                                                                                                              |
-| ------ | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FUP-01 | M     | Selected tab with a gradient icon and label (mock fidelity).                                                                                                                                                                                                    | done, pending visual review on the device                                                                                                                                           |
-| FUP-02 | M     | Onboarding step 4 copy matches the gift list (sharing and secret reservations).                                                                                                                                                                                 | done                                                                                                                                                                                |
-| FUP-03 | W     | Draft Terms and Privacy pages at `/termos` and `/privacidade` (banner "Rascunho em revisão", text in `lib/legal/`).                                                                                                                                             | done as a draft; the owner fills the placeholders in `lib/legal/shared.ts` and a lawyer reviews before the banner is removed; the policy needs a re-read for the push announcements |
-| FUP-04 | B/W/M | Communication channel: admin composes announcements (title, push text, e-mail body), test send and send to everyone who opted in, by e-mail and push; mobile Push toggle on "Novidades e dicas" (`push_marketing`). Migrations 1794700000000 and 1794700001000. | done, tests pass; admin UI and mobile toggle not exercised on a device or browser; the old code-defined announcements still work from the "Anúncios" card                           |
+| ID     | Scope | Task                                                                                                                                                                                                                                                                                                         | Status                                                                                                                                                                              |
+| ------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FUP-01 | M     | Selected tab with a gradient icon and label (mock fidelity).                                                                                                                                                                                                                                                 | done, pending visual review on the device                                                                                                                                           |
+| FUP-02 | M     | Onboarding step 4 copy matches the gift list (sharing and secret reservations).                                                                                                                                                                                                                              | done                                                                                                                                                                                |
+| FUP-03 | W     | Draft Terms and Privacy pages at `/termos` and `/privacidade` (banner "Rascunho em revisão", text in `lib/legal/`).                                                                                                                                                                                          | done as a draft; the owner fills the placeholders in `lib/legal/shared.ts` and a lawyer reviews before the banner is removed; the policy needs a re-read for the push announcements |
+| FUP-04 | B/W/M | Communication channel: admin composes announcements (title, push text, e-mail body), test send and send to everyone who opted in, by e-mail and push; mobile Push toggle on "Novidades e dicas" (`push_marketing`). Migrations 1794700000000 and 1794700001000.                                              | done, tests pass; admin UI and mobile toggle not exercised on a device or browser; the old code-defined announcements still work from the "Anúncios" card                           |
+| FUP-05 | W     | Web photo polish: the user photo in the top menu on every page, and the group birthdays list shows photos with the name initial on the brand gradient as fallback.                                                                                                                                           | done; not exercised in a browser yet                                                                                                                                                |
+| FUP-06 | B/M   | Daily push: one descriptive push per device per day at 09:00 through the existing Vercel daily job (`daily:<date>` dedup key, text built at send time, ids only in `data`). One item gets a specific text and opens its page; several items get a summary and open Início. Text rules in `lib/push-text.ts`. | done, tests pass; not sent to a real device                                                                                                                                         |
+| FUP-07 | B     | GitHub Actions workflow `.github/workflows/push-check.yml` for the push delivery pass every 15 minutes (gift changes and announcements need it); off until the repository variable `PUSH_CHECK_ENABLED` is `true` and the secret `CRON_SECRET` exists.                                                       | done, off by default                                                                                                                                                                |
+
+## Remaining work (updated 2026-11-10)
+
+Everything in the iterations above is implemented except what is listed here.
+
+**Waiting for a decision or for the owner**
+
+- Apple Developer account (paid): needed for the iPhone development build, real push, Sign in with Apple and Universal Links. iPhone is published first, Android afterwards (D-15).
+- Lawyer review of `/termos` and `/privacidade` (the pages carry the draft banner and many `[A CONFIRMAR COM ADVOGADO]` markers): legal bases, retention periods, server location, minimum age and minors, liability limits. Re-read the policy for the push announcements (`push_marketing`). Remove the banner only after review.
+- First announcement to send through the admin communication channel (only a test send is planned for now).
+
+**To implement**
+
+- Sign in with Apple (D-16): backend verification (the native identity table already supports `apple`), the button in the app and the account-linking rules. Testable only with the Apple account and a development build.
+- Development build (EAS) for iPhone, with push and Google sign-in; Android build later with Firebase (FCM).
+- Universal Links: `apple-app-site-association` and `assetlinks.json` on the site, the iOS associated-domains entitlement and the Android intent filters.
+- Store submission: app icons and splash, store descriptions and privacy labels, production build configuration.
+
+**To configure**
+
+- Done: Vercel Blob token (photos work in production), `contato@rememberly.com.br` forwarding (ImprovMX), legal contact details.
+- `PUSH_DELIVERY_ENABLED=true` in Vercel, only after the development build proves real delivery.
+- GitHub: repository variable `PUSH_CHECK_ENABLED=true` and secret `CRON_SECRET` (same value as in Vercel), turned on together with the push flag. Watch the GitHub Actions minutes if the repository is private.
+
+**To validate (owner)**
+
+- iPhone in Expo Go: Presentes (counter, pills, reserve dialog, share sheet and link), the birthday page, Perfil and Informações pessoais, the gradient tab, dimmed next-year events, loading states.
+- Browser: web photos, group birthdays list, the "Comunicados" admin section (compose, test send), `/termos` and `/privacidade`.
+- Development build only: the Push toggle on "Novidades e dicas" and real pushes.
 
 ## Open decisions
 
@@ -144,6 +176,8 @@ Ask the user before starting the blocked task. Suggestions are only starting poi
 | D-17 | The push check runs every 15 minutes from a free GitHub Actions schedule instead of a Vercel Pro cron; the Vercel plan stays Hobby - answered 2026-11-10                                                                                                                | Push                          |
 | D-18 | Legal pages: the controller is Ramon Seugling (pessoa física), Florianópolis/SC, also the DPO; no CPF or street address published; contact contato@rememberly.com.br (forwarded by ImprovMX); a lawyer reviews before the draft notice is removed - answered 2026-11-10 | Legal                         |
 | D-19 | Members never see each other's e-mail, not even the group owner - answered 2026-11-10                                                                                                                                                                                   | Groups                        |
+| D-20 | One push per person per day (09:00) with a specific text for a single item and a summary for several; names and event titles may appear on the lock screen; birthday-type events and group birthdays use only the first word of the name - answered 2026-11-10          | Push                          |
+| D-21 | Several items the same day: if all are birthdays today, "Hoje é aniversário de Ana e Bruno 🎉"; otherwise "N eventos hoje: ..." (or "N eventos: ..." when none is today) - answered 2026-11-10                                                                          | Push                          |
 
 ## Suggested first slice
 
