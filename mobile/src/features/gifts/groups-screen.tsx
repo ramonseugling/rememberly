@@ -19,11 +19,12 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
-import { useResource } from '../../data/hooks';
+import { usePullRefresh, useResource } from '../../data/hooks';
 import type { VisibleOwners } from './member';
 
 export function GiftGroupsScreen() {
   const visible = useResource<VisibleOwners>('/api/v1/gifts/visible');
+  const pull = usePullRefresh();
   const owners = visible.data?.owners ?? [];
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -31,11 +32,11 @@ export function GiftGroupsScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={visible.loading}
+            refreshing={pull.refreshing}
             tintColor={tokens.colors.primary}
             colors={[tokens.colors.primary]}
             onRefresh={() => {
-              void visible.reload();
+              pull.run(visible.reload);
             }}
           />
         }

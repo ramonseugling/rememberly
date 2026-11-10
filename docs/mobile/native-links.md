@@ -28,7 +28,7 @@ Default notification taps accept these payloads only:
 | Payload                                                          | Destination   |
 | ---------------------------------------------------------------- | ------------- |
 | `{ "kind": "event", "event_id": "<UUID>" }`                      | Dates tab     |
-| `{ "kind": "birthday", "user_id": "<UUID>" }`                    | Groups tab    |
+| `{ "kind": "birthday", "user_id": "<UUID>" }`                    | Birthday page |
 | `{ "kind": "commemorative", "date_key": "<known catalog key>" }` | Occasions tab |
 
 These destinations deliberately use the existing tab views. They do not promise an individual item detail route. Payload URLs are ignored. Unknown or malformed payloads cause no navigation. Supported catalog keys are `mothers_day`, `fathers_day`, `valentines_day`, `childrens_day`, and `christmas`.

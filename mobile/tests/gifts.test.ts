@@ -121,3 +121,22 @@ test('builds the shareable gift list link and the WhatsApp message', async () =>
   assert.ok(urls.web.startsWith('https://wa.me/?text='));
   assert.ok(decodeURIComponent(urls.web).includes(link));
 });
+
+test('writes the birthday page headline and group chip', async () => {
+  const { birthdayHeadline, groupsLabel } =
+    await import('../src/features/gifts/birthday-copy.ts');
+  assert.equal(birthdayHeadline('Marina', 0), 'Hoje é o dia de Marina! 🎉');
+  assert.equal(
+    birthdayHeadline('Rafael', 1),
+    'O aniversário de Rafael é amanhã',
+  );
+  assert.equal(
+    birthdayHeadline('Rafael', 7),
+    'O aniversário de Rafael é em 7 dias',
+  );
+  assert.equal(birthdayHeadline('Rafael', null), 'Aniversário de Rafael');
+  assert.equal(groupsLabel([]), '');
+  assert.equal(groupsLabel(['Amigos']), 'Amigos');
+  assert.equal(groupsLabel(['Amigos', 'Time']), 'Amigos e mais 1 grupo');
+  assert.equal(groupsLabel(['A', 'B', 'C']), 'A e mais 2 grupos');
+});

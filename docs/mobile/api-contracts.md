@@ -81,10 +81,10 @@ Reserved and purchased items (BE-GIFT-04, decision 2): `PATCH` and `DELETE` on `
 
 Lists are visible to everyone who shares at least one group with the owner; there is no per-group sharing step (decision changed on 2026-11-09, the sharing endpoints were removed).
 
-| Endpoint                      | Body | Result                                                                                                  |
-| ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
-| `GET /api/v1/gifts/visible`   | none | `200 { owners: { user_id, name, avatar_url, item_count }[] }`, lists the viewer may see, one per person |
-| `GET /api/v1/users/:id/gifts` | none | `200 { owner: { id, name, avatar_url, birth_day, birth_month }, items: Item[] }`                        |
+| Endpoint                      | Body | Result                                                                                                                                                          |
+| ----------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/gifts/visible`   | none | `200 { owners: { user_id, name, avatar_url, item_count }[] }`, lists the viewer may see, one per person                                                         |
+| `GET /api/v1/users/:id/gifts` | none | `200 { owner: { id, name, avatar_url, birth_day, birth_month, birth_year }, groups: string[], items: Item[] }` (`groups` are the names of the groups in common) |
 
 A viewer can read a list when the viewer and the owner share at least one group; leaving or deleting the last common group removes access immediately. `GET /api/v1/gifts/visible` only lists people whose list has items. Owners can always read their own list through `/users/:id/gifts`. Everything else, including unknown or malformed ids, returns `404` so the endpoint does not reveal who has a list. `PUT` returns `400` for groups the owner does not belong to, malformed ids or a missing `group_ids`. For members (not the owner) each item adds `availability` (`available`, `reserved` or `purchased`) and `reserved_by_me`.
 

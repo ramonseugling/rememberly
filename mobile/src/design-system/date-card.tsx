@@ -28,6 +28,7 @@ interface DsDateCardProps {
 }
 export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
   const today = item.days_until === 0;
+  const dimmed = item.is_next_year && !today;
   const Icon = eventIcon(item.type);
   const shortDate = `${String(item.event_day).padStart(2, '0')} ${shortMonths[item.event_month - 1]}`;
   const badge = daysBadge(item.days_until, shortDate, item.is_next_year);
@@ -35,13 +36,29 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
     item.source.kind === 'group_birthday' ? item.source.group_name : null;
   const content = (
     <View style={styles.content}>
-      <DsAvatar name={item.title} size={48} photoUri={item.avatar_url} />
+      <DsAvatar
+        name={item.title}
+        size={48}
+        photoUri={item.avatar_url}
+        background={dimmed ? tokens.colors.surfaceMuted : undefined}
+        fallback={
+          dimmed ? (
+            <Icon size={22} color={tokens.colors.textMuted} />
+          ) : undefined
+        }
+      />
       <View style={styles.copy}>
-        <DsText style={styles.title} numberOfLines={2}>
+        <DsText
+          style={[styles.title, dimmed && { color: tokens.colors.textMuted }]}
+          numberOfLines={2}
+        >
           {item.title}
         </DsText>
         <View style={styles.type}>
-          <Icon size={16} color={tokens.colors.brand} />
+          <Icon
+            size={16}
+            color={dimmed ? tokens.colors.textMuted : tokens.colors.brand}
+          />
           <DsText style={styles.subtitle} numberOfLines={2}>
             {eventTypeLabel(item)}
             {group ? ` · ${group}` : ''}
@@ -63,6 +80,7 @@ export const DsDateCard = ({ item, onView, disabled }: DsDateCardProps) => {
       style={({ pressed }) => [
         styles.row,
         today && styles.today,
+        dimmed && styles.dimmed,
         pressed && { opacity: 0.75 },
       ]}
     >
@@ -85,6 +103,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   today: { borderWidth: 0 },
+  dimmed: {
+    opacity: 0.6,
+    backgroundColor: tokens.colors.background,
+    boxShadow: 'none',
+  },
   content: {
     paddingHorizontal: 16,
     paddingVertical: 10,

@@ -34,7 +34,11 @@ import { GroupsEmpty } from './groups-empty';
 import { PhotoSheet } from '../photo/photo-sheet';
 import { usePhotoUpload } from '../photo/use-photo-upload';
 import { apiConfiguration } from '../../config/environment';
-import { useAuthenticatedApi, useResource } from '../../data/hooks';
+import {
+  useAuthenticatedApi,
+  usePullRefresh,
+  useResource,
+} from '../../data/hooks';
 import { resourceId } from '../../navigation/intents';
 import { useSession } from '../../session/provider';
 import { theme } from '../../theme';
@@ -68,6 +72,7 @@ export function GroupsScreen() {
 
 function GroupContent({ userId }: { userId: string }) {
   const { request } = useAuthenticatedApi();
+  const pull = usePullRefresh();
   const params = useLocalSearchParams<{
     overview?: string;
     groupId?: string | string[];
@@ -241,11 +246,9 @@ function GroupContent({ userId }: { userId: string }) {
           contentContainerStyle={styles.content}
           refreshControl={
             <RefreshControl
-              refreshing={
-                selectedId ? detail.loading || members.loading : groups.loading
-              }
+              refreshing={pull.refreshing}
               onRefresh={() => {
-                void refresh();
+                pull.run(refresh);
               }}
               tintColor={theme.colors.primary}
             />

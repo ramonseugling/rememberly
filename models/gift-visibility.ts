@@ -37,7 +37,7 @@ async function findVisibleOwners(viewerId: string) {
 async function findListForViewer(viewerId: string, ownerId: string) {
   if (!UUID.test(ownerId)) throw listNotFound();
   const owner = await database.query(
-    `SELECT u.id, u.name, u.avatar_url, u.birth_day, u.birth_month, l.id AS list_id
+    `SELECT u.id, u.name, u.avatar_url, u.birth_day, u.birth_month, u.birth_year, l.id AS list_id
      FROM users u LEFT JOIN gift_lists l ON l.user_id = u.id
      WHERE u.id = $2
        AND ($1 = u.id OR EXISTS (
@@ -48,6 +48,18 @@ async function findListForViewer(viewerId: string, ownerId: string) {
   );
   const row = owner.rows[0];
   if (!row) throw listNotFound();
+  const groups =
+    viewerId === ownerId
+      ? []
+      : (
+          await database.query(
+            `SELECT g.name FROM groups g
+             JOIN group_members a ON a.group_id = g.id AND a.user_id = $1
+             JOIN group_members b ON b.group_id = g.id AND b.user_id = $2
+             ORDER BY g.name, g.id`,
+            [viewerId, ownerId],
+          )
+        ).rows.map((group) => group.name as string);
   const items = row.list_id
     ? ((
         await database.query(
@@ -72,7 +84,9 @@ async function findListForViewer(viewerId: string, ownerId: string) {
       avatar_url: (row.avatar_url ?? null) as string | null,
       birth_day: (row.birth_day ?? null) as number | null,
       birth_month: (row.birth_month ?? null) as number | null,
+      birth_year: (row.birth_year ?? null) as number | null,
     },
+    groups,
     items: items.map((item) => {
       if (viewerId === ownerId) return presentGiftItem(item);
       const claim = claims.get(item.id);

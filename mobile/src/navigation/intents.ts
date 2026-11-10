@@ -4,7 +4,8 @@ export type LinkIntent =
   | { kind: 'gift-list'; userId: string };
 export type NotificationIntent = {
   kind: 'notification';
-  tab: 'dates' | 'groups' | 'occasions';
+  tab: 'dates' | 'groups' | 'occasions' | 'birthday';
+  userId?: string;
 };
 export type PendingIntent =
   | Exclude<LinkIntent, { kind: 'reset' }>
@@ -93,7 +94,7 @@ export function parseNotification(data: unknown): NotificationIntent | null {
   if (value.kind === 'event' && resourceId(value.event_id))
     return { kind: 'notification', tab: 'dates' };
   if (value.kind === 'birthday' && resourceId(value.user_id))
-    return { kind: 'notification', tab: 'groups' };
+    return { kind: 'notification', tab: 'birthday', userId: value.user_id };
   if (
     value.kind === 'commemorative' &&
     typeof value.date_key === 'string' &&
@@ -110,6 +111,8 @@ export function parseNotification(data: unknown): NotificationIntent | null {
 }
 
 export function notificationPath(intent: NotificationIntent) {
+  if (intent.tab === 'birthday' && intent.userId)
+    return `/(tabs)/birthday?userId=${intent.userId}`;
   return intent.tab === 'dates'
     ? '/(tabs)/events'
     : intent.tab === 'groups'

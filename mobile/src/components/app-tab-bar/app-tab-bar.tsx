@@ -30,9 +30,13 @@ export const AppTabBar = ({
           const selected =
             active === name ||
             (name === 'profile' &&
-              ['occasions', 'legal', 'notifications', 'account'].includes(
-                active,
-              ));
+              [
+                'personal',
+                'occasions',
+                'legal',
+                'notifications',
+                'account',
+              ].includes(active));
           return (
             <Pressable
               key={name}

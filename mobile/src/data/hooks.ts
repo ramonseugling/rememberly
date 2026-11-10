@@ -55,7 +55,16 @@ export function useResource<T>(path: string | null): {
     }
     const abort = new AbortController();
     pending.current = abort;
-    setResult({ scope, path, data: null, loading: true, error: null });
+    setResult((previous) => ({
+      scope,
+      path,
+      data:
+        previous.scope === scope && previous.path === path
+          ? previous.data
+          : null,
+      loading: true,
+      error: null,
+    }));
     try {
       const data = await request<T>(path, { signal: abort.signal });
       if (
@@ -107,4 +116,23 @@ export function useResource<T>(path: string | null): {
     error: matching ? result.error : null,
     reload,
   };
+}
+
+/** Pull-to-refresh state: the native spinner shows only for a pull, never for the first load. */
+export function usePullRefresh() {
+  const mounted = useRef(true);
+  const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const run = useCallback((action: () => Promise<unknown> | void) => {
+    setRefreshing(true);
+    void Promise.resolve(action()).finally(() => {
+      if (mounted.current) setRefreshing(false);
+    });
+  }, []);
+  return { refreshing, run };
 }

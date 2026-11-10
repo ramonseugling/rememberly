@@ -20,7 +20,11 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
-import { useAuthenticatedApi, useResource } from '../../data/hooks';
+import {
+  useAuthenticatedApi,
+  usePullRefresh,
+  useResource,
+} from '../../data/hooks';
 import { availabilityLabel, reserveError, reserveRequest } from './member';
 import type { MemberGiftItem, MemberList, ReserveAction } from './member';
 import { birthdayCountdown, firstName, giftHost } from './model';
@@ -35,6 +39,7 @@ export function GiftMemberScreen() {
     userId ? `/api/v1/users/${encodeURIComponent(userId)}/gifts` : null,
   );
   const { request } = useAuthenticatedApi();
+  const pull = usePullRefresh();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,11 +98,11 @@ export function GiftMemberScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={list.loading}
+            refreshing={pull.refreshing}
             tintColor={tokens.colors.brand}
             colors={[tokens.colors.brand]}
             onRefresh={() => {
-              void list.reload();
+              pull.run(list.reload);
             }}
           />
         }
@@ -137,7 +142,7 @@ export function GiftMemberScreen() {
               />
               <View style={styles.ownerCopy}>
                 <DsText accessibilityRole="header" role="title">
-                  {`Lista de presentes da ${ownerName}`}
+                  {`Lista de presentes de ${ownerName}`}
                 </DsText>
                 {subtitle && (
                   <DsText role="caption" style={styles.muted}>

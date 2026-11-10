@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import {
   DsAvatar,
   DsButton,
@@ -93,7 +94,21 @@ export const GroupEventsTab = ({
         {visible.map((member, index) => (
           <View key={member.id}>
             {index > 0 && <View style={styles.divider} />}
-            <View style={styles.listRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Ver aniversário de ${member.name}`}
+              disabled={member.id === userId}
+              onPress={() =>
+                router.navigate({
+                  pathname: '/(tabs)/birthday',
+                  params: { userId: member.id },
+                })
+              }
+              style={({ pressed }) => [
+                styles.listRow,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
               <DsAvatar
                 name={member.name}
                 size={36}
@@ -115,7 +130,7 @@ export const GroupEventsTab = ({
                 days={member.daysUntil!}
                 nextYear={member.isNextYear}
               />
-            </View>
+            </Pressable>
           </View>
         ))}
         {birthdays.length > VISIBLE && (

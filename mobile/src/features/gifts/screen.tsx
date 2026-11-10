@@ -19,7 +19,12 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
-import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
+import {
+  ApiError,
+  useAuthenticatedApi,
+  usePullRefresh,
+  useResource,
+} from '../../data/hooks';
 import type { ProfileUser } from '../account/forms';
 import { BirthdayHero } from './birthday-hero';
 import { GiftEditor } from './gift-editor';
@@ -70,6 +75,7 @@ export function GiftsScreen() {
   const profile = useResource<{ user: ProfileUser }>('/api/v1/mobile/me');
   const [sharing, setSharing] = useState(false);
   const { request } = useAuthenticatedApi();
+  const pull = usePullRefresh();
   const [editor, setEditor] = useState<{ item?: GiftItem } | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,10 +164,9 @@ export function GiftsScreen() {
           <RefreshControl
             tintColor={tokens.colors.primary}
             colors={[tokens.colors.primary]}
-            refreshing={list.loading}
+            refreshing={pull.refreshing}
             onRefresh={() => {
-              void list.reload();
-              void profile.reload();
+              pull.run(() => Promise.all([list.reload(), profile.reload()]));
             }}
           />
         }

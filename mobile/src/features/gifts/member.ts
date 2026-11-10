@@ -15,7 +15,9 @@ export interface MemberList {
     avatar_url: string | null;
     birth_day: number | null;
     birth_month: number | null;
+    birth_year: number | null;
   };
+  groups: string[];
   items: MemberGiftItem[];
 }
 

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ApiError,
   useAuthenticatedApi,
+  usePullRefresh,
   useResource,
 } from '../../src/data/hooks';
 import {
@@ -46,6 +47,7 @@ function NotificationsContent() {
   const { request } = useAuthenticatedApi();
   const { controller } = useSession();
   const preferences = useResource<NotificationPreferences>(PREFERENCES);
+  const pull = usePullRefresh();
   const [permission, setPermission] = useState<PermissionSnapshot | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,11 +135,11 @@ function NotificationsContent() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={preferences.loading}
+            refreshing={pull.refreshing}
             tintColor={tokens.colors.brand}
             colors={[tokens.colors.brand]}
             onRefresh={() => {
-              if (!busy.current) void preferences.reload();
+              if (!busy.current) pull.run(preferences.reload);
             }}
           />
         }

@@ -27,7 +27,7 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
-import { useResource } from '../../data/hooks';
+import { usePullRefresh, useResource } from '../../data/hooks';
 import { useSession } from '../../session/provider';
 import type { Agenda } from '../dates/model';
 import { GroupAvatar } from '../groups/group-avatar';
@@ -44,8 +44,11 @@ export function HomeScreen() {
     profile.data?.user.name ?? state.identity?.user.name ?? '',
   );
   const birthdays = homeBirthdays(agenda.data?.items ?? []);
+  const pull = usePullRefresh();
   const refresh = () => {
-    void Promise.all([profile.reload(), agenda.reload(), groups.reload()]);
+    pull.run(() =>
+      Promise.all([profile.reload(), agenda.reload(), groups.reload()]),
+    );
   };
   const allGroups = () =>
     router.navigate({ pathname: '/(tabs)/groups', params: { overview: '1' } });
@@ -55,7 +58,7 @@ export function HomeScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={agenda.loading || groups.loading || profile.loading}
+            refreshing={pull.refreshing}
             onRefresh={refresh}
             tintColor={tokens.colors.brand}
           />
@@ -169,10 +172,15 @@ export function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Ver aniversário de ${item.title}, ${today ? 'hoje' : `em ${item.days_until} dias`}`}
                 onPress={() =>
-                  router.navigate({
-                    pathname: '/(tabs)/events',
-                    params: { eventId: item.id },
-                  })
+                  item.source.kind === 'group_birthday'
+                    ? router.navigate({
+                        pathname: '/(tabs)/birthday',
+                        params: { userId: item.source.user_id },
+                      })
+                    : router.navigate({
+                        pathname: '/(tabs)/events',
+                        params: { eventId: item.id },
+                      })
                 }
                 style={({ pressed }) => [
                   styles.event,

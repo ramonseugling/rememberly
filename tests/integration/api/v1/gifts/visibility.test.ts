@@ -63,6 +63,20 @@ describe('who can see a gift list', () => {
     ]);
   });
 
+  it('returns the owner birthday year and the groups in common', async () => {
+    const { owner, viewer } = await scenario();
+    await database.query('UPDATE users SET birth_year = 1994 WHERE id = $1', [
+      owner.id,
+    ]);
+
+    const data = await (
+      await call(viewer.token, 'GET', `/users/${owner.id}/gifts`)
+    ).json();
+
+    expect(data.owner.birth_year).toBe(1994);
+    expect(data.groups).toEqual(['Casa']);
+  });
+
   it('does not expose lists to people who share no group with the owner', async () => {
     const { owner } = await scenario();
     const outsider = await userWithId();

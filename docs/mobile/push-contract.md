@@ -29,7 +29,9 @@ The job uses the São Paulo reference date and existing annual calendar helpers:
 
 A unique device/logical-reminder/date key prevents repeated cron invocations from enqueueing another copy while that device registration remains. Different installations are separate destinations. Email models and email preferences are unchanged.
 
-Android messages specify `channelId: 'reminders'` to match the native notification channel. All notifications use title `Rememberly` and body `You have a date to remember. Open Rememberly to see it.` Data contains only the kind and resource identifier (`event_id`, birthday `user_id`, or commemorative `date_key`). Personal names, event titles, email addresses, and session tokens are omitted. Opening data must still use the authenticated resource APIs and their ownership/membership checks.
+The birthday push is the only one that names someone: its body is "Hoje é o aniversário de <first name>! 🎉", looked up at send time from the birthday person's profile. Every other kind keeps the generic text, and the payload still carries only the ids. Tapping it opens the birthday page for that person (`/(tabs)/birthday?userId=`), which reads `GET /api/v1/users/:id/gifts` and so only works for people who share a group with the viewer.
+
+Android messages specify `channelId: 'reminders'` to match the native notification channel. All notifications use title `Rememberly` and body `You have a date to remember. Open Rememberly to see it.` Data contains only the kind and resource identifier (`event_id`, birthday `user_id`, or commemorative `date_key`). Personal names (except the first name in the birthday push body), event titles, email addresses, and session tokens are omitted. Opening data must still use the authenticated resource APIs and their ownership/membership checks.
 
 ## Delivery operations
 

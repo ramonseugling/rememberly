@@ -128,10 +128,13 @@ async function claim(limit: number) {
     await client.end();
   }
 }
-function pushBody(data: { kind?: string }) {
-  return data.kind === 'gift_released'
-    ? 'Um presente que você reservou mudou. Abra o Rememberly para ver.'
-    : 'You have a date to remember. Open Rememberly to see it.';
+function pushBody(data: { kind?: string }, birthdayName?: string | null) {
+  if (data.kind === 'gift_released')
+    return 'Um presente que você reservou mudou. Abra o Rememberly para ver.';
+  const first = birthdayName?.trim().split(/\s+/)[0];
+  if (data.kind === 'birthday' && first)
+    return `Hoje é o aniversário de ${first}! 🎉`;
+  return 'You have a date to remember. Open Rememberly to see it.';
 }
 
 async function deliverBatch(provider: PushProvider) {
@@ -139,9 +142,10 @@ async function deliverBatch(provider: PushProvider) {
   if (!claimed.length) return 0;
   // Recheck session binding and opt-in immediately before the external request.
   const current = await database.query(
-    `SELECT q.*,d.expo_push_token FROM push_deliveries q
+    `SELECT q.*,d.expo_push_token,bu.name AS birthday_name FROM push_deliveries q
     JOIN push_devices d ON d.id=q.device_id AND d.user_id=q.user_id AND d.session_id=q.session_id
     JOIN notification_preferences p ON p.user_id=d.user_id JOIN sessions s ON s.id=d.session_id
+    LEFT JOIN users bu ON q.data->>'kind'='birthday' AND bu.id=(q.data->>'user_id')::uuid
     WHERE q.id=ANY($1::uuid[]) AND q.status='sending' AND ${eligible}`,
     [claimed.map((row) => row.id)],
   );
@@ -152,7 +156,7 @@ async function deliverBatch(provider: PushProvider) {
     to: row.expo_push_token,
     title: 'Rememberly',
     channelId: 'reminders' as const,
-    body: pushBody(row.data),
+    body: pushBody(row.data, row.birthday_name),
     data: row.data,
   }));
   let results: Awaited<ReturnType<PushProvider['send']>>[];

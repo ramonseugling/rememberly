@@ -375,3 +375,26 @@ test('an abandoned final receipt lease becomes terminal unknown', async () => {
     last_error: 'ReceiptUnknown',
   });
 });
+test('birthday pushes name the person while other pushes stay generic', async () => {
+  await setup();
+  const birthday = await orchestrator.createUser({
+    name: 'Marina Souza',
+    birth_day: 5,
+    birth_month: 1,
+  });
+  const group = await database.query(
+    "INSERT INTO groups(name,created_by,invite_code) VALUES('Amigos',$1,'push-name') RETURNING id",
+    [user.id],
+  );
+  await database.query(
+    "INSERT INTO group_members(group_id,user_id,role) VALUES($1,$2,'owner'),($1,$3,'member')",
+    [group.rows[0].id, user.id, birthday.id],
+  );
+  await runPushJob(provider, today);
+  const byKind = Object.fromEntries(sent.map((m) => [m.data.kind, m.body]));
+  expect(byKind.birthday).toBe('Hoje é o aniversário de Marina! 🎉');
+  expect(byKind.event).toBe(
+    'You have a date to remember. Open Rememberly to see it.',
+  );
+  expect(JSON.stringify(sent)).not.toContain('Souza');
+});

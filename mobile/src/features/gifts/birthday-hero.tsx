@@ -2,6 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Crown } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { DsAvatar, DsGradientText, DsText, tokens } from '../../design-system';
+import { ConfettiLayer } from './confetti';
+import type { ConfettiPiece } from './confetti';
 import type { BirthdayCard } from './model';
 
 interface BirthdayHeroProps {
@@ -12,7 +14,7 @@ interface BirthdayHeroProps {
 
 const CARD_WIDTH = 358;
 
-const confetti = [
+const confetti: readonly ConfettiPiece[] = [
   { left: 24, top: 22, w: 10, h: 5, rotate: 20, color: '#F7A8C4' },
   { left: 70, top: 70, w: 6, h: 6, rotate: 0, color: '#FEC8A0' },
   { left: 300, top: 26, w: 10, h: 5, rotate: -30, color: '#F58FB0' },
@@ -25,7 +27,7 @@ const confetti = [
   { left: 14, top: 86, w: 6, h: 6, rotate: 0, color: '#F58FB0' },
   { left: 352, top: 60, w: 8, h: 4, rotate: 35, color: '#FEC8A0' },
   { left: 96, top: 150, w: 6, h: 6, rotate: 0, color: '#F7A8C4' },
-] as const;
+];
 
 export const BirthdayHero = ({ name, photoUri, card }: BirthdayHeroProps) => {
   const today = card?.days === 0;
@@ -36,23 +38,7 @@ export const BirthdayHero = ({ name, photoUri, card }: BirthdayHeroProps) => {
       end={{ x: 0.4, y: 1 }}
       style={styles.card}
     >
-      {confetti.map((piece, index) => (
-        <View
-          key={index}
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: `${(piece.left / CARD_WIDTH) * 100}%`,
-            top: piece.top,
-            width: piece.w,
-            height: piece.h,
-            borderRadius: 2,
-            backgroundColor: piece.color,
-            opacity: 0.9,
-            transform: [{ rotate: `${piece.rotate}deg` }],
-          }}
-        />
-      ))}
+      <ConfettiLayer pieces={confetti} width={CARD_WIDTH} />
       <View style={styles.photo}>
         <DsAvatar name={name} size={92} photoUri={photoUri} />
         {today && (

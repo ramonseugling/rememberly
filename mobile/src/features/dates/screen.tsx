@@ -27,7 +27,12 @@ import {
   DsText,
 } from '../../design-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ApiError, useAuthenticatedApi, useResource } from '../../data/hooks';
+import {
+  ApiError,
+  useAuthenticatedApi,
+  usePullRefresh,
+  useResource,
+} from '../../data/hooks';
 import { DsDateCard } from '../../design-system/date-card';
 import { dateSections } from './sections';
 import { tokens } from '../../design-system/tokens';
@@ -46,6 +51,7 @@ export function DatesScreen() {
     '/api/v1/mobile/agenda',
   );
   const { request } = useAuthenticatedApi();
+  const pull = usePullRefresh();
   const [editor, setEditor] = useState<{ item?: AgendaItem } | null>(null);
   const [pending, setPending] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
@@ -203,9 +209,9 @@ export function DatesScreen() {
           <RefreshControl
             tintColor={tokens.colors.primary}
             colors={[tokens.colors.primary]}
-            refreshing={loading}
+            refreshing={pull.refreshing}
             onRefresh={() => {
-              void reload();
+              pull.run(reload);
             }}
           />
         }
@@ -281,7 +287,14 @@ export function DatesScreen() {
             <DsDateCard
               item={item}
               disabled={pending}
-              onView={() => setViewedId(item.id)}
+              onView={() =>
+                item.source.kind === 'group_birthday'
+                  ? router.navigate({
+                      pathname: '/(tabs)/birthday',
+                      params: { userId: item.source.user_id },
+                    })
+                  : setViewedId(item.id)
+              }
             />
           </View>
         )}

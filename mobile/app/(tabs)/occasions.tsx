@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ApiError,
   useAuthenticatedApi,
+  usePullRefresh,
   useResource,
 } from '../../src/data/hooks';
 import {
@@ -41,6 +42,7 @@ export default function OccasionsScreen() {
 
 function OccasionsContent() {
   const { request } = useAuthenticatedApi();
+  const pull = usePullRefresh();
   const { data, loading, error, reload } = useResource<Catalog>(
     '/api/v1/mobile/commemorative-dates',
   );
@@ -96,11 +98,11 @@ function OccasionsContent() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
+            refreshing={pull.refreshing}
             tintColor={tokens.colors.brand}
             colors={[tokens.colors.brand]}
             onRefresh={() => {
-              if (!busy.current) void reload();
+              if (!busy.current) pull.run(reload);
             }}
           />
         }
