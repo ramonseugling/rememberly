@@ -245,12 +245,6 @@ export default function SignupScreen() {
             </View>
           </View>
           <DsCheckbox
-            label="Quero receber novidades e dicas por e-mail"
-            checked={marketing}
-            disabled={busy}
-            onChange={setMarketing}
-          />
-          <DsCheckbox
             label="Li e concordo com os Termos de Uso e a Política de Privacidade"
             checked={acceptedTerms}
             disabled={busy}
@@ -261,6 +255,12 @@ export default function SignupScreen() {
                 style={localStyles.consent}
               />
             }
+          />
+          <DsCheckbox
+            label="Quero receber novidades e dicas por e-mail"
+            checked={marketing}
+            disabled={busy}
+            onChange={setMarketing}
           />
           <AuthAction
             label="Continuar"

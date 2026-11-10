@@ -35,7 +35,7 @@ export default function Signup() {
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
-  const [marketingConsent, setMarketingConsent] = useState(true);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -437,22 +437,6 @@ export default function Signup() {
 
             <div className="flex items-start gap-3">
               <input
-                id="marketing_consent"
-                type="checkbox"
-                checked={marketingConsent}
-                onChange={(e) => setMarketingConsent(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded border-border accent-primary cursor-pointer flex-shrink-0"
-              />
-              <label
-                htmlFor="marketing_consent"
-                className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
-              >
-                Quero receber novidades e dicas por e-mail
-              </label>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <input
                 id="accepted_terms"
                 type="checkbox"
                 checked={acceptedTerms}
@@ -481,6 +465,22 @@ export default function Signup() {
                 >
                   Política de Privacidade
                 </Link>
+              </label>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <input
+                id="marketing_consent"
+                type="checkbox"
+                checked={marketingConsent}
+                onChange={(e) => setMarketingConsent(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-border accent-primary cursor-pointer flex-shrink-0"
+              />
+              <label
+                htmlFor="marketing_consent"
+                className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
+              >
+                Quero receber novidades e dicas por e-mail
               </label>
             </div>
 
