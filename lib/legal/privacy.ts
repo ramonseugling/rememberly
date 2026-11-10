@@ -111,7 +111,7 @@ export const privacyDocument: LegalDocument = {
             'Vercel: hospedagem do site e da API, execução das tarefas diárias (cron), armazenamento de fotos (Vercel Blob) e estatísticas de acesso (Vercel Analytics).',
             'Neon: banco de dados PostgreSQL onde ficam os dados da sua conta.',
             'Resend: envio de e-mails (código de verificação, lembretes, recuperação de senha e novidades). Recebe seu e-mail e o conteúdo da mensagem.',
-            'Axiom: armazenamento de logs técnicos da aplicação (tipo de e-mail enviado, erros e resumo das tarefas diárias), sem o e-mail do destinatário nem o título dos seus eventos. O prazo de guarda é definido na configuração do serviço.',
+            'Axiom: armazenamento de logs técnicos da aplicação (tipo de e-mail enviado, erros e resumo das tarefas diárias), sem o e-mail do destinatário nem o título dos seus eventos. Esses logs ficam guardados por 30 dias.',
             'Expo (Expo Push Service) e, por meio dele, Apple e Google: entrega de notificações push. Recebem o token do dispositivo e o conteúdo da notificação.',
             'Google: login com a conta Google (Google Sign-In/OAuth).',
           ],
@@ -135,7 +135,7 @@ export const privacyDocument: LegalDocument = {
       title: '7. Por quanto tempo guardamos os dados',
       blocks: [
         {
-          p: 'Mantemos seus dados enquanto sua conta existir. Dados temporários têm prazo próprio: códigos de verificação valem por poucos minutos, contadores de tentativas de login expiram em cerca de 15 minutos e sessões expiram conforme sua validade (até 30 dias no site). Registros de erro e de execução das tarefas automáticas são apagados automaticamente após 90 dias. Cópias de segurança e logs mantidos pelos provedores seguem os prazos deles, que são limitados e fora do nosso controle.',
+          p: 'Mantemos seus dados enquanto sua conta existir. Dados temporários têm prazo próprio: códigos de verificação valem por poucos minutos, contadores de tentativas de login expiram em cerca de 15 minutos e sessões expiram conforme sua validade (até 30 dias no site). Registros de erro e de execução das tarefas automáticas são apagados automaticamente após 90 dias, e os logs técnicos guardados no Axiom ficam por 30 dias. Cópias de segurança e logs mantidos pelos provedores seguem os prazos deles, que são limitados e fora do nosso controle.',
         },
       ],
     },

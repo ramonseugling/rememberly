@@ -124,7 +124,7 @@ Decisions: no revocable invite (D-08 stays), announcements also by push through 
 | FUP-08 | B     | Automatic purge of `error_logs` and `cron_runs` after 90 days (daily cron `/api/v1/notifications/purge-logs`, 05:00 UTC).                                                                                                                                                                                    | done, tests pass                                                                                                                                                                    |
 | FUP-09 | B/W/M | Minimum age 12: sign-up and profile updates refuse a birth date under 12 (server, web forms and the app).                                                                                                                                                                                                    | done, tests pass                                                                                                                                                                    |
 | FUP-10 | W     | Terms and Privacy texts finished without markers or draft banner; they state the 12+ rule, the legal bases, the 90-day log retention and that data is stored in the United States.                                                                                                                           | done; no lawyer review planned (owner decision)                                                                                                                                     |
-| FUP-11 | B     | Logs sent to Axiom no longer carry the recipient e-mail or the event title (14 log calls).                                                                                                                                                                                                                   | done, tests pass                                                                                                                                                                    |
+| FUP-11 | B     | Logs sent to Axiom no longer carry the recipient e-mail or the event title (14 log calls).                                                                                                                                                                                                                   | done, tests pass; the Axiom dataset retention is 30 days (checked in the Axiom panel)                                                                                               |
 
 ## Remaining work (updated 2026-11-10)
 
@@ -133,7 +133,6 @@ Everything in the iterations above is implemented except what is listed here.
 **Waiting for a decision or for the owner**
 
 - Apple Developer account (paid): needed for the iPhone development build, real push, Sign in with Apple and Universal Links. iPhone is published first, Android afterwards (D-15).
-- Set the data retention in the Axiom dataset settings (and note the Vercel log retention) so it matches the privacy policy; the policy says the Axiom retention is set in the service configuration.
 - First announcement to send through the admin communication channel (only a test send is planned for now).
 
 **To implement**
