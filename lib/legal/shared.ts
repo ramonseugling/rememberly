@@ -19,10 +19,10 @@ export const DRAFT_NOTICE =
 
 export const LEGAL_LAST_UPDATED = '10 de novembro de 2026';
 
-// Placeholders the owner must replace before publishing the final texts.
-export const COMPANY_NAME = '[RAZÃO SOCIAL OU NOME DO RESPONSÁVEL]';
-export const COMPANY_ID = '[CNPJ OU CPF]';
-export const COMPANY_ADDRESS = '[ENDEREÇO COMPLETO]';
-export const CONTACT_EMAIL = '[E-MAIL DE CONTATO]';
-export const DPO_NAME = '[NOME DO ENCARREGADO (DPO), SE HOUVER]';
-export const GOVERNING_CITY = '[COMARCA/FORO]';
+// Controller details. CPF and street address are intentionally not published; a lawyer confirms whether they are required.
+export const COMPANY_NAME = 'Ramon Seugling';
+export const COMPANY_ID = 'pessoa física';
+export const COMPANY_ADDRESS = 'Florianópolis/SC';
+export const CONTACT_EMAIL = 'contato@rememberly.com.br';
+export const DPO_NAME = 'Ramon Seugling';
+export const GOVERNING_CITY = 'Florianópolis/SC';

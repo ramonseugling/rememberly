@@ -49,7 +49,7 @@ export const LandingFooter = () => {
               Privacidade
             </Link>
             <a
-              href="mailto:ramonseugling@gmail.com"
+              href="mailto:contato@rememberly.com.br"
               className="text-sm text-muted-foreground hover:text-primary transition-smooth"
             >
               Contato

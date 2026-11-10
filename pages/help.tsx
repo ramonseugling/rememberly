@@ -223,7 +223,7 @@ export default function Help({ user: _user }: HelpProps) {
         <p className="text-sm text-muted-foreground">
           Tem alguma dúvida ou problema?{' '}
           <a
-            href="mailto:ramonseugling@gmail.com"
+            href="mailto:contato@rememberly.com.br"
             className="text-primary font-medium hover:underline"
           >
             Fale com a gente
