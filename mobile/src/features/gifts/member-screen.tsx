@@ -112,7 +112,7 @@ export function GiftMemberScreen() {
         }
       >
         <DsBackHeader
-          label={from === 'birthday' ? 'Aniversário' : 'Listas dos grupos'}
+          label={from === 'birthday' ? 'Aniversário' : 'Presentes'}
           onPress={() => {
             if (from === 'birthday' && userId)
               router.navigate({
@@ -120,7 +120,7 @@ export function GiftMemberScreen() {
                 params: { userId },
               });
             else if (router.canGoBack()) router.back();
-            else router.navigate('/(tabs)/gifts-groups');
+            else router.navigate('/(tabs)/gifts');
           }}
         />
         {list.loading && !data && (

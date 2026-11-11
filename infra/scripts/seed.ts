@@ -10,6 +10,10 @@
  *   password: senha123
  */
 import bcrypt from 'bcryptjs';
+import { mkdir } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import sharp from 'sharp';
 import database from 'infra/database';
 
 const DEV_EMAIL = 'dev@dev.com';
@@ -25,6 +29,36 @@ function addDays(n: number): { birth_day: number; birth_month: number } {
   const d = new Date(today);
   d.setDate(d.getDate() + n);
   return { birth_day: d.getDate(), birth_month: d.getMonth() + 1 };
+}
+
+// Photos are served by Next from public/uploads. A phone cannot reach
+// localhost, so prefer the machine's LAN address when there is one.
+function publicBase() {
+  const lan = Object.values(os.networkInterfaces())
+    .flat()
+    .find(
+      (net) => net?.family === 'IPv4' && net.address.startsWith('192.168.'),
+    );
+  if (lan) return `http://${lan.address}:3000`;
+  return (process.env.APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+}
+
+async function giftPhoto(slug: string, background: string, accent: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+    <rect width="512" height="512" fill="${background}"/>
+    <rect x="150" y="250" width="212" height="160" rx="14" fill="#ffffff"/>
+    <rect x="132" y="200" width="248" height="56" rx="12" fill="#ffffff"/>
+    <rect x="244" y="200" width="24" height="210" fill="${accent}"/>
+    <circle cx="222" cy="176" r="30" fill="none" stroke="${accent}" stroke-width="16"/>
+    <circle cx="290" cy="176" r="30" fill="none" stroke="${accent}" stroke-width="16"/>
+  </svg>`;
+  const directory = path.join(process.cwd(), 'public', 'uploads', 'gifts');
+  await mkdir(directory, { recursive: true });
+  const file = `seed-${slug}.webp`;
+  await sharp(Buffer.from(svg))
+    .webp({ quality: 82 })
+    .toFile(path.join(directory, file));
+  return `${publicBase()}/uploads/gifts/${file}`;
 }
 
 async function clearDatabase() {
@@ -117,7 +151,12 @@ async function createEvent(
 
 async function createGiftList(
   userId: string,
-  items: { title: string; link?: string; description?: string }[],
+  items: {
+    title: string;
+    link?: string;
+    description?: string;
+    photo?: [slug: string, background: string, accent: string];
+  }[],
 ) {
   const list = await database.query(
     `INSERT INTO gift_lists (user_id) VALUES ($1) RETURNING id`,
@@ -126,14 +165,15 @@ async function createGiftList(
   const ids: string[] = [];
   for (const [position, item] of items.entries()) {
     const created = await database.query(
-      `INSERT INTO gift_items (list_id, title, link, description, created_at)
-       VALUES ($1, $2, $3, $4, now() - ($5 || ' minutes')::interval)
+      `INSERT INTO gift_items (list_id, title, link, description, photo_url, created_at)
+       VALUES ($1, $2, $3, $4, $5, now() - ($6 || ' minutes')::interval)
        RETURNING id`,
       [
         list.rows[0].id,
         item.title,
         item.link ?? null,
         item.description ?? null,
+        item.photo ? await giftPhoto(...item.photo) : null,
         String(position),
       ],
     );
@@ -216,6 +256,14 @@ async function seed() {
     birth_year: 1994,
   });
 
+  const rafael = await createUser({
+    name: 'Rafael Lima',
+    email: 'rafael@exemplo.com',
+    password: 'senha123',
+    ...addDays(-9),
+    birth_year: 1992,
+  });
+
   const julia = await createUser({
     name: 'Julia Santos',
     email: 'julia@exemplo.com',
@@ -233,6 +281,7 @@ async function seed() {
   await addMember(familia.id, joao.id);
   await addMember(familia.id, ana.id);
   await addMember(familia.id, pedro.id);
+  await addMember(familia.id, rafael.id);
 
   const trabalho = await createGroup('Trabalho', dev.id);
   await addMember(trabalho.id, carla.id);
@@ -284,6 +333,21 @@ async function seed() {
     event_month: addDays(28).birth_month,
   });
 
+  // Dates already past this year show up as next year's events (dimmed)
+  await createEvent(dev.id, {
+    title: 'Aniversário de casamento dos avós',
+    type: 'wedding_anniversary',
+    event_day: addDays(-12).birth_day,
+    event_month: addDays(-12).birth_month,
+  });
+
+  await createEvent(dev.id, {
+    title: 'Formatura do Lucas',
+    type: 'celebration',
+    event_day: addDays(-30).birth_day,
+    event_month: addDays(-30).birth_month,
+  });
+
   console.log('✓ Events created');
 
   // --- Gift lists ---
@@ -293,9 +357,14 @@ async function seed() {
       title: 'Fone de ouvido sem fio',
       link: 'https://example.com/fone',
       description: 'Preto, de preferência com cancelamento de ruído',
+      photo: ['dev-fone', '#FDE3EC', '#E53565'],
     },
     { title: 'Livro: O Hobbit', description: 'Edição de capa dura' },
-    { title: 'Cafeteira italiana', link: 'https://example.com/cafeteira' },
+    {
+      title: 'Cafeteira italiana',
+      link: 'https://example.com/cafeteira',
+      photo: ['dev-cafeteira', '#FEE8D6', '#F69855'],
+    },
   ]);
 
   const [lucasTenis, lucasLivro] = await createGiftList(lucas.id, [
@@ -303,23 +372,40 @@ async function seed() {
       title: 'Tênis de corrida',
       link: 'https://example.com/tenis',
       description: 'Tamanho 42',
+      photo: ['lucas-tenis', '#DCEBFB', '#1D4ED8'],
     },
     { title: 'Livro: Hábitos Atômicos' },
-    { title: 'Mochila para notebook', link: 'https://example.com/mochila' },
+    {
+      title: 'Mochila para notebook',
+      link: 'https://example.com/mochila',
+      photo: ['lucas-mochila', '#DFF3E4', '#245B34'],
+    },
   ]);
   await reserveGift(lucasTenis!, carla.id, 'reserved');
   await reserveGift(lucasLivro!, dev.id, 'reserved');
 
   const [mariaVela, mariaVinho] = await createGiftList(maria.id, [
-    { title: 'Kit de velas aromáticas', description: 'Cheiro de lavanda' },
-    { title: 'Vinho tinto', link: 'https://example.com/vinho' },
+    {
+      title: 'Kit de velas aromáticas',
+      description: 'Cheiro de lavanda',
+      photo: ['maria-velas', '#F1E4F8', '#AC26A4'],
+    },
+    {
+      title: 'Vinho tinto',
+      link: 'https://example.com/vinho',
+      photo: ['maria-vinho', '#FBE0E3', '#B42335'],
+    },
     { title: 'Jogo de panelas' },
   ]);
   await reserveGift(mariaVela!, dev.id, 'reserved');
   await reserveGift(mariaVinho!, ana.id, 'purchased');
 
   const [joaoCamisa] = await createGiftList(joao.id, [
-    { title: 'Camisa do time', description: 'Tamanho M' },
+    {
+      title: 'Camisa do time',
+      description: 'Tamanho M',
+      photo: ['joao-camisa', '#DFF3E4', '#245B34'],
+    },
     { title: 'Churrasqueira portátil', link: 'https://example.com/churras' },
   ]);
   await reserveGift(joaoCamisa!, dev.id, 'purchased');
@@ -330,7 +416,11 @@ async function seed() {
   ]);
 
   await createGiftList(carla.id, [
-    { title: 'Câmera instantânea', link: 'https://example.com/camera' },
+    {
+      title: 'Câmera instantânea',
+      link: 'https://example.com/camera',
+      photo: ['carla-camera', '#FFF3C9', '#B7791F'],
+    },
   ]);
 
   console.log('✓ Gift lists created');
@@ -356,7 +446,7 @@ async function seed() {
 ║  password: ${DEV_PASSWORD.padEnd(25)}║
 ╠══════════════════════════════════════╣
 ║  Groups created:                     ║
-║  • Família  (5 members) — owner      ║
+║  • Família  (6 members) — owner      ║
 ║  • Trabalho (4 members) — owner      ║
 ║  • Amigos   (3 members) — owner      ║
 ║  • Dev Boys (4 members) — member     ║
