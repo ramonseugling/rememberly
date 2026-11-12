@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import orchestrator from 'tests/orchestrator';
 import database from 'infra/database';
+import otp from 'models/otp';
 import password from 'models/password';
 
 const BASE = 'http://localhost:3000/api/v1';
@@ -39,22 +40,17 @@ function post(path: string, body: unknown) {
   });
 }
 
-async function latestResetCode(email: string) {
-  const result = await database.query(
-    `SELECT code FROM otp_tokens
-     WHERE LOWER(email) = LOWER($1) AND purpose = 'password_reset'
-       AND used_at IS NULL
-     ORDER BY created_at DESC LIMIT 1`,
-    [email],
-  );
-  return result.rows[0]?.code as string | undefined;
+// Codes are created through the model: asking for one over HTTP sends an
+// e-mail, which CI cannot do (the delivery suites cover that).
+async function issueResetCode(email: string) {
+  const record = await otp.create(email, 'password_reset');
+  return record.code as string;
 }
 
 describe('password reset by e-mailed code', () => {
   it('goes from the code to a new password end to end', async () => {
     const email = await createAccount();
-    expect((await post('/password/forgot', { email })).status).toBe(200);
-    const code = await latestResetCode(email);
+    const code = await issueResetCode(email);
 
     const verified = await post('/password/verify', { email, otp_code: code });
     expect(verified.status).toBe(200);
@@ -77,8 +73,7 @@ describe('password reset by e-mailed code', () => {
 
   it('uses each code only once', async () => {
     const email = await createAccount();
-    await post('/password/forgot', { email });
-    const code = await latestResetCode(email);
+    const code = await issueResetCode(email);
     const first = await post('/password/verify', { email, otp_code: code });
     expect(first.status).toBe(200);
 
@@ -89,8 +84,7 @@ describe('password reset by e-mailed code', () => {
 
   it('rejects a wrong code and counts the attempt', async () => {
     const email = await createAccount();
-    await post('/password/forgot', { email });
-    const code = (await latestResetCode(email)) as string;
+    const code = await issueResetCode(email);
     const wrong = code === '000000' ? '111111' : '000000';
 
     const response = await post('/password/verify', { email, otp_code: wrong });
