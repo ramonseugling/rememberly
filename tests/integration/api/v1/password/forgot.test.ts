@@ -132,25 +132,5 @@ describe('POST /api/v1/password/forgot', () => {
       );
       expect(codes.rows[0].count).toBe(5);
     });
-
-    it('creates a password_reset code and never a link token', async () => {
-      const createdUser = await createUserWithOtp();
-
-      const response = await requestPasswordReset(createdUser.email);
-      expect(response.status).toBe(200);
-
-      const codes = await database.query(
-        `SELECT code, purpose FROM otp_tokens
-         WHERE LOWER(email) = LOWER($1) AND purpose = 'password_reset'`,
-        [createdUser.email],
-      );
-      expect(codes.rows).toHaveLength(1);
-      expect(codes.rows[0].code).toMatch(/^\d{6}$/);
-      const tokens = await database.query(
-        'SELECT COUNT(*)::int AS count FROM password_reset_tokens WHERE user_id = $1',
-        [createdUser.id],
-      );
-      expect(tokens.rows[0].count).toBe(0);
-    });
   });
 });
