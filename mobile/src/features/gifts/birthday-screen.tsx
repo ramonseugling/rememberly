@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Users } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   DsAvatar,
   DsBadge,
-  DsButton,
   DsChip,
   DsFeedback,
   DsListCard,
@@ -21,14 +20,17 @@ import {
   DsText,
   tokens,
 } from '../../design-system';
-import { useResource } from '../../data/hooks';
+import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { ConfettiLayer } from './confetti';
 import type { ConfettiPiece } from './confetti';
-import type { MemberList } from './member';
+import { availabilityLabel, reserveError, reserveRequest } from './member';
+import type { MemberGiftItem, MemberList, ReserveAction } from './member';
 import { birthdayCard, firstName, giftHost } from './model';
 import { birthdayHeadline, groupsLabel } from './birthday-copy';
+import { originPath, parseOrigin } from './birthday-route';
 import { BirthdayHat } from './birthday-hat';
 import { GiftThumb } from './gift-thumb';
+import { ReserveDialog } from './reserve-dialog';
 
 const WIDTH = 390;
 
@@ -46,15 +48,33 @@ const confetti: readonly ConfettiPiece[] = [
 ];
 
 export function BirthdayScreen() {
-  const params = useLocalSearchParams<{ userId?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    userId?: string | string[];
+    from?: string | string[];
+  }>();
+  const origin = parseOrigin(params.from);
   const userId = Array.isArray(params.userId)
     ? params.userId[0]
     : params.userId;
   const list = useResource<MemberList>(
     userId ? `/api/v1/users/${encodeURIComponent(userId)}/gifts` : null,
   );
+  const { request } = useAuthenticatedApi();
   const [groupsOpen, setGroupsOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const busy = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const data = list.data;
+  const selected: MemberGiftItem | null =
+    data?.items.find((item) => item.id === selectedId) ?? null;
   const name = data ? firstName(data.owner.name) : '';
   const card = data
     ? birthdayCard(
@@ -65,12 +85,28 @@ export function BirthdayScreen() {
       )
     : null;
   const today = card?.days === 0;
-  const items = data?.items.slice(0, 3) ?? [];
-  const open = () =>
-    router.navigate({
-      pathname: '/(tabs)/gifts-member',
-      params: { userId, from: 'birthday' },
-    });
+  const items = data?.items ?? [];
+
+  async function run(item: MemberGiftItem, action: ReserveAction) {
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
+    setError(null);
+    const { path, method, body } = reserveRequest(item.id, action);
+    try {
+      await request(path, { method, body });
+      if (!mounted.current) return;
+      setSelectedId(null);
+      await list.reload();
+    } catch (caught) {
+      if (!mounted.current) return;
+      setError(reserveError(caught));
+      await list.reload();
+    } finally {
+      busy.current = false;
+      if (mounted.current) setPending(false);
+    }
+  }
 
   return (
     <LinearGradient
@@ -84,9 +120,7 @@ export function BirthdayScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Voltar"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.navigate('/(tabs)')
-            }
+            onPress={() => router.navigate(originPath(origin))}
             style={styles.back}
           >
             <ChevronLeft size={22} color={tokens.colors.text} />
@@ -162,29 +196,58 @@ export function BirthdayScreen() {
                         : 'Reserve um presente com antecedência.'}
                   </DsText>
                 </View>
-                {items.map((item) => (
-                  <DsListCard
-                    key={item.id}
-                    title={item.title}
-                    subtitle={
-                      item.description ??
-                      (item.link ? giftHost(item.link) : undefined)
-                    }
-                    icon={<GiftThumb uri={item.photo_url} size={44} />}
-                    onPress={open}
-                  />
-                ))}
-                {items.length > 0 && (
-                  <DsButton
-                    label="Ver todos os presentes"
-                    variant="soft"
-                    onPress={open}
-                  />
+                {error && !selected && (
+                  <DsFeedback tone="error" message={error} />
                 )}
+                {items.map((item) => {
+                  const label = availabilityLabel(item);
+                  return (
+                    <DsListCard
+                      key={item.id}
+                      title={item.title}
+                      subtitle={
+                        item.description ??
+                        (item.link ? giftHost(item.link) : undefined)
+                      }
+                      icon={<GiftThumb uri={item.photo_url} size={44} />}
+                      footer={
+                        label ? (
+                          <DsBadge
+                            label={label}
+                            tone={
+                              item.availability === 'purchased'
+                                ? 'success'
+                                : 'neutral'
+                            }
+                          />
+                        ) : undefined
+                      }
+                      onPress={() => {
+                        setError(null);
+                        setSelectedId(item.id);
+                      }}
+                    />
+                  );
+                })}
               </View>
             </>
           )}
         </ScrollView>
+        {selected && data && (
+          <ReserveDialog
+            item={selected}
+            ownerName={name}
+            ownerPhotoUri={data.owner.avatar_url}
+            pending={pending}
+            error={error}
+            onAction={(action) => {
+              void run(selected, action);
+            }}
+            onClose={() => {
+              if (!busy.current) setSelectedId(null);
+            }}
+          />
+        )}
         {data && (
           <DsSheet
             visible={groupsOpen}

@@ -1,3 +1,4 @@
+import { birthdayRoute } from '../gifts/birthday-route';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -99,10 +100,7 @@ export const GroupEventsTab = ({
               accessibilityLabel={`Ver aniversário de ${member.name}`}
               disabled={member.id === userId}
               onPress={() =>
-                router.navigate({
-                  pathname: '/(tabs)/birthday',
-                  params: { userId: member.id },
-                })
+                router.navigate(birthdayRoute(member.id, 'groups'))
               }
               style={({ pressed }) => [
                 styles.listRow,

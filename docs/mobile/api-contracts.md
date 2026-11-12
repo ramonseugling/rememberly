@@ -62,6 +62,11 @@ The sign-up steps can confirm the e-mail before the account exists:
 2. `POST /api/v1/otp/verify` with `{ email, otp_code }` consumes the code and answers `200 { verification_token }` (64 hex characters, valid for 30 minutes, only a SHA-256 hash is stored). A wrong code answers `400` and counts as an attempt (5 per code).
 3. `POST /api/v1/users` accepts `verification_token` instead of `otp_code`. The token must belong to the same e-mail, be unused and unexpired. It is only consumed after the account is created, so a rejected request (for example under-age or terms not accepted) can be retried with the same token. The old `otp_code` field still works, so the web sign-up is unchanged; one of the two is required.
 
+### Code limit and names
+
+- `POST /api/v1/otp` and `POST /api/v1/password/forgot` issue at most 5 codes per e-mail per hour (`otp.isRateLimited`); the 6th answers `429 TooManyRequestsError`. The 60-second wait between resends is enforced only by the app.
+- Users have `first_name` and `last_name` (nullable) besides the full `name`. `POST /api/v1/users` and `PATCH /api/v1/users` accept `first_name`/`last_name` (preferred) or a single `name`, which is split at the first space. The server always keeps `name = first_name + " " + last_name`. `GET /api/v1/mobile/me` returns all three. E-mail and push greetings use the first name.
+
 ## Photos (profile and group)
 
 Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.

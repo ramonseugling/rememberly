@@ -3,8 +3,6 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import type { PropsWithChildren, ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,8 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react-native';
 import { apiConfiguration } from '../../config/environment';
+import { useSession } from '../../session/provider';
 import {
-  DsBrandHeader,
+  DsBackHeader,
   DsButton,
   DsFeedback,
   DsText,
@@ -36,6 +35,7 @@ export const publicAuth = createPublicAuthApi(
 );
 
 export function useAuthTask() {
+  const { controller } = useSession();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const active = useRef<AbortController | null>(null);
@@ -51,8 +51,10 @@ export function useAuthTask() {
       return () => {
         focused.current = false;
         cancel();
+        setMessage(null);
+        controller.clearMessage();
       };
-    }, [cancel]),
+    }, [cancel, controller]),
   );
   async function run(action: (signal: AbortSignal) => Promise<string | void>) {
     if (active.current || !focused.current) return;
@@ -84,52 +86,40 @@ export function useAuthTask() {
 
 interface AuthPageProps {
   title: string;
-  subtitle?: string;
   pending: boolean;
   message: string | null;
-  compactBrand?: boolean;
-  footer?: ReactNode;
+  counter?: ReactNode;
   back?: ReactNode;
 }
+// Flat step screen: back on the left, step counter on the right, the title
+// left-aligned and the form right under it so the keyboard never hides it.
 export function AuthPage({
   title,
-  subtitle,
   message,
-  compactBrand,
-  footer,
+  counter,
   back,
   children,
 }: PropsWithChildren<AuthPageProps>) {
   return (
     <LinearGradient colors={tokens.backgroundGradient} style={styles.safe}>
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView
+        <View style={styles.topBar}>
+          <View>{back}</View>
+          {counter}
+        </View>
+        <ScrollView
           style={styles.safe}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          automaticallyAdjustKeyboardInsets
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.content}
         >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.content}
-          >
-            <DsBrandHeader compact={compactBrand} />
-            <View style={styles.card}>
-              {back}
-              <View style={styles.header}>
-                <DsText role="title" style={styles.title}>
-                  {title}
-                </DsText>
-                {subtitle && (
-                  <DsText role="caption" style={styles.subtitle}>
-                    {subtitle}
-                  </DsText>
-                )}
-              </View>
-              {message && <DsFeedback tone="error" message={message} />}
-              {children}
-            </View>
-            {footer}
-          </ScrollView>
-        </KeyboardAvoidingView>
+          <DsText role="title" style={styles.title}>
+            {title}
+          </DsText>
+          {message && <DsFeedback tone="error" message={message} />}
+          {children}
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -138,10 +128,12 @@ export function AuthPage({
 interface AuthFieldProps extends TextInputProps {
   label: string;
   icon?: 'email' | 'name' | 'password';
+  hideLabel?: boolean;
 }
 export function AuthField({
   label,
   icon,
+  hideLabel,
   style,
   secureTextEntry,
   editable = true,
@@ -159,7 +151,7 @@ export function AuthField({
         : null;
   return (
     <View style={styles.field}>
-      <DsText role="label">{label}</DsText>
+      {!hideLabel && <DsText role="label">{label}</DsText>}
       <View
         style={[
           styles.inputRow,
@@ -295,6 +287,25 @@ export function LegalLinksText({
   );
 }
 
+export function AuthBack({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <View
+      pointerEvents={disabled ? 'none' : 'auto'}
+      style={disabled ? { opacity: 0.4 } : undefined}
+    >
+      <DsBackHeader label={label} onPress={onPress} />
+    </View>
+  );
+}
+
 export function AuthStepDots({ step, total }: { step: number; total: number }) {
   return (
     <View
@@ -363,29 +374,21 @@ export function AuthGoogleButton({
 
 export const styles = StyleSheet.create({
   safe: { flex: 1 },
+  topBar: {
+    minHeight: 48,
+    paddingLeft: 12,
+    paddingRight: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   content: {
     paddingHorizontal: 16,
-    paddingVertical: 24,
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 20,
   },
-  card: {
-    width: '100%',
-    maxWidth: 448,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 16,
-    borderRadius: tokens.radius.sheet,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.surface,
-    boxShadow: tokens.shadows.card,
-  },
-  header: { gap: 6 },
-  title: { textAlign: 'center' },
-  subtitle: { color: tokens.colors.textMuted, textAlign: 'center' },
+  title: { textAlign: 'left' },
   text: { color: tokens.colors.textMuted, fontSize: 14, lineHeight: 21 },
   legalText: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 18 },
   legalCentered: { textAlign: 'center' },

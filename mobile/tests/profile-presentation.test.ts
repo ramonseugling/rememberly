@@ -19,7 +19,8 @@ const user: ProfileUser = {
   birth_year: 2000,
 };
 const form: ProfileForm = {
-  name: user.name,
+  first_name: 'Ana',
+  last_name: 'Silva',
   day: '31',
   month: '1',
   year: '2000',
@@ -28,11 +29,14 @@ const form: ProfileForm = {
 test('profile save eligibility returns to unchanged when edits are reverted', () => {
   assert.equal(profileHasChanges(form, user), false);
   assert.equal(
-    profileHasChanges({ ...form, name: '  Ana Silva  ', day: '031' }, user),
+    profileHasChanges(
+      { ...form, first_name: '  Ana ', last_name: ' Silva  ', day: '031' },
+      user,
+    ),
     false,
   );
-  assert.equal(profileHasChanges({ ...form, name: 'Ana Santos' }, user), true);
-  assert.equal(profileHasChanges({ ...form, name: 'Ana Silva' }, user), false);
+  assert.equal(profileHasChanges({ ...form, last_name: 'Santos' }, user), true);
+  assert.equal(profileHasChanges({ ...form, last_name: 'Silva' }, user), false);
   assert.equal(profileHasChanges({ ...form, year: '' }, user), true);
   assert.equal(
     profileHasChanges(

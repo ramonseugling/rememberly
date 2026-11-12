@@ -32,7 +32,10 @@ async function createItem(token: string) {
   const response = await fetch(`${BASE}/gifts`, {
     method: 'POST',
     headers: { ...auth(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: 'Fone de ouvido' }),
+    body: JSON.stringify({
+      title: 'Fone de ouvido',
+      link: 'https://example.com/fone',
+    }),
   });
   return (await response.json()) as { id: string };
 }

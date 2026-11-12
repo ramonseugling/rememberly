@@ -16,7 +16,7 @@ interface Recipient {
 
 async function getRecipients(announcementKey: string): Promise<Recipient[]> {
   const result = await database.query(
-    `SELECT u.id, u.name, u.email FROM users u
+    `SELECT u.id, COALESCE(u.first_name, u.name) AS name, u.email FROM users u
      LEFT JOIN notification_preferences np ON np.user_id = u.id
      WHERE COALESCE(np.email_marketing, u.marketing_consent)
        AND NOT EXISTS (

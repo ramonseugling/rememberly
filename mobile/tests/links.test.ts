@@ -24,18 +24,14 @@ test('supported exact links produce validated intents', () => {
       kind: 'invitation',
       code: 'abc12_-3',
     });
-    assert.deepEqual(
+    assert.equal(
       parseNativeLink(`${origin}reset-password?token=${token}`),
-      { kind: 'reset', token },
+      null,
     );
   }
   assert.equal(
     intentPath({ kind: 'invitation', code: 'abc12_-3' }),
     '/join-group?code=abc12_-3',
-  );
-  assert.equal(
-    intentPath({ kind: 'reset', token }),
-    `/reset-password?token=${token}`,
   );
 });
 test('rejects hostile hosts, redirects, duplicate and malformed parameters', () => {
@@ -161,7 +157,7 @@ test('opens a pending gift list link on the member list after login', () => {
   const id = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
   assert.equal(
     pendingPath({ kind: 'gift-list', userId: id }),
-    `/(tabs)/gifts-member?userId=${id}`,
+    `/(tabs)/birthday?userId=${id}`,
   );
   assert.equal(
     pendingPath({ kind: 'invitation', code: 'abc12_-3' }),

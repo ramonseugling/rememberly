@@ -11,19 +11,32 @@ import {
   giftPayload,
 } from '../src/features/gifts/model.ts';
 
-test('requires a name and trims every field', () => {
+test('requires a name and a link and trims every field', () => {
   assert.equal(
-    giftPayload({ title: '  ', link: '', description: '' }).error,
+    giftPayload({ title: '  ', link: 'https://loja.com', description: '' })
+      .error,
     'Informe o nome do presente.',
   );
+  assert.equal(
+    giftPayload({ title: 'Fone', link: ' ', description: '' }).error,
+    'Informe o link do presente.',
+  );
   assert.deepEqual(
-    giftPayload({ title: ' Fone ', link: ' ', description: ' Preto ' }).payload,
-    { title: 'Fone', link: null, description: 'Preto' },
+    giftPayload({
+      title: ' Fone ',
+      link: ' https://loja.com/fone ',
+      description: ' Preto ',
+    }).payload,
+    { title: 'Fone', link: 'https://loja.com/fone', description: 'Preto' },
   );
 });
 
 test('validates sizes and only accepts plain http(s) links', () => {
-  const base = { title: 'Fone', link: '', description: '' };
+  const base = {
+    title: 'Fone',
+    link: 'https://loja.com/fone',
+    description: '',
+  };
   assert.match(
     giftPayload({ ...base, title: 'a'.repeat(101) }).error ?? '',
     /no máximo 100/,
@@ -45,7 +58,7 @@ test('validates sizes and only accepts plain http(s) links', () => {
   );
 });
 
-test('clears optional fields by sending null when editing', () => {
+test('clears only the description when editing', () => {
   const item = {
     id: '1',
     title: 'Fone',
@@ -54,10 +67,10 @@ test('clears optional fields by sending null when editing', () => {
     created_at: '',
     updated_at: '',
   };
-  const form = { ...formForGift(item), link: '', description: '' };
+  const form = { ...formForGift(item), description: '' };
   assert.deepEqual(giftPayload(form).payload, {
     title: 'Fone',
-    link: null,
+    link: 'https://loja.com',
     description: null,
   });
 });

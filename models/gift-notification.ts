@@ -20,7 +20,7 @@ async function notifyReleased(input: ReleasedInput) {
       user_id: input.ownerId,
     });
     const recipient = await database.query(
-      `SELECT r.name AS user_name, r.email, o.name AS owner_name
+      `SELECT COALESCE(r.first_name, r.name) AS user_name, r.email, o.name AS owner_name
        FROM users r JOIN users o ON o.id = $2
        LEFT JOIN notification_preferences np ON np.user_id = r.id
        WHERE r.id = $1 AND COALESCE(np.email_events, true)`,

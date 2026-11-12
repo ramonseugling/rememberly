@@ -20,16 +20,29 @@ const user: ProfileUser = {
 
 test('missing birthday fields stay empty and are omitted from profile writes', () => {
   const form = profileForm(user);
-  assert.deepEqual(form, { name: 'Alex', day: '', month: '', year: '' });
-  assert.deepEqual(profileUpdate({ ...form, name: '  Alex Example  ' }, user), {
-    name: 'Alex Example',
+  assert.deepEqual(form, {
+    first_name: 'Alex',
+    last_name: '',
+    day: '',
+    month: '',
+    year: '',
   });
+  assert.deepEqual(
+    profileUpdate(
+      { ...form, first_name: '  Alex ', last_name: ' Example ' },
+      user,
+    ),
+    { first_name: 'Alex', last_name: 'Example' },
+  );
 });
 
 test('profile updates parse numeric input and preserve a missing optional year', () => {
   assert.deepEqual(
-    profileUpdate({ name: 'Alex', day: '09', month: '2', year: '' }, user),
-    { name: 'Alex', birth_day: 9, birth_month: 2 },
+    profileUpdate(
+      { first_name: 'Alex', last_name: '', day: '09', month: '2', year: '' },
+      user,
+    ),
+    { first_name: 'Alex', last_name: '', birth_day: 9, birth_month: 2 },
   );
 });
 
@@ -48,8 +61,13 @@ test('existing birthday values cannot silently be cleared through COALESCE write
 });
 
 test('profile validates names and birthday ranges without permissive number parsing', () => {
-  for (const name of [' ', 'a', 'a'.repeat(101)])
-    assert.throws(() => profileUpdate({ ...profileForm(user), name }, user));
+  for (const first_name of [' ', 'a'.repeat(61)])
+    assert.throws(() =>
+      profileUpdate({ ...profileForm(user), first_name }, user),
+    );
+  assert.throws(() =>
+    profileUpdate({ ...profileForm(user), last_name: 'a'.repeat(61) }, user),
+  );
   for (const [field, values] of [
     ['day', ['0', '32', '1.5', '2x', '-1']],
     ['month', ['0', '13']],
@@ -86,14 +104,20 @@ test('civil dates render their exact calendar components without timezone conver
 test('profile refuses a birth date under 12 and accepts exactly 12', () => {
   const today = new Date(2026, 10, 6);
   const update = (year: string, month: string, day: string) =>
-    profileUpdate({ name: 'Alex', day, month, year }, user, 2026, today);
+    profileUpdate(
+      { first_name: 'Alex', last_name: '', day, month, year },
+      user,
+      2026,
+      today,
+    );
   assert.equal(update('2014', '11', '6').birth_year, 2014);
   assert.throws(
     () => update('2014', '11', '7'),
     /É preciso ter 12 anos ou mais para usar o Rememberly\./,
   );
   assert.deepEqual(update('', '11', '7'), {
-    name: 'Alex',
+    first_name: 'Alex',
+    last_name: '',
     birth_day: 7,
     birth_month: 11,
   });

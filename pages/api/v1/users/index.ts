@@ -28,6 +28,8 @@ export default async function handler(
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const {
     name,
+    first_name,
+    last_name,
     email,
     password,
     otp_code,
@@ -44,6 +46,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   const createdUser = await user.create({
     name,
+    first_name,
+    last_name,
     email,
     password,
     birth_day,
@@ -68,13 +72,13 @@ async function verifyCode(email: string, code: string) {
 }
 
 async function handlePatch(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { name, birth_day, birth_month, birth_year } = parseSchema(
-    updateUserSchema,
-    req.body,
-  );
+  const { name, first_name, last_name, birth_day, birth_month, birth_year } =
+    parseSchema(updateUserSchema, req.body);
 
   const updatedUser = await user.update(req.user.id, {
     name,
+    first_name,
+    last_name,
     birth_day,
     birth_month,
     birth_year,

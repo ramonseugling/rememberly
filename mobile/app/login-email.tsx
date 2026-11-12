@@ -4,6 +4,7 @@ import { useSession } from '../src/session/provider';
 import { emailError } from '../src/features/auth/api';
 import {
   AuthAction,
+  AuthBack,
   AuthField,
   AuthLink,
   AuthPage,
@@ -20,17 +21,21 @@ export default function LoginEmailScreen() {
       () => () => {
         setPassword('');
         setValidation(null);
+        controller.clearMessage();
       },
-      [],
+      [controller],
     ),
   );
 
   function submit() {
     if (controller.getSnapshot().status !== 'signed-out') return;
-    const error =
-      emailError(email) ?? (!password ? 'Informe sua senha.' : null);
+    const error = emailError(email);
     if (error) {
       setValidation(error);
+      return;
+    }
+    if (!password) {
+      setValidation('Informe sua senha.');
       return;
     }
     setValidation(null);
@@ -40,12 +45,10 @@ export default function LoginEmailScreen() {
   }
   return (
     <AuthPage
-      title="Entrar com e-mail"
-      subtitle="Use o e-mail e a senha da sua conta."
+      title="Qual é o seu e-mail e a sua senha?"
       back={
-        <AuthLink
-          label="← Voltar"
-          align="left"
+        <AuthBack
+          label="Entrar"
           disabled={busy}
           onPress={() => {
             if (router.canGoBack()) router.back();
@@ -74,6 +77,7 @@ export default function LoginEmailScreen() {
       ) : (
         <>
           <AuthField
+            hideLabel
             label="E-mail"
             icon="email"
             placeholder="seu@email.com"
@@ -90,8 +94,10 @@ export default function LoginEmailScreen() {
             returnKeyType="next"
           />
           <AuthField
+            hideLabel
             label="Senha"
             icon="password"
+            placeholder="Senha"
             value={password}
             onChangeText={(value) => {
               setPassword(value);

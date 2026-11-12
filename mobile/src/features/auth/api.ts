@@ -7,7 +7,9 @@ export type PublicTransport = (
 
 const KNOWN_BAD_REQUESTS: Record<string, string> = {
   'Este e-mail já está em uso.':
-    'Este e-mail já tem cadastro. Entre com a sua conta ou recupere a senha.',
+    'Este e-mail já está associado a outra conta. Entre com ela ou recupere a senha.',
+  'Verificação inválida ou expirada.':
+    'A confirmação expirou. Volte e peça um novo código.',
   'Código de verificação incorreto.':
     'O código está incorreto. Confira o e-mail e tente de novo.',
   'Código de verificação inválido, expirado ou tentativas esgotadas.':
@@ -48,6 +50,8 @@ export const TERMS_REQUIRED_MESSAGE =
 
 export interface Registration {
   name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   password: string;
   otp_code: string;
@@ -188,6 +192,19 @@ export function createPublicAuthApi(
       if (typeof data.name !== 'string' || !data.name)
         throw new PublicAuthError();
       return { name: data.name };
+    },
+    async verifyResetCode(email: string, code: string, signal?: AbortSignal) {
+      const data = await post(
+        '/api/v1/password/verify',
+        { email: email.trim().toLowerCase(), otp_code: code },
+        signal,
+      );
+      if (
+        typeof data.reset_token !== 'string' ||
+        !/^[a-f0-9]{96}$/.test(data.reset_token)
+      )
+        throw new PublicAuthError();
+      return data.reset_token;
     },
     async resetPassword(token: string, password: string, signal?: AbortSignal) {
       const data = await post(

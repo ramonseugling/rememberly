@@ -147,6 +147,8 @@ test('profile returns exact current fields, including null birthday and subseque
     user: {
       id: user.id,
       name: user.name,
+      first_name: null,
+      last_name: null,
       email: user.email,
       birth_day: null,
       birth_month: null,
@@ -172,6 +174,8 @@ test('profile returns exact current fields, including null birthday and subseque
   expect((await (await request(paths[0])).json()).user).toEqual({
     id: user.id,
     name: 'Updated Profile',
+    first_name: 'Updated',
+    last_name: 'Profile',
     email: user.email,
     birth_day: 4,
     birth_month: 5,

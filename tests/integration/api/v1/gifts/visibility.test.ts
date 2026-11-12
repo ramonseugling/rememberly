@@ -27,7 +27,10 @@ async function userWithId() {
 }
 
 async function addItem(token: string, title: string) {
-  await call(token, 'POST', '/gifts', { title });
+  await call(token, 'POST', '/gifts', {
+    title,
+    link: 'https://example.com/item',
+  });
 }
 
 describe('who can see a gift list', () => {

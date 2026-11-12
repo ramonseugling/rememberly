@@ -25,10 +25,6 @@ export default function TabLayout() {
       <Tabs.Screen name="legal" options={{ title: 'Termos' }} />
       <Tabs.Screen name="account" options={{ title: 'Conta' }} />
       <Tabs.Screen name="birthday" options={{ title: 'Aniversário' }} />
-      <Tabs.Screen
-        name="gifts-member"
-        options={{ title: 'Lista de presentes' }}
-      />
       <Tabs.Screen name="notifications" options={{ title: 'Notificações' }} />
     </Tabs>
   );

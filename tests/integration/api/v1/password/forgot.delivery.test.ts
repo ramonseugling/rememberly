@@ -55,29 +55,25 @@ describe('POST /api/v1/password/forgot (provider delivery)', () => {
     const data = await response.json();
     expect(data.message).toBeDefined();
   });
-  it('allows up to 2 requests per hour', async () => {
+  it('allows up to 5 requests per hour', async () => {
     const createdUser = await createUserWithOtp();
 
-    const first = await requestPasswordReset(createdUser.email);
-    expect(first.status).toBe(200);
-
-    const second = await requestPasswordReset(createdUser.email);
-    expect(second.status).toBe(200);
+    for (let index = 0; index < 5; index += 1) {
+      const response = await requestPasswordReset(createdUser.email);
+      expect(response.status).toBe(200);
+    }
   });
-  it('does not count tokens created more than 1 hour ago', async () => {
+  it('does not count codes created more than 1 hour ago', async () => {
     const createdUser = await createUserWithOtp();
 
-    await database.query(
-      `INSERT INTO password_reset_tokens (token, user_id, expires_at, created_at)
-         VALUES ($1, $2, NOW() + INTERVAL '1 hour', NOW() - INTERVAL '2 hours'),
-                ($3, $4, NOW() + INTERVAL '1 hour', NOW() - INTERVAL '2 hours')`,
-      [
-        faker.string.hexadecimal({ length: 96, prefix: '' }),
-        createdUser.id,
-        faker.string.hexadecimal({ length: 96, prefix: '' }),
-        createdUser.id,
-      ],
-    );
+    for (let index = 0; index < 5; index += 1) {
+      await database.query(
+        `INSERT INTO otp_tokens (email, code, expires_at, created_at, purpose)
+         VALUES (LOWER($1), $2, NOW() - INTERVAL '1 hour',
+                 NOW() - INTERVAL '2 hours', 'password_reset')`,
+        [createdUser.email, String(200000 + index)],
+      );
+    }
 
     const response = await requestPasswordReset(createdUser.email);
     expect(response.status).toBe(200);

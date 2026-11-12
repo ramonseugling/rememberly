@@ -18,9 +18,14 @@ function call(token: string | null, method: string, body?: unknown, path = '') {
   });
 }
 
+const LINK = 'https://example.com/item';
+
 describe('gift list API (owner)', () => {
   it('requires authentication on every route', async () => {
-    const created = await call(null, 'POST', { title: 'x' });
+    const created = await call(null, 'POST', {
+      title: 'x',
+      link: 'https://example.com/item',
+    });
     expect(created.status).toBe(401);
     expect((await call(null, 'GET')).status).toBe(401);
     expect((await call(null, 'PATCH', { title: 'x' }, '/abc')).status).toBe(
@@ -35,7 +40,10 @@ describe('gift list API (owner)', () => {
     const empty = await (await call(token, 'GET')).json();
     expect(empty).toEqual({ items: [], limit: 50 });
 
-    const first = await call(token, 'POST', { title: 'Livro de receitas' });
+    const first = await call(token, 'POST', {
+      title: 'Livro de receitas',
+      link: 'https://example.com/item',
+    });
     expect(first.status).toBe(201);
     const second = await call(token, 'POST', {
       title: 'Fone de ouvido',
@@ -64,14 +72,23 @@ describe('gift list API (owner)', () => {
   it('rejects invalid input with Portuguese validation errors', async () => {
     const token = await orchestrator.createUserAndToken();
     const cases: [unknown, string][] = [
-      [{}, 'O nome do presente é obrigatório.'],
-      [{ title: '   ' }, 'O nome do presente é obrigatório.'],
-      [{ title: 'a'.repeat(101) }, 'O nome do presente deve ter no máximo'],
+      [{ link: LINK }, 'O nome do presente é obrigatório.'],
+      [{ title: '   ', link: LINK }, 'O nome do presente é obrigatório.'],
+      [
+        { title: 'a'.repeat(101), link: LINK },
+        'O nome do presente deve ter no máximo',
+      ],
       [
         { title: 'ok', link: 'javascript:alert(1)' },
         'O link do presente é inválido.',
       ],
-      [{ title: 'ok', extra: true }, 'Unrecognized key'],
+      [
+        { title: 'ok', link: 'https://exemplo.com/x', extra: true },
+        'Unrecognized key',
+      ],
+      [{ title: 'ok' }, 'O link é obrigatório.'],
+      [{ title: 'ok', link: '   ' }, 'O link do presente é obrigatório.'],
+      [{ title: 'ok', link: null }, 'O link inválido.'],
       [{ title: 123 }, 'inválido'],
     ];
     for (const [body, message] of cases) {
@@ -85,10 +102,14 @@ describe('gift list API (owner)', () => {
     const token = await orchestrator.createUserAndToken();
     for (let index = 0; index < 50; index += 1)
       expect(
-        (await call(token, 'POST', { title: `Item ${index}` })).status,
+        (await call(token, 'POST', { title: `Item ${index}`, link: LINK }))
+          .status,
       ).toBe(201);
 
-    const response = await call(token, 'POST', { title: 'Item 51' });
+    const response = await call(token, 'POST', {
+      title: 'Item 51',
+      link: 'https://example.com/item',
+    });
 
     expect(response.status).toBe(400);
     expect((await response.json()).message).toBe(
@@ -125,13 +146,17 @@ describe('gift list API (owner)', () => {
     const cleared = await call(
       token,
       'PATCH',
-      { link: null, description: '' },
+      { description: '' },
       `/${item.id}`,
     );
     expect(await cleared.json()).toMatchObject({
-      link: null,
+      link: 'https://loja.example.com/tenis',
       description: null,
     });
+    for (const link of [null, '', '   ']) {
+      const rejected = await call(token, 'PATCH', { link }, `/${item.id}`);
+      expect(rejected.status).toBe(400);
+    }
 
     expect((await call(token, 'PATCH', {}, `/${item.id}`)).status).toBe(400);
     expect(
@@ -150,7 +175,10 @@ describe('gift list API (owner)', () => {
     const ownerToken = await orchestrator.createUserAndToken();
     const otherToken = await orchestrator.createUserAndToken();
     const item = await (
-      await call(ownerToken, 'POST', { title: 'Privado' })
+      await call(ownerToken, 'POST', {
+        title: 'Privado',
+        link: 'https://example.com/item',
+      })
     ).json();
 
     expect(

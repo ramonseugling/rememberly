@@ -285,7 +285,7 @@ async function sendEmails(
 ): Promise<{ sent: number; failed: number }> {
   const recipients = (
     await database.query(
-      `SELECT u.id, u.name, u.email ${EMAIL_RECIPIENTS_SQL}`,
+      `SELECT u.id, COALESCE(u.first_name, u.name) AS name, u.email ${EMAIL_RECIPIENTS_SQL}`,
       [communication.id],
     )
   ).rows as EmailRecipient[];

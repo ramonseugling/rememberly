@@ -207,55 +207,12 @@ export function buildReminderHtml(
   });
 }
 
-interface SendPasswordResetEmailInput {
-  to: string;
-  userName: string;
-  resetUrl: string;
-}
-
-async function sendPasswordResetEmail(input: SendPasswordResetEmailInput) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
-  const safeUserName = escapeHtml(input.userName);
-  const safeResetUrl = escapeHtml(input.resetUrl);
-
-  await resend.emails.send({
-    from: FROM,
-    to: input.to,
-    subject: 'Redefinição de senha',
-    html: buildPasswordResetHtml(safeUserName, safeResetUrl),
-  });
-
-  log.info('password_reset_email_sent');
-}
-
-export function buildPasswordResetHtml(userName: string, resetUrl: string) {
-  const content = `
-    <p style="color: ${COLOR.text}; font-size: 15px; margin: 0 0 24px 0; line-height: 1.5;">
-      Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para criar uma nova senha:
-    </p>
-    <div style="text-align: center; margin-bottom: 24px;">
-      <a href="${resetUrl}" style="display: inline-block; ${BRAND_GRADIENT_BG} color: #ffffff; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 20px; text-decoration: none;">
-        Redefinir senha
-      </a>
-    </div>
-    <p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 0 0 8px 0;">
-      Este link expira em <strong>1 hora</strong>.
-    </p>
-    <p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 0;">
-      Se você não solicitou a redefinição, ignore este e-mail — sua senha permanece a mesma.
-    </p>
-  `;
-
-  return buildEmailLayout({
-    greeting: `Olá, <strong>${userName}</strong>! 👋`,
-    content,
-  });
-}
+export type OtpEmailPurpose = 'signup' | 'password_reset';
 
 interface SendOtpEmailInput {
   to: string;
   code: string;
+  purpose?: OtpEmailPurpose;
 }
 
 async function sendOtpEmail(input: SendOtpEmailInput) {
@@ -266,8 +223,11 @@ async function sendOtpEmail(input: SendOtpEmailInput) {
   await resend.emails.send({
     from: FROM,
     to: input.to,
-    subject: 'Seu código de verificação',
-    html: buildOtpHtml(safeCode),
+    subject:
+      input.purpose === 'password_reset'
+        ? 'Código para redefinir sua senha'
+        : 'Seu código de verificação',
+    html: buildOtpHtml(safeCode, input.purpose),
   });
 
   log.info('otp_email_sent');
@@ -315,10 +275,17 @@ export function buildAccountDeletionCodeHtml(code: string) {
   });
 }
 
-export function buildOtpHtml(code: string) {
+export function buildOtpHtml(
+  code: string,
+  purpose: OtpEmailPurpose = 'signup',
+) {
+  const intro =
+    purpose === 'password_reset'
+      ? 'Recebemos uma solicitação para redefinir a senha da sua conta. Use o código abaixo no aplicativo para continuar:'
+      : 'Use o código abaixo para verificar seu e-mail e concluir o cadastro:';
   const content = `
     <p style="color: ${COLOR.text}; font-size: 15px; margin: 0 0 20px 0; line-height: 1.5;">
-      Use o código abaixo para verificar seu e-mail e concluir o cadastro:
+      ${intro}
     </p>
     <div style="${BRAND_GRADIENT_BG} padding: 24px; border-radius: 20px; margin-bottom: 8px; text-align: center;">
       <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 12px 0; font-weight: 500;">
@@ -332,7 +299,9 @@ export function buildOtpHtml(code: string) {
       Este código expira em <strong>10 minutos</strong>.
     </p>
     <p style="color: ${COLOR.textMuted}; font-size: 13px; margin: 0;">
-      Se você não solicitou este código, ignore este e-mail.
+      Se você não solicitou este código, ignore este e-mail${
+        purpose === 'password_reset' ? ' — sua senha permanece a mesma' : ''
+      }.
     </p>
   `;
 
@@ -697,7 +666,6 @@ export function buildGiftReleasedHtml(
 const email = {
   sendEventNotification,
   sendReminderNotification,
-  sendPasswordResetEmail,
   sendOtpEmail,
   sendAccountDeletionCodeEmail,
   sendDailyDigestEmail,

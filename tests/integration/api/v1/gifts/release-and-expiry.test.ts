@@ -42,7 +42,10 @@ async function scenario(
   const group = await orchestrator.createGroup(owner.token, 'Casa');
   await orchestrator.joinGroup(alice.token, group.invite_code);
   const item = await (
-    await call(owner.token, 'POST', '/gifts', { title: 'Fone' })
+    await call(owner.token, 'POST', '/gifts', {
+      title: 'Fone',
+      link: 'https://example.com/item',
+    })
   ).json();
   await call(alice.token, 'PUT', `/gifts/${item.id}/reservation`, {
     status: 'reserved',
@@ -157,12 +160,18 @@ describe('post-birthday expiry', () => {
       birth_month: 5,
     });
     const second = await (
-      await call(owner.token, 'POST', '/gifts', { title: 'Livro' })
+      await call(owner.token, 'POST', '/gifts', {
+        title: 'Livro',
+        link: 'https://example.com/item',
+      })
     ).json();
     await call(alice.token, 'PUT', `/gifts/${second.id}/reservation`, {
       status: 'purchased',
     });
-    await call(owner.token, 'POST', '/gifts', { title: 'Tênis' });
+    await call(owner.token, 'POST', '/gifts', {
+      title: 'Tênis',
+      link: 'https://example.com/item',
+    });
     await database.query(
       "UPDATE gift_lists SET created_at = '2026-01-01' WHERE user_id = $1",
       [owner.id],
@@ -187,7 +196,10 @@ describe('post-birthday expiry', () => {
       { title: 'Fone', status: null },
       { title: 'Tênis', status: null },
     ]);
-    await call(owner.token, 'POST', '/gifts', { title: 'Novo' });
+    await call(owner.token, 'POST', '/gifts', {
+      title: 'Novo',
+      link: 'https://example.com/item',
+    });
     const again = await expireGiftLists(day('2026-05-20'));
     expect(again.lists).toBe(0);
     expect(await listState(owner.id)).toHaveLength(3);
@@ -199,7 +211,10 @@ describe('post-birthday expiry', () => {
     await expireGiftLists(day('2026-07-01'));
     expect(await listState(owner.id)).toHaveLength(2);
 
-    await call(owner.token, 'POST', '/gifts', { title: 'Ano que vem' });
+    await call(owner.token, 'POST', '/gifts', {
+      title: 'Ano que vem',
+      link: 'https://example.com/item',
+    });
     await expireGiftLists(day('2027-05-18'));
     const row = await database.query(
       'SELECT expired_for::text FROM gift_lists WHERE user_id = $1',

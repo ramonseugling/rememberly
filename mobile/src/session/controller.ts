@@ -89,7 +89,7 @@ export class SessionController {
     if (epoch !== this.epoch || token !== this.token) return;
     const rejectedEpoch = ++this.epoch;
     this.token = null;
-    this.update('signed-out', 'Sua sessão expirou. Entre novamente.');
+    this.update('signed-out');
     let removed = true;
     try {
       await this.stored(async () => {
@@ -107,6 +107,13 @@ export class SessionController {
       );
     }
   }
+
+  // Drops a stale error once the person leaves the screen that showed it.
+  clearMessage = () => {
+    const { status, message, identity, logoutUnconfirmed } = this.state;
+    if (!message || logoutUnconfirmed || status === 'authenticated') return;
+    this.update(status, null, identity);
+  };
 
   getSnapshot = () => this.state;
   subscribe = (listener: () => void) => {
@@ -189,7 +196,7 @@ export class SessionController {
       if (epoch !== this.epoch) return;
       if (error instanceof SessionApiError && error.status === 401) {
         this.token = null;
-        this.update('signed-out', 'Sua sessão expirou. Entre novamente.');
+        this.update('signed-out');
         let removed = true;
         try {
           await this.stored(async () => {
@@ -202,7 +209,7 @@ export class SessionController {
           this.update(
             'signed-out',
             removed
-              ? 'Sua sessão expirou. Entre novamente.'
+              ? null
               : 'Sua sessão expirou. Não foi possível remover o acesso salvo; tente sair novamente.',
             null,
             !removed,

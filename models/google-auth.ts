@@ -1,5 +1,6 @@
 import { log } from 'next-axiom';
 import { LEGAL_VERSION } from '@/lib/legal/shared';
+import { splitName } from '@/lib/person-name';
 import database from 'infra/database';
 import { ServiceError, ValidationError } from 'infra/errors';
 
@@ -114,11 +115,18 @@ async function findUserByEmail(email: string) {
 }
 
 async function createUser(profile: GoogleUserProfile) {
+  const split = splitName(profile.name);
   const result = await database.query(
-    `INSERT INTO users (name, email, terms_accepted_at, terms_version)
-     VALUES ($1, $2, NOW(), $3)
+    `INSERT INTO users (name, first_name, last_name, email, terms_accepted_at, terms_version)
+     VALUES ($1, $2, $3, $4, NOW(), $5)
      RETURNING id, name, email, created_at, updated_at`,
-    [profile.name, profile.email.toLowerCase(), LEGAL_VERSION],
+    [
+      split.name,
+      split.first_name,
+      split.last_name,
+      profile.email.toLowerCase(),
+      LEGAL_VERSION,
+    ],
   );
 
   return result.rows[0];

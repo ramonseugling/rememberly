@@ -34,7 +34,10 @@ async function scenario() {
   await orchestrator.joinGroup(alice.token, group.invite_code);
   await orchestrator.joinGroup(bob.token, group.invite_code);
   const item = await (
-    await call(owner.token, 'POST', '/gifts', { title: 'Fone' })
+    await call(owner.token, 'POST', '/gifts', {
+      title: 'Fone',
+      link: 'https://example.com/item',
+    })
   ).json();
   return { owner, alice, bob, group, item: item as { id: string } };
 }
@@ -120,7 +123,10 @@ describe('secret gift reservations', () => {
   it('drops a reservation when the reserver loses access, but keeps purchases', async () => {
     const { owner, alice, bob, group, item } = await scenario();
     const second = await (
-      await call(owner.token, 'POST', '/gifts', { title: 'Livro' })
+      await call(owner.token, 'POST', '/gifts', {
+        title: 'Livro',
+        link: 'https://example.com/item',
+      })
     ).json();
     await reserve(alice.token, item.id);
     await reserve(alice.token, second.id, 'purchased');

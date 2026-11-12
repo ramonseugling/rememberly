@@ -1,25 +1,21 @@
 # Native links and notification taps
 
-The app accepts validated Rememberly invitations and password-reset links. The `rememberly` custom scheme is configured. HTTPS links remain website links until the domain association requirements below are completed in signed builds. This task does not publish association files or change the web fallback.
+The app accepts validated Rememberly invitations and gift-list links. Password reset no longer uses links: it is an e-mailed 6-digit code entered in the app (`/api/v1/password/verify`). The `rememberly` custom scheme is configured. HTTPS links remain website links until the domain association requirements below are completed in signed builds. This task does not publish association files or change the web fallback.
 
 ## Accepted inputs
 
-| Input                                                                     | Result                                                                         |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `rememberly://join-group?code=abc12_-3`                                   | Explicit invitation confirmation                                               |
-| `rememberly://reset-password?token=<96 lowercase hexadecimal characters>` | Password form; no automatic password change                                    |
-| `https://rememberly.com.br/join-group?code=abc12_-3`                      | Same validated invitation when delivered to the app                            |
-| `https://www.rememberly.com.br/reset-password?token=...`                  | Same validated reset when delivered to the app                                 |
-| `rememberly://gift-list?user=<user UUID>`                                 | Opens that person's gift list (signed-in) or asks to sign in first             |
-| `https://rememberly.com.br/gift-list?user=<user UUID>`                    | Website page with an "Open in the app" button until Universal Links are set up |
+| Input                                                  | Result                                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `rememberly://join-group?code=abc12_-3`                | Explicit invitation confirmation                                               |
+| `https://rememberly.com.br/join-group?code=abc12_-3`   | Same validated invitation when delivered to the app                            |
+| `rememberly://gift-list?user=<user UUID>`              | Opens that person's gift list (signed-in) or asks to sign in first             |
+| `https://rememberly.com.br/gift-list?user=<user UUID>` | Website page with an "Open in the app" button until Universal Links are set up |
 
-The `rememberly:///path` and `rememberly://app/path` forms are accepted too. Only the exact `/join-group` and `/reset-password` paths and their single expected parameter are allowed. Links reject other hosts, credentials, ports outside the exact origin, fragments, duplicate or unknown parameters, whitespace, encoding tricks, normalized traversal, malformed values, and inputs over 512 characters. Invitation codes match the server's eight lowercase base64url characters. Password reset tokens match the server's 48-byte hexadecimal format.
+The `rememberly:///path` and `rememberly://app/path` forms are accepted too. Only the exact `/join-group` and `/gift-list` paths and their single expected parameter are allowed. Links reject other hosts, credentials, ports outside the exact origin, fragments, duplicate or unknown parameters, whitespace, encoding tricks, normalized traversal, malformed values, and inputs over 512 characters. Invitation codes match the server's eight lowercase base64url characters.
 
 In development, the already validated `EXPO_PUBLIC_API_URL` origin is also accepted; there is no wildcard for localhost, arbitrary preview domains, or production HTTP. Unknown system links fall back to the app's normal entry screen. No external link can choose an arbitrary route or perform a write just by opening.
 
 A signed-out invitation offers login or signup. The validated pending intent stays in memory and returns to the invitation after authentication. It is never embedded in a `next` redirect parameter. Cancel clears it; process termination discards it. Joining requires pressing **Confirm and join group**, which calls the existing authenticated API, then opens the returned group using a UUID-only parameter. Server membership checks continue to govern group reads. Errors leave confirmation available for retry; cancelled/unmounted or stale-account responses cannot navigate.
-
-Reset tokens are used only by the reset form and removed from route parameters after capture. They are not native session tokens; no login/session credential is added to a URL or ordinary storage. The password change remains an explicit form submission. Reset forms are available with or without a current session.
 
 ## Notification navigation
 
@@ -44,7 +40,7 @@ Choose final per-environment iOS bundle IDs and Android application IDs first. S
 
 For each trusted HTTPS host that should open the app:
 
-1. Serve a valid HTTPS `/.well-known/apple-app-site-association` JSON document without redirects. Its `applinks.details` must name the real `TEAM_ID.bundleIdentifier` and restrict components to `/join-group` and `/reset-password` with the required query names.
+1. Serve a valid HTTPS `/.well-known/apple-app-site-association` JSON document without redirects. Its `applinks.details` must name the real `TEAM_ID.bundleIdentifier` and restrict components to `/join-group` and `/gift-list` with the required query names.
 2. Add that host's `applinks:` entitlement to the iOS signed build's `associatedDomains` after the identifiers and association document agree.
 3. Serve `/.well-known/assetlinks.json` containing `delegate_permission/common.handle_all_urls`, the real Android package name, and its real SHA-256 signing fingerprints.
 4. Add HTTPS `VIEW` intent filters with `autoVerify`, `BROWSABLE` and `DEFAULT` categories, exact hosts, and the two supported paths to the Android signed build.
@@ -54,6 +50,6 @@ No placeholder Team ID, bundle ID, application ID, fingerprint, association file
 
 ## Device checks before release
 
-Use installed iOS and Android development/release builds, then repeat with store signing where relevant. Test cold and warm opens, signed-out invitation through login and signup, explicit cancel/confirm, invalid/expired invitation, password reset, malformed/hostile links, logout/account switch during pending operations, and server denial of unavailable resources. Test foreground/background/terminated push taps, duplicate/unknown payloads, startup restoration, permission denial, and revoked sessions. Verify website fallback without the app. Expo Go and local pure tests do not prove these behaviors.
+Use installed iOS and Android development/release builds, then repeat with store signing where relevant. Test cold and warm opens, signed-out invitation through login and signup, explicit cancel/confirm, invalid/expired invitation, malformed/hostile links, logout/account switch during pending operations, and server denial of unavailable resources. Test foreground/background/terminated push taps, duplicate/unknown payloads, startup restoration, permission denial, and revoked sessions. Verify website fallback without the app. Expo Go and local pure tests do not prove these behaviors.
 
 See [MOB-020](tasks/MOB-020-native-links.md), [session contract](session-contract.md), and [push contract](push-contract.md).

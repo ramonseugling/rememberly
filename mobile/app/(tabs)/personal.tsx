@@ -203,11 +203,21 @@ function PersonalContent() {
               <DsField
                 label="Nome"
                 accessibilityLabel="Nome"
-                autoComplete="name"
-                value={editor.form.name}
-                onChangeText={(value) => change('name', value)}
+                autoComplete="given-name"
+                value={editor.form.first_name}
+                onChangeText={(value) => change('first_name', value)}
                 editable={!saving}
-                maxLength={100}
+                maxLength={60}
+                autoCapitalize="words"
+              />
+              <DsField
+                label="Sobrenome"
+                accessibilityLabel="Sobrenome"
+                autoComplete="family-name"
+                value={editor.form.last_name}
+                onChangeText={(value) => change('last_name', value)}
+                editable={!saving}
+                maxLength={60}
                 autoCapitalize="words"
               />
               <DsField

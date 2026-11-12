@@ -1,4 +1,4 @@
-import type { ProfileForm, ProfileUser } from './forms';
+import { profileForm, type ProfileForm, type ProfileUser } from './forms.ts';
 
 export const profileMonths = [
   'Janeiro',
@@ -19,8 +19,10 @@ export function profileHasChanges(
   form: ProfileForm,
   user: ProfileUser,
 ): boolean {
+  const original = profileForm(user);
   return (
-    form.name.trim() !== user.name ||
+    form.first_name.trim() !== original.first_name ||
+    form.last_name.trim() !== original.last_name ||
     (form.day ? Number(form.day) : null) !== user.birth_day ||
     (form.month ? Number(form.month) : null) !== user.birth_month ||
     (form.year ? Number(form.year) : null) !== user.birth_year

@@ -1,13 +1,16 @@
 import { MIN_AGE, MIN_AGE_MESSAGE, isAtLeastAge } from '@/lib/age';
 import { getToday } from '@/lib/date-utils';
 import { LEGAL_VERSION } from '@/lib/legal/shared';
+import { resolveName } from '@/lib/person-name';
 import database from 'infra/database';
 import { NotFoundError, ValidationError } from 'infra/errors';
 import { createDefaults } from 'models/notification-preferences';
 import password from 'models/password';
 
 interface CreateUserInput {
-  name: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string | null;
   email: string;
   password: string;
   birth_day: number;
@@ -18,6 +21,8 @@ interface CreateUserInput {
 
 interface UpdateUserInput {
   name?: string;
+  first_name?: string;
+  last_name?: string | null;
   birth_day?: number;
   birth_month?: number;
   birth_year?: number;
@@ -37,12 +42,15 @@ async function create(input: CreateUserInput) {
   return newUser;
 
   async function runInsertQuery(values: CreateUserInput) {
+    const fullName = resolveName(values)!;
     const result = await database.query(
-      `INSERT INTO users (name, email, password, birth_day, birth_month, birth_year, marketing_consent, terms_accepted_at, terms_version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
-       RETURNING id, name, email, birth_day, birth_month, birth_year, marketing_consent, created_at, updated_at`,
+      `INSERT INTO users (name, first_name, last_name, email, password, birth_day, birth_month, birth_year, marketing_consent, terms_accepted_at, terms_version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+       RETURNING id, name, first_name, last_name, email, birth_day, birth_month, birth_year, marketing_consent, created_at, updated_at`,
       [
-        values.name,
+        fullName.name,
+        fullName.first_name,
+        fullName.last_name,
         values.email.toLowerCase(),
         values.password,
         values.birth_day,
@@ -82,17 +90,23 @@ async function update(userId: string, input: UpdateUserInput) {
     }
   }
 
+  const newName = resolveName(input);
+
   const result = await database.query(
     `UPDATE users
      SET name = COALESCE($1, name),
-         birth_day = COALESCE($2, birth_day),
-         birth_month = COALESCE($3, birth_month),
-         birth_year = COALESCE($4, birth_year),
+         first_name = COALESCE($2, first_name),
+         last_name = CASE WHEN $2::text IS NULL THEN last_name ELSE $3 END,
+         birth_day = COALESCE($4, birth_day),
+         birth_month = COALESCE($5, birth_month),
+         birth_year = COALESCE($6, birth_year),
          updated_at = NOW()
-     WHERE id = $5
-     RETURNING id, name, email, avatar_url, birth_day, birth_month, birth_year, created_at, updated_at`,
+     WHERE id = $7
+     RETURNING id, name, first_name, last_name, email, avatar_url, birth_day, birth_month, birth_year, created_at, updated_at`,
     [
-      input.name ?? null,
+      newName?.name ?? null,
+      newName?.first_name ?? null,
+      newName?.last_name ?? null,
       input.birth_day ?? null,
       input.birth_month ?? null,
       input.birth_year ?? null,

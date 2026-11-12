@@ -241,7 +241,7 @@ test('invite preview rejects unknown codes and malformed responses', async () =>
 
 test('explains known bad requests with app copy, never the raw server text', async () => {
   const cases: [string, RegExp][] = [
-    ['Este e-mail já está em uso.', /já tem cadastro/],
+    ['Este e-mail já está em uso.', /já está associado a outra conta/],
     ['Código de verificação incorreto.', /código está incorreto/],
     [
       'Código de verificação inválido, expirado ou tentativas esgotadas.',
@@ -355,4 +355,29 @@ test('register accepts a verification token instead of the code', async () => {
 
   assert.equal(bodies[0]?.verification_token, 'b'.repeat(64));
   assert.equal('otp_code' in (bodies[0] ?? {}), false);
+});
+
+test('verifyResetCode posts to the fixed endpoint and returns only a well-formed token', async () => {
+  const token = 'c'.repeat(96);
+  const calls: { url: string; body: unknown }[] = [];
+  const api = createPublicAuthApi(
+    'https://api.example.com',
+    async (url, init) => {
+      calls.push({ url, body: JSON.parse(String(init.body)) });
+      return response({ reset_token: token });
+    },
+  );
+
+  assert.equal(await api.verifyResetCode(' SAM@example.com ', '123456'), token);
+  assert.deepEqual(calls, [
+    {
+      url: 'https://api.example.com/api/v1/password/verify',
+      body: { email: 'sam@example.com', otp_code: '123456' },
+    },
+  ]);
+
+  const broken = createPublicAuthApi('https://api.example.com', async () =>
+    response({ reset_token: 'short' }),
+  );
+  await assert.rejects(broken.verifyResetCode('sam@example.com', '123456'));
 });

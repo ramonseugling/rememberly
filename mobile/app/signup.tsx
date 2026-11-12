@@ -11,6 +11,7 @@ import {
 } from '../src/design-system';
 import {
   AuthAction,
+  AuthBack,
   AuthField,
   AuthLink,
   AuthPage,
@@ -29,6 +30,7 @@ import {
   profileDaysInMonth,
   profileMonths,
 } from '../src/features/account/profile-presentation';
+import { useResendCooldown } from '../src/features/auth/resend-cooldown';
 import { useSession } from '../src/session/provider';
 
 const currentYear = new Date().getFullYear();
@@ -39,41 +41,32 @@ const years = Array.from({ length: currentYear - 1900 + 1 }, (_, index) => ({
 
 const STEPS = 5;
 
-const copy = [
-  {
-    title: 'Qual é o seu nome?',
-    subtitle: 'Assim seus amigos e grupos sabem quem é você.',
-  },
-  {
-    title: 'Qual é o seu e-mail?',
-    subtitle: 'Vamos enviar um código para confirmar que ele é seu.',
-  },
-  { title: 'Verifique seu e-mail', subtitle: '' },
-  {
-    title: 'Crie uma senha',
-    subtitle: 'Você vai usá-la para entrar no Rememberly.',
-  },
-  {
-    title: 'Quando é o seu aniversário?',
-    subtitle: 'Para os seus amigos lembrarem de você.',
-  },
+const titles = [
+  'Qual é o seu e-mail?',
+  'Verifique seu e-mail',
+  'Qual é o seu nome?',
+  'Crie uma senha',
+  'Quando é o seu aniversário?',
 ] as const;
 
 export default function SignupScreen() {
   const { state, controller } = useSession();
   const task = useAuthTask();
   const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [verificationToken, setVerificationToken] = useState<string | null>(
     null,
   );
   const [password, setPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const resend = useResendCooldown();
   const [day, setDay] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
-  const [marketing, setMarketing] = useState(false);
+  const [marketing, setMarketing] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [registered, setRegistered] = useState(false);
   const sessionBusy =
@@ -85,6 +78,7 @@ export default function SignupScreen() {
     useCallback(
       () => () => {
         setPassword('');
+        setConfirmation('');
         setCode('');
         setVerificationToken(null);
       },
@@ -97,12 +91,17 @@ export default function SignupScreen() {
     setStep(next);
   }
   function submitName() {
-    const length = name.trim().length;
-    if (length < 2 || length > 100) {
-      task.setMessage('Use um nome entre 2 e 100 caracteres.');
+    const first = firstName.trim().length;
+    const last = lastName.trim().length;
+    if (first < 1 || first > 60) {
+      task.setMessage('Informe seu nome com até 60 caracteres.');
       return;
     }
-    go(2);
+    if (last < 1 || last > 60) {
+      task.setMessage('Informe seu sobrenome com até 60 caracteres.');
+      return;
+    }
+    go(4);
   }
   function sendCode() {
     if (busy) return;
@@ -116,15 +115,17 @@ export default function SignupScreen() {
       if (signal.aborted) return;
       setCode('');
       setVerificationToken(null);
-      setStep(3);
+      resend.start();
+      setStep(2);
     });
   }
   function resendCode() {
-    if (busy) return;
+    if (busy || resend.cooldown > 0) return;
     void task.run(async (signal) => {
       await publicAuth.sendCode(address, signal);
       if (signal.aborted) return;
       setCode('');
+      resend.start();
       return 'Novo código enviado. Confira sua caixa de entrada e o spam.';
     });
   }
@@ -135,11 +136,11 @@ export default function SignupScreen() {
       if (signal.aborted) return;
       setVerificationToken(token);
       setCode('');
-      setStep(4);
+      setStep(3);
     });
   }
   function submitPassword() {
-    const error = passwordError(password, password);
+    const error = passwordError(password, confirmation);
     if (error) {
       task.setMessage(error);
       return;
@@ -149,7 +150,9 @@ export default function SignupScreen() {
   function submit() {
     if (busy || !verificationToken) return;
     const details = {
-      name: name.trim(),
+      name: `${firstName.trim()} ${lastName.trim()}`,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
       email: address,
       password,
       birth_day: Number(day),
@@ -170,6 +173,7 @@ export default function SignupScreen() {
       );
       if (signal.aborted) return;
       setPassword('');
+      setConfirmation('');
       setRegistered(true);
       await controller.login(details.email, details.password);
       if (signal.aborted) return;
@@ -186,30 +190,22 @@ export default function SignupScreen() {
     setDay(value.slice(0, 2));
   }
 
-  const current = copy[step - 1]!;
+  const current = titles[step - 1]!;
   const birthdayFilled = !!day && !!month && !!year;
 
   return (
     <AuthPage
-      title={registered ? 'Sua conta está pronta!' : current.title}
-      subtitle={
-        registered
-          ? undefined
-          : step === 3
-            ? `Enviamos um código de 6 dígitos para ${address}`
-            : current.subtitle
-      }
+      title={registered ? 'Sua conta está pronta!' : current}
       pending={busy}
       message={task.message ?? state.message}
       back={
         registered ? undefined : (
-          <AuthLink
-            label={step === 1 ? '← Entrar' : '← Voltar'}
-            align="left"
+          <AuthBack
+            label={step === 1 ? 'Entrar' : 'Voltar'}
             disabled={busy}
             onPress={() => {
               if (step === 1) backToLogin();
-              else if (step === 4) {
+              else if (step === 3) {
                 setVerificationToken(null);
                 go(2);
               } else go(step - 1);
@@ -217,7 +213,7 @@ export default function SignupScreen() {
           />
         )
       }
-      footer={
+      counter={
         registered ? undefined : <AuthStepDots step={step} total={STEPS} />
       }
     >
@@ -237,28 +233,7 @@ export default function SignupScreen() {
           {step === 1 && (
             <>
               <AuthField
-                label="Nome"
-                icon="name"
-                placeholder="Seu nome"
-                value={name}
-                onChangeText={setName}
-                editable={!busy}
-                autoComplete="name"
-                autoCapitalize="words"
-                maxLength={100}
-                returnKeyType="next"
-                onSubmitEditing={submitName}
-              />
-              <AuthAction
-                label="Continuar"
-                disabled={busy || !name.trim()}
-                onPress={submitName}
-              />
-            </>
-          )}
-          {step === 2 && (
-            <>
-              <AuthField
+                hideLabel
                 label="E-mail"
                 icon="email"
                 placeholder="seu@email.com"
@@ -271,6 +246,12 @@ export default function SignupScreen() {
                 returnKeyType="next"
                 onSubmitEditing={sendCode}
               />
+              <DsCheckbox
+                label="Quero receber novidades e ofertas do Rememberly"
+                checked={marketing}
+                disabled={busy}
+                onChange={setMarketing}
+              />
               <AuthAction
                 label="Continuar"
                 pending={task.pending}
@@ -279,7 +260,7 @@ export default function SignupScreen() {
               />
             </>
           )}
-          {step === 3 && (
+          {step === 2 && (
             <>
               <DsOtpInput value={code} onChange={setCode} disabled={busy} />
               <AuthAction
@@ -291,16 +272,53 @@ export default function SignupScreen() {
               <View style={localStyles.resend}>
                 <DsText style={styles.text}>Não recebeu o código?</DsText>
                 <AuthLink
-                  label="Reenviar"
-                  disabled={busy}
+                  label={resend.label}
+                  disabled={busy || resend.cooldown > 0}
                   onPress={resendCode}
                 />
               </View>
             </>
           )}
+          {step === 3 && (
+            <>
+              <AuthField
+                hideLabel
+                label="Nome"
+                icon="name"
+                placeholder="Nome"
+                value={firstName}
+                onChangeText={setFirstName}
+                editable={!busy}
+                autoComplete="given-name"
+                autoCapitalize="words"
+                maxLength={60}
+                returnKeyType="next"
+              />
+              <AuthField
+                hideLabel
+                label="Sobrenome"
+                icon="name"
+                placeholder="Sobrenome"
+                value={lastName}
+                onChangeText={setLastName}
+                editable={!busy}
+                autoComplete="family-name"
+                autoCapitalize="words"
+                maxLength={60}
+                returnKeyType="next"
+                onSubmitEditing={submitName}
+              />
+              <AuthAction
+                label="Continuar"
+                disabled={busy || !firstName.trim() || !lastName.trim()}
+                onPress={submitName}
+              />
+            </>
+          )}
           {step === 4 && (
             <>
               <AuthField
+                hideLabel
                 label="Senha"
                 icon="password"
                 placeholder="••••••••"
@@ -313,11 +331,26 @@ export default function SignupScreen() {
                 textContentType="newPassword"
                 maxLength={72}
                 returnKeyType="next"
+              />
+              <AuthField
+                hideLabel
+                label="Confirme a senha"
+                icon="password"
+                placeholder="Confirme a senha"
+                value={confirmation}
+                onChangeText={setConfirmation}
+                editable={!busy}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete="new-password"
+                textContentType="newPassword"
+                maxLength={72}
+                returnKeyType="go"
                 onSubmitEditing={submitPassword}
               />
               <AuthAction
                 label="Continuar"
-                disabled={busy || !password}
+                disabled={busy || !password || !confirmation}
                 onPress={submitPassword}
               />
             </>
@@ -325,7 +358,6 @@ export default function SignupScreen() {
           {step === 5 && (
             <>
               <View style={localStyles.field}>
-                <DsText role="label">Aniversário</DsText>
                 <View style={localStyles.birthday}>
                   <TextInput
                     accessibilityLabel="Dia do aniversário"
@@ -373,12 +405,6 @@ export default function SignupScreen() {
                     style={localStyles.consent}
                   />
                 }
-              />
-              <DsCheckbox
-                label="Quero receber novidades e dicas por e-mail"
-                checked={marketing}
-                disabled={busy}
-                onChange={setMarketing}
               />
               <AuthAction
                 label="Criar minha conta"

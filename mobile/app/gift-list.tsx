@@ -22,9 +22,7 @@ export default function GiftListLinkScreen() {
 
   if (userId && state.status === 'authenticated')
     return (
-      <Redirect
-        href={{ pathname: '/(tabs)/gifts-member', params: { userId } }}
-      />
+      <Redirect href={{ pathname: '/(tabs)/birthday', params: { userId } }} />
     );
 
   const restoring = state.status === 'restoring';

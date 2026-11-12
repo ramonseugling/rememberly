@@ -1,44 +1,195 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { ArrowLeft, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuthShell } from '@/components/auth-shell/auth-shell';
 
+type Step = 'email' | 'code' | 'password' | 'done';
+
+const EMPTY_DIGITS = ['', '', '', '', '', ''];
+
 export default function ForgotPassword() {
+  const router = useRouter();
+  const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
+  const [otpDigits, setOtpDigits] = useState(EMPTY_DIGITS);
+  const [resetToken, setResetToken] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [googleOnly, setGoogleOnly] = useState(false);
   const [error, setError] = useState('');
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const handleOtpChange = useCallback(
+    (index: number, value: string) => {
+      if (!/^\d*$/.test(value)) return;
 
+      const digit = value.slice(-1);
+      const newDigits = [...otpDigits];
+      newDigits[index] = digit;
+      setOtpDigits(newDigits);
+
+      if (digit && index < 5) {
+        otpRefs.current[index + 1]?.focus();
+      }
+    },
+    [otpDigits],
+  );
+
+  const handleOtpKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+        otpRefs.current[index - 1]?.focus();
+      }
+    },
+    [otpDigits],
+  );
+
+  const handleOtpPaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const pasted = e.clipboardData.getData('text').replace(/\D/g, '');
+      if (pasted.length === 0) return;
+
+      const newDigits = [...otpDigits];
+      for (let i = 0; i < 6; i++) {
+        newDigits[i] = pasted[i] ?? '';
+      }
+      setOtpDigits(newDigits);
+
+      const focusIndex = Math.min(pasted.length, 5);
+      otpRefs.current[focusIndex]?.focus();
+    },
+    [otpDigits],
+  );
+
+  async function requestCode(): Promise<'sent' | 'google_only' | 'failed'> {
     const response = await fetch('/api/v1/password/forgot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
 
-    if (response.status === 429) {
-      const data = await response.json();
-      setError(data.action ?? 'Aguarde uma hora antes de tentar novamente.');
-      setLoading(false);
-      return;
-    }
-
     const data = await response.json();
 
-    if (data.google_only) {
+    if (response.status === 429) {
+      setError(data.action ?? 'Aguarde um pouco antes de tentar novamente.');
+      return 'failed';
+    }
+
+    if (!response.ok) {
+      setError(data.message ?? 'Erro ao enviar código.');
+      return 'failed';
+    }
+
+    return data.google_only ? 'google_only' : 'sent';
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await requestCode();
+    setLoading(false);
+
+    if (result === 'google_only') {
       setGoogleOnly(true);
-      setLoading(false);
+    } else if (result === 'sent') {
+      setOtpDigits(EMPTY_DIGITS);
+      setStep('code');
+    }
+  }
+
+  async function handleResend() {
+    setLoading(true);
+    setError('');
+    setOtpDigits(EMPTY_DIGITS);
+
+    await requestCode();
+    setLoading(false);
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    const otpCode = otpDigits.join('');
+
+    if (otpCode.length !== 6) {
+      setError('Digite o código completo de 6 dígitos.');
       return;
     }
 
-    setSubmitted(true);
+    setLoading(true);
+
+    const response = await fetch('/api/v1/password/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp_code: otpCode }),
+    });
+
+    const data = await response.json();
     setLoading(false);
+
+    if (!response.ok) {
+      setError(data.message ?? 'Código inválido ou expirado.');
+      return;
+    }
+
+    setResetToken(data.reset_token);
+    setStep('password');
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (password !== passwordConfirm) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
+    setLoading(true);
+
+    const response = await fetch('/api/v1/password/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: resetToken, password }),
+    });
+
+    const data = await response.json();
+    setLoading(false);
+
+    if (!response.ok) {
+      setError(data.message ?? 'Erro ao redefinir senha.');
+      return;
+    }
+
+    const signedIn = await fetch('/api/v1/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (signedIn.ok) {
+      void router.push('/dates');
+      return;
+    }
+
+    setStep('done');
+  }
+
+  function goBack(to: Step) {
+    setError('');
+    setPassword('');
+    setPasswordConfirm('');
+    if (to === 'email') setOtpDigits(EMPTY_DIGITS);
+    setStep(to);
   }
 
   if (googleOnly) {
@@ -91,22 +242,199 @@ export default function ForgotPassword() {
     );
   }
 
-  if (submitted) {
+  if (step === 'code') {
     return (
       <AuthShell
         title="Verifique seu e-mail"
-        subtitle="Se este e-mail estiver cadastrado, você receberá um link em instantes."
+        subtitle={`Enviamos um código de 6 dígitos para ${email}`}
+      >
+        <button
+          type="button"
+          onClick={() => goBack('email')}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-smooth mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </button>
+
+        <form onSubmit={handleVerify} className="space-y-5">
+          <div className="flex justify-center gap-2">
+            {otpDigits.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  otpRefs.current[index] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                onPaste={index === 0 ? handleOtpPaste : undefined}
+                className="w-12 h-14 text-center text-xl font-semibold rounded-2xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                autoFocus={index === 0}
+              />
+            ))}
+          </div>
+
+          {error && (
+            <p className="text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-2xl">
+              {error}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full gradient-brand text-white rounded-2xl py-6 font-semibold hover:opacity-90 transition-smooth shadow-warm"
+          >
+            {loading ? 'Verificando...' : 'Verificar'}
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Não recebeu o código?{' '}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={loading}
+              className="text-primary font-semibold hover:underline disabled:opacity-50"
+            >
+              Reenviar
+            </button>
+          </p>
+        </form>
+      </AuthShell>
+    );
+  }
+
+  if (step === 'password') {
+    return (
+      <AuthShell
+        title="Crie uma nova senha"
+        subtitle="Escolha uma senha forte que você vai lembrar."
+      >
+        <button
+          type="button"
+          onClick={() => goBack('code')}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-smooth mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </button>
+
+        <form onSubmit={handleReset} className="space-y-5">
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium text-foreground"
+              htmlFor="password"
+            >
+              Nova senha
+            </label>
+            <div className="relative">
+              <Lock
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                maxLength={72}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-11 pr-12 py-3 rounded-2xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-smooth"
+                tabIndex={-1}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium text-foreground"
+              htmlFor="password-confirm"
+            >
+              Confirmar nova senha
+            </label>
+            <div className="relative">
+              <Lock
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <input
+                id="password-confirm"
+                type={showPasswordConfirm ? 'text' : 'password'}
+                required
+                minLength={8}
+                maxLength={72}
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                className="w-full pl-11 pr-12 py-3 rounded-2xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-smooth"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirm((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-smooth"
+                tabIndex={-1}
+                aria-label={
+                  showPasswordConfirm ? 'Ocultar senha' : 'Mostrar senha'
+                }
+              >
+                {showPasswordConfirm ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-2xl">
+              {error}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full gradient-brand text-white rounded-2xl py-6 font-semibold hover:opacity-90 transition-smooth shadow-warm"
+          >
+            {loading ? 'Salvando...' : 'Salvar nova senha'}
+          </Button>
+        </form>
+      </AuthShell>
+    );
+  }
+
+  if (step === 'done') {
+    return (
+      <AuthShell
+        title="Senha alterada"
+        subtitle="Sua nova senha já está valendo."
       >
         <div className="text-center space-y-4">
-          <div className="text-5xl">📬</div>
-          <p className="text-sm text-muted-foreground">
-            Pode levar alguns minutos. Verifique também a caixa de spam.
-          </p>
+          <div className="text-5xl">✅</div>
           <Link
             href="/login"
             className="inline-block text-sm text-primary font-semibold hover:underline mt-2"
           >
-            Voltar para o login
+            Ir para o login
           </Link>
         </div>
       </AuthShell>
@@ -116,7 +444,7 @@ export default function ForgotPassword() {
   return (
     <AuthShell
       title="Esqueceu a senha?"
-      subtitle="Informe seu e-mail e enviaremos um link para você criar uma nova senha."
+      subtitle="Informe seu e-mail e enviaremos um código para você criar uma nova senha."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
@@ -148,7 +476,7 @@ export default function ForgotPassword() {
           disabled={loading}
           className="w-full gradient-brand text-white rounded-2xl py-6 font-semibold hover:opacity-90 transition-smooth shadow-warm"
         >
-          {loading ? 'Enviando...' : 'Enviar link'}
+          {loading ? 'Enviando código...' : 'Enviar código'}
         </Button>
 
         {error && (

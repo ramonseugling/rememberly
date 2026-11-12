@@ -94,136 +94,140 @@ const GiftEditorBody = ({
     if (result.payload) onSave(result.payload, photo);
   }
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <View
       style={[
         styles.screen,
         { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 12) },
       ]}
     >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.fill}
       >
-        <DsBackHeader
-          label="Minha lista"
-          onPress={() => {
-            if (!pending) onClose();
-          }}
-        />
-        <View style={styles.hero}>
-          <DsAvatar
-            name={form.title || 'Presente'}
-            size={88}
-            photoUri={photoUri}
-            fallback={<Gift size={40} color={tokens.colors.onPrimary} />}
-            onEdit={() => {
-              setPhotoError(null);
-              setPhotoOpen(true);
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <DsBackHeader
+            label="Minha lista"
+            onPress={() => {
+              if (!pending) onClose();
             }}
-            editLabel="Editar foto do presente"
           />
-          <View style={styles.heroCopy}>
-            <DsText
-              accessibilityRole="header"
-              role="title"
-              style={styles.centered}
-            >
-              {item ? 'Editar presente' : 'Adicionar presente'}
-            </DsText>
-            <DsText role="caption" style={[styles.centered, styles.muted]}>
-              {item
-                ? 'Atualize o que você gostaria de ganhar.'
-                : 'Conte o que você gostaria de ganhar.'}
-            </DsText>
+          <View style={styles.hero}>
+            <DsAvatar
+              name={form.title || 'Presente'}
+              size={88}
+              photoUri={photoUri}
+              fallback={<Gift size={40} color={tokens.colors.onPrimary} />}
+              onEdit={() => {
+                setPhotoError(null);
+                setPhotoOpen(true);
+              }}
+              editLabel="Editar foto do presente"
+            />
+            <View style={styles.heroCopy}>
+              <DsText
+                accessibilityRole="header"
+                role="title"
+                style={styles.centered}
+              >
+                {item ? 'Editar presente' : 'Adicionar presente'}
+              </DsText>
+              <DsText role="caption" style={[styles.centered, styles.muted]}>
+                {item
+                  ? 'Atualize o que você gostaria de ganhar.'
+                  : 'Conte o que você gostaria de ganhar.'}
+              </DsText>
+            </View>
           </View>
-        </View>
-        <View style={styles.card}>
-          <DsField
-            label="Nome do presente *"
-            accessibilityLabel="Nome do presente"
-            placeholder="Ex.: Fone de ouvido"
-            value={form.title}
-            onChangeText={(value) => change('title', value)}
-            maxLength={100}
-            editable={!pending}
-            autoCapitalize="sentences"
-          />
-          <DsField
-            label="Link (opcional)"
-            accessibilityLabel="Link do presente"
-            placeholder="https://"
-            value={form.link}
-            onChangeText={(value) => change('link', value)}
-            maxLength={2000}
-            editable={!pending}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-          />
-          <DsField
-            label="Descrição (opcional)"
-            accessibilityLabel="Descrição do presente"
-            placeholder="Ex.: Prefiro na cor preta."
-            value={form.description}
-            onChangeText={(value) => change('description', value)}
-            maxLength={500}
-            editable={!pending}
-            multiline
-            autoCapitalize="sentences"
-          />
-        </View>
-        {(validation || error) && (
-          <DsFeedback message={validation || error || ''} tone="error" />
-        )}
-      </ScrollView>
-      <PhotoSheet
-        visible={photoOpen}
-        title="Foto do presente"
-        name={form.title || 'Presente'}
-        photoUri={photoUri}
-        pending={false}
-        error={photoError}
-        onChoose={(source) => {
-          void choose(source);
-        }}
-        onRemove={removePhoto}
-        onClose={() => setPhotoOpen(false)}
-      />
-      <View style={styles.actions}>
-        <DsButton
-          label={
-            pending ? 'Salvando...' : item ? 'Salvar' : 'Adicionar presente'
-          }
-          pending={pending}
-          disabled={!!item && !dirty}
-          onPress={submit}
-        />
-        {item && onDelete && (
-          <DsButton
-            label="Excluir presente"
-            variant="destructive"
-            icon={<Trash2 size={18} color={tokens.colors.danger} />}
-            disabled={pending}
-            onPress={() => setConfirming(true)}
-          />
-        )}
-      </View>
-      {item && onDelete && (
-        <DsConfirmSheet
-          visible={confirming}
-          title="Excluir presente?"
-          message={`“${item.title}” será removido da sua lista.`}
-          confirmLabel="Excluir"
-          pending={pending}
-          onCancel={() => setConfirming(false)}
-          onConfirm={() => {
-            setConfirming(false);
-            onDelete();
+          <View style={styles.card}>
+            <DsField
+              label="Nome do presente *"
+              accessibilityLabel="Nome do presente"
+              placeholder="Ex.: Fone de ouvido"
+              value={form.title}
+              onChangeText={(value) => change('title', value)}
+              maxLength={100}
+              editable={!pending}
+              autoCapitalize="sentences"
+            />
+            <DsField
+              label="Link *"
+              accessibilityLabel="Link do presente"
+              placeholder="https://"
+              value={form.link}
+              onChangeText={(value) => change('link', value)}
+              maxLength={2000}
+              editable={!pending}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
+            <DsField
+              label="Descrição (opcional)"
+              accessibilityLabel="Descrição do presente"
+              placeholder="Ex.: Prefiro na cor preta."
+              value={form.description}
+              onChangeText={(value) => change('description', value)}
+              maxLength={500}
+              editable={!pending}
+              multiline
+              autoCapitalize="sentences"
+            />
+          </View>
+          {(validation || error) && (
+            <DsFeedback message={validation || error || ''} tone="error" />
+          )}
+        </ScrollView>
+        <PhotoSheet
+          visible={photoOpen}
+          title="Foto do presente"
+          name={form.title || 'Presente'}
+          photoUri={photoUri}
+          pending={false}
+          error={photoError}
+          onChoose={(source) => {
+            void choose(source);
           }}
+          onRemove={removePhoto}
+          onClose={() => setPhotoOpen(false)}
         />
-      )}
-    </KeyboardAvoidingView>
+        <View style={styles.actions}>
+          <DsButton
+            label={
+              pending ? 'Salvando...' : item ? 'Salvar' : 'Adicionar presente'
+            }
+            pending={pending}
+            disabled={!!item && !dirty}
+            onPress={submit}
+          />
+          {item && onDelete && (
+            <DsButton
+              label="Excluir presente"
+              variant="destructive"
+              icon={<Trash2 size={18} color={tokens.colors.danger} />}
+              disabled={pending}
+              onPress={() => setConfirming(true)}
+            />
+          )}
+        </View>
+        {item && onDelete && (
+          <DsConfirmSheet
+            visible={confirming}
+            title="Excluir presente?"
+            message={`“${item.title}” será removido da sua lista.`}
+            confirmLabel="Excluir"
+            pending={pending}
+            onCancel={() => setConfirming(false)}
+            onConfirm={() => {
+              setConfirming(false);
+              onDelete();
+            }}
+          />
+        )}
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -244,6 +248,7 @@ export const GiftEditor = (props: GiftEditorProps) => (
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.colors.background },
+  fill: { flex: 1 },
   content: {
     paddingHorizontal: 16,
     paddingTop: 12,

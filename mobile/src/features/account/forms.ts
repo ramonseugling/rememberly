@@ -3,6 +3,8 @@ import { isAtLeastAge, MIN_AGE } from './age.ts';
 export type ProfileUser = {
   id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email: string;
   birth_day: number | null;
   birth_month: number | null;
@@ -12,15 +14,25 @@ export type ProfileUser = {
 };
 
 export type ProfileForm = {
-  name: string;
+  first_name: string;
+  last_name: string;
   day: string;
   month: string;
   year: string;
 };
 
+export function splitName(fullName: string) {
+  const [first = '', ...rest] = fullName.trim().split(/\s+/);
+  return { first_name: first, last_name: rest.join(' ') };
+}
+
 export function profileForm(user: ProfileUser): ProfileForm {
+  const names =
+    user.first_name != null
+      ? { first_name: user.first_name, last_name: user.last_name ?? '' }
+      : splitName(user.name);
   return {
-    name: user.name,
+    ...names,
     day: user.birth_day?.toString() ?? '',
     month: user.birth_month?.toString() ?? '',
     year: user.birth_year?.toString() ?? '',
@@ -33,16 +45,21 @@ export function profileUpdate(
   currentYear = new Date().getFullYear(),
   today = new Date(),
 ): {
-  name: string;
+  first_name: string;
+  last_name: string;
   birth_day?: number;
   birth_month?: number;
   birth_year?: number;
 } {
-  const name = form.name.trim();
-  if (name.length < 2 || name.length > 100) {
-    throw new Error('Informe um nome entre 2 e 100 caracteres.');
+  const first_name = form.first_name.trim();
+  const last_name = form.last_name.trim();
+  if (first_name.length < 1 || first_name.length > 60) {
+    throw new Error('Informe um nome com até 60 caracteres.');
   }
-  const body: ReturnType<typeof profileUpdate> = { name };
+  if (last_name.length > 60) {
+    throw new Error('O sobrenome pode ter até 60 caracteres.');
+  }
+  const body: ReturnType<typeof profileUpdate> = { first_name, last_name };
   const fields = [
     ['day', 'birth_day', 1, 31],
     ['month', 'birth_month', 1, 12],

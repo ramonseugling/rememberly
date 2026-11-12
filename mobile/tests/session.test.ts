@@ -477,3 +477,24 @@ test('HTTP client sanitizes network/server errors and rejects malformed identity
     );
   }
 });
+
+test('clearMessage drops a stale sign-in error but keeps the retry prompt of an unconfirmed logout', async () => {
+  const { storage } = memory();
+  const controller = new SessionController(
+    api({
+      login: async () => {
+        throw new SessionApiError(401);
+      },
+    }),
+    storage,
+  );
+
+  await controller.login('alex@example.com', 'wrong-password');
+  assert.equal(controller.getSnapshot().status, 'signed-out');
+  assert.ok(controller.getSnapshot().message);
+
+  controller.clearMessage();
+
+  assert.equal(controller.getSnapshot().message, null);
+  assert.equal(controller.getSnapshot().status, 'signed-out');
+});

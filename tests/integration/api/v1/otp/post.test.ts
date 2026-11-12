@@ -42,6 +42,25 @@ describe('POST /api/v1/otp', () => {
     expect(data.message).toBe('Este e-mail já está em uso.');
   });
 
+  it('returns 429 after five codes requested for the same e-mail within an hour', async () => {
+    const email = faker.internet.email();
+
+    for (let i = 0; i < 5; i++) {
+      await orchestrator.createValidOtp(email);
+    }
+
+    const response = await fetch('http://localhost:3000/api/v1/otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    expect(response.status).toBe(429);
+
+    const data = await response.json();
+    expect(data.name).toBe('TooManyRequestsError');
+  });
+
   it('returns 400 when the email is invalid', async () => {
     const response = await fetch('http://localhost:3000/api/v1/otp', {
       method: 'POST',

@@ -1,3 +1,4 @@
+import { birthdayRoute } from '../gifts/birthday-route';
 import { router } from 'expo-router';
 import {
   Cake,
@@ -173,10 +174,9 @@ export function HomeScreen() {
                 accessibilityLabel={`Ver aniversário de ${item.title}, ${today ? 'hoje' : `em ${item.days_until} dias`}`}
                 onPress={() =>
                   item.source.kind === 'group_birthday'
-                    ? router.navigate({
-                        pathname: '/(tabs)/birthday',
-                        params: { userId: item.source.user_id },
-                      })
+                    ? router.navigate(
+                        birthdayRoute(item.source.user_id, 'home'),
+                      )
                     : router.navigate({
                         pathname: '/(tabs)/events',
                         params: { eventId: item.id },

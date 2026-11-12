@@ -34,6 +34,7 @@ import {
   useResource,
 } from '../../data/hooks';
 import { DsDateCard } from '../../design-system/date-card';
+import { birthdayRoute } from '../gifts/birthday-route';
 import { dateSections } from './sections';
 import { tokens } from '../../design-system/tokens';
 import { useNotificationPrompt } from '../notifications';
@@ -289,10 +290,9 @@ export function DatesScreen() {
               disabled={pending}
               onView={() =>
                 item.source.kind === 'group_birthday'
-                  ? router.navigate({
-                      pathname: '/(tabs)/birthday',
-                      params: { userId: item.source.user_id },
-                    })
+                  ? router.navigate(
+                      birthdayRoute(item.source.user_id, 'events'),
+                    )
                   : setViewedId(item.id)
               }
             />

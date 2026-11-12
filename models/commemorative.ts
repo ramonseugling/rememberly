@@ -99,7 +99,7 @@ async function findSubscribersForDate(
   dateKey: string,
 ): Promise<{ email: string; name: string }[]> {
   const result = await database.query(
-    `SELECT u.email, u.name
+    `SELECT u.email, COALESCE(u.first_name, u.name) AS name
      FROM commemorative_subscriptions s
      JOIN users u ON u.id = s.user_id
      LEFT JOIN notification_preferences np ON np.user_id = u.id

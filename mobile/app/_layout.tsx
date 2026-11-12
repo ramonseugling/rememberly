@@ -35,7 +35,6 @@ function Navigation() {
         <Stack.Screen name="signup" />
         <Stack.Screen name="forgot-password" />
       </Stack.Protected>
-      <Stack.Screen name="reset-password" />
       <Stack.Screen name="join-group" />
       <Stack.Screen name="gift-list" />
     </Stack>

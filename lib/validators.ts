@@ -29,15 +29,27 @@ const birthdayFields = {
     .max(new Date().getFullYear(), 'O ano não pode ser no futuro.'),
 };
 
+const firstNameField = z
+  .string()
+  .trim()
+  .min(1, 'O nome é obrigatório.')
+  .max(60, 'O nome deve ter no máximo 60 caracteres.');
+
+const lastNameField = z
+  .string()
+  .trim()
+  .max(60, 'O sobrenome deve ter no máximo 60 caracteres.');
+
 export const createUserSchema = z
   .object({
     name: z
-      .string({
-        required_error: 'O nome é obrigatório.',
-      })
+      .string()
       .trim()
       .min(2, 'O nome deve ter pelo menos 2 caracteres.')
-      .max(100, 'O nome deve ter no máximo 100 caracteres.'),
+      .max(100, 'O nome deve ter no máximo 100 caracteres.')
+      .optional(),
+    first_name: firstNameField.optional(),
+    last_name: lastNameField.optional(),
     email: z
       .string({
         required_error: 'O e-mail é obrigatório.',
@@ -70,6 +82,10 @@ export const createUserSchema = z
     }),
     ...birthdayFields,
   })
+  .refine((data) => data.name !== undefined || data.first_name !== undefined, {
+    message: 'O nome é obrigatório.',
+    path: ['name'],
+  })
   .refine((data) => !!data.otp_code || !!data.verification_token, {
     message: 'O código de verificação é obrigatório.',
     path: ['otp_code'],
@@ -83,6 +99,8 @@ export const updateUserSchema = z
       .min(2, 'O nome deve ter pelo menos 2 caracteres.')
       .max(100, 'O nome deve ter no máximo 100 caracteres.')
       .optional(),
+    first_name: firstNameField.optional(),
+    last_name: lastNameField.optional(),
     birth_day: birthdayFields.birth_day.optional(),
     birth_month: birthdayFields.birth_month.optional(),
     birth_year: birthdayFields.birth_year.optional(),
@@ -339,10 +357,15 @@ const giftText = (label: string, max: number) =>
     })
     .max(max, `${label} deve ter no máximo ${max} caracteres.`);
 
+const requiredGiftLink = giftText('O link', 2000).refine(
+  (value) => value.trim().length > 0,
+  'O link do presente é obrigatório.',
+);
+
 export const createGiftSchema = z
   .object({
     title: giftText('O nome do presente', 100),
-    link: giftText('O link', 2000).nullish(),
+    link: requiredGiftLink,
     description: giftText('A descrição', 500).nullish(),
   })
   .strict();
@@ -350,7 +373,7 @@ export const createGiftSchema = z
 export const updateGiftSchema = z
   .object({
     title: giftText('O nome do presente', 100).optional(),
-    link: giftText('O link', 2000).nullish(),
+    link: requiredGiftLink.optional(),
     description: giftText('A descrição', 500).nullish(),
   })
   .strict()

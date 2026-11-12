@@ -10,6 +10,7 @@ interface DsListCardProps {
   subtitle?: string;
   icon?: ReactNode;
   trailing?: ReactNode;
+  footer?: ReactNode;
   accessibilityState?: AccessibilityState;
   iconTone?: 'brand' | 'neutral';
   onPress?: () => void;
@@ -24,6 +25,7 @@ export const DsListCard = ({
   iconTone = 'brand',
   accessibilityState,
   trailing,
+  footer,
   onPress,
   disabled,
   style,
@@ -49,6 +51,7 @@ export const DsListCard = ({
             {subtitle}
           </DsText>
         )}
+        {footer && <View style={styles.footer}>{footer}</View>}
       </View>
       {trailing ??
         (onPress && <ChevronRight color={tokens.colors.textMuted} size={20} />)}
@@ -96,4 +99,5 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.iconSurface,
   },
   copy: { flex: 1, minWidth: 0, gap: 3 },
+  footer: { alignSelf: 'flex-start', marginTop: 4 },
 });

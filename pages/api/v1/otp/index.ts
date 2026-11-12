@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createOtpSchema, parseSchema } from '@/lib/validators';
 import controller from 'infra/controller';
-import { ValidationError } from 'infra/errors';
+import { TooManyRequestsError, ValidationError } from 'infra/errors';
 import email from 'models/email';
 import otp from 'models/otp';
 import user from 'models/user';
@@ -17,6 +17,13 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     throw new ValidationError({
       message: 'Este e-mail já está em uso.',
       action: 'Utilize outro e-mail ou faça login.',
+    });
+  }
+
+  if (await otp.isRateLimited(emailAddress, 'signup')) {
+    throw new TooManyRequestsError({
+      message: 'Muitos códigos solicitados para este e-mail.',
+      action: 'Aguarde uma hora antes de pedir um novo código.',
     });
   }
 

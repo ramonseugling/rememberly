@@ -67,14 +67,13 @@ describe('POST /api/v1/password/forgot', () => {
     const data = await response.json();
     expect(data.google_only).toBe(true);
 
-    const tokenResult = await database.query(
-      `SELECT COUNT(*) FROM password_reset_tokens
-       JOIN users ON password_reset_tokens.user_id = users.id
-       WHERE LOWER(users.email) = LOWER($1)`,
+    const codes = await database.query(
+      `SELECT COUNT(*)::int AS count FROM otp_tokens
+       WHERE LOWER(email) = LOWER($1)`,
       [googleEmail],
     );
 
-    expect(parseInt(tokenResult.rows[0].count, 10)).toBe(0);
+    expect(codes.rows[0].count).toBe(0);
   });
 
   it('returns 405 for the GET method', async () => {
@@ -110,30 +109,48 @@ describe('POST /api/v1/password/forgot', () => {
       });
     }
 
-    it('returns 429 on the 3rd request within an hour', async () => {
+    it('returns 429 on the 6th code request within an hour', async () => {
       const createdUser = await createUserWithOtp();
 
-      await database.query(
-        `INSERT INTO password_reset_tokens (token, user_id, expires_at)
-         VALUES ($1, $2, NOW() + INTERVAL '1 hour'),
-                ($3, $2, NOW() + INTERVAL '1 hour')`,
-        [
-          faker.string.hexadecimal({ length: 96, prefix: '' }),
-          createdUser.id,
-          faker.string.hexadecimal({ length: 96, prefix: '' }),
-        ],
-      );
+      for (let index = 0; index < 5; index += 1) {
+        await database.query(
+          `INSERT INTO otp_tokens (email, code, expires_at, purpose)
+           VALUES (LOWER($1), $2, NOW() + INTERVAL '10 minutes', 'password_reset')`,
+          [createdUser.email, String(100000 + index)],
+        );
+      }
 
-      const third = await requestPasswordReset(createdUser.email);
-      expect(third.status).toBe(429);
+      const sixth = await requestPasswordReset(createdUser.email);
+      expect(sixth.status).toBe(429);
 
-      const data = await third.json();
+      const data = await sixth.json();
       expect(data.name).toBe('TooManyRequestsError');
+      const codes = await database.query(
+        `SELECT COUNT(*)::int AS count FROM otp_tokens
+         WHERE LOWER(email) = LOWER($1) AND purpose = 'password_reset'`,
+        [createdUser.email],
+      );
+      expect(codes.rows[0].count).toBe(5);
+    });
+
+    it('creates a password_reset code and never a link token', async () => {
+      const createdUser = await createUserWithOtp();
+
+      const response = await requestPasswordReset(createdUser.email);
+      expect(response.status).toBe(200);
+
+      const codes = await database.query(
+        `SELECT code, purpose FROM otp_tokens
+         WHERE LOWER(email) = LOWER($1) AND purpose = 'password_reset'`,
+        [createdUser.email],
+      );
+      expect(codes.rows).toHaveLength(1);
+      expect(codes.rows[0].code).toMatch(/^\d{6}$/);
       const tokens = await database.query(
         'SELECT COUNT(*)::int AS count FROM password_reset_tokens WHERE user_id = $1',
         [createdUser.id],
       );
-      expect(tokens.rows[0].count).toBe(2);
+      expect(tokens.rows[0].count).toBe(0);
     });
   });
 });

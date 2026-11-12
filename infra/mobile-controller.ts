@@ -85,6 +85,8 @@ export function recordMobileFailure(req: NextApiRequest, path: string) {
 export interface MobileIdentity {
   user_id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email: string;
   birth_day: number | null;
   birth_month: number | null;

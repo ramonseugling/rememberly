@@ -37,7 +37,7 @@ async function sendTodayNotifications() {
        e.title AS event_title,
        e.type AS event_type,
        e.custom_type AS event_custom_type,
-       u.name AS user_name,
+       COALESCE(u.first_name, u.name) AS user_name,
        u.email AS user_email
      FROM events e
      JOIN users u ON u.id = e.user_id
@@ -54,7 +54,7 @@ async function sendTodayNotifications() {
        birthday_user.name AS event_title,
        'birthday' AS event_type,
        NULL AS event_custom_type,
-       recipient.name AS user_name,
+       COALESCE(recipient.first_name, recipient.name) AS user_name,
        recipient.email AS user_email
      FROM group_members birthday_member
      JOIN users birthday_user ON birthday_user.id = birthday_member.user_id
@@ -65,7 +65,7 @@ async function sendTodayNotifications() {
      WHERE birthday_user.birth_day = $1
        AND COALESCE(np.email_events, true)
        AND birthday_user.birth_month = $2
-     GROUP BY birthday_user.id, birthday_user.name, recipient.id, recipient.name, recipient.email`,
+     GROUP BY birthday_user.id, birthday_user.name, recipient.id, recipient.name, recipient.first_name, recipient.email`,
     [day, month],
   );
 
@@ -154,7 +154,7 @@ async function sendReminderNotifications() {
        e.type AS event_type,
        e.custom_type AS event_custom_type,
        e.reminder_days_before,
-       u.name AS user_name,
+       COALESCE(u.first_name, u.name) AS user_name,
        u.email AS user_email
      FROM events e
      JOIN users u ON u.id = e.user_id

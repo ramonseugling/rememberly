@@ -1,4 +1,5 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -23,6 +24,9 @@ import {
 export default function LoginScreen() {
   const { state, controller } = useSession();
   const busy = state.status === 'restoring' || state.status === 'signing-in';
+  useFocusEffect(
+    useCallback(() => () => controller.clearMessage(), [controller]),
+  );
   return (
     <LinearGradient colors={tokens.backgroundGradient} style={local.fill}>
       <SafeAreaView style={local.fill}>
