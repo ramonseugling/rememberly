@@ -25,6 +25,9 @@ const pink = require('../../../assets/avatars/pink-avatar.png');
 const yellow = require('../../../assets/avatars/yellow-avatar.png');
 const purple = require('../../../assets/avatars/purple-avatar.png');
 const logo = require('../../../assets/brand/new-3d-logo.png');
+const giftFone = require('../../../assets/gifts/fone.png');
+const giftLivro = require('../../../assets/gifts/livro.png');
+const giftTenis = require('../../../assets/gifts/tenis.png');
 
 function GradientBar({
   label,
@@ -90,12 +93,18 @@ function Heading({ children }: { children: string }) {
   );
 }
 
-function GiftRow({ title, note }: { title: string; note: string }) {
+function GiftRow({
+  title,
+  note,
+  source,
+}: {
+  title: string;
+  note: string;
+  source: ImageSourcePropType;
+}) {
   return (
     <View style={styles.row}>
-      <View style={styles.giftIcon}>
-        <Gift size={18} color={tokens.colors.brand} />
-      </View>
+      <Image source={source} style={styles.giftPhoto} />
       <View style={styles.grow}>
         <DsText role="label" style={styles.rowTitle}>
           {title}
@@ -188,9 +197,13 @@ export function OnboardingArt({ id }: { id: OnboardingStepId }) {
     return (
       <View style={styles.card}>
         <Heading>Minha lista de presentes</Heading>
-        <GiftRow title="Fone de ouvido" note="Na cor preta" />
-        <GiftRow title="Livro de receitas" note="Edição de capa dura" />
-        <GiftRow title="Tênis de corrida" note="Número 38" />
+        <GiftRow title="Fone de ouvido" note="Na cor preta" source={giftFone} />
+        <GiftRow
+          title="Livro de receitas"
+          note="Edição de capa dura"
+          source={giftLivro}
+        />
+        <GiftRow title="Tênis de corrida" note="Número 38" source={giftTenis} />
         <GradientBar label="Adicionar presente" icon="plus" />
       </View>
     );
@@ -278,6 +291,7 @@ const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 0 },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   muted: { color: tokens.colors.textMuted, fontSize: 12, lineHeight: 16 },
+  giftPhoto: { width: 40, height: 40, borderRadius: 10 },
   giftIcon: {
     width: 36,
     height: 36,

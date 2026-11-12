@@ -7,6 +7,7 @@ import {
   Quicksand_500Medium,
   Quicksand_700Bold,
 } from '@expo-google-fonts/quicksand';
+import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SessionProvider, useSession } from '../src/session/provider';
 import { IntentProvider } from '../src/navigation/provider';
 import { NotificationRuntime } from '../src/features/notifications';
+import { preloadImages } from '../src/design-system/preload-images';
 import { OnboardingProvider } from '../src/features/onboarding/use-onboarding';
 
 function Navigation() {
@@ -48,6 +50,9 @@ export default function RootLayout() {
     Quicksand_500Medium,
     Quicksand_700Bold,
   });
+  useEffect(() => {
+    preloadImages();
+  }, []);
   if (!loaded && !error)
     return (
       <View

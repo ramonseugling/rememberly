@@ -1,0 +1,607 @@
+<title>Roteiro de testes Rememberly</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<style>
+  :root {
+    --bg: #fcf6f9;
+    --surface: #ffffff;
+    --fg: #221921;
+    --muted: #6a5865;
+    --line: #eadde5;
+    --accent: #d52555;
+    --accent-soft: #fde8ee;
+    --ok: #1f8a5b;
+    --font-display: 'Fredoka', 'Trebuchet MS', sans-serif;
+    --font-body: 'Quicksand', 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #1a1218;
+      --surface: #261b23;
+      --fg: #f5eaf0;
+      --muted: #b9a3b0;
+      --line: #3b2c37;
+      --accent: #ff7a9c;
+      --accent-soft: #3a1f29;
+      --ok: #4fd18f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --bg: #1a1218;
+    --surface: #261b23;
+    --fg: #f5eaf0;
+    --muted: #b9a3b0;
+    --line: #3b2c37;
+    --accent: #ff7a9c;
+    --accent-soft: #3a1f29;
+    --ok: #4fd18f;
+    color-scheme: dark;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-inline: max(16px, env(safe-area-inset-left, 0px))
+      max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 16px 64px;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 {
+    font-size: 28px;
+    line-height: 34px;
+  }
+  h2 {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .intro {
+    color: var(--muted);
+    margin: 8px 0 0;
+  }
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    background: var(--bg);
+    padding-block: 12px;
+    z-index: 5;
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    height: 10px;
+    background: var(--line);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .bar > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.2s;
+  }
+  .count {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  button.reset {
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  button.reset:focus-visible,
+  summary:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  details {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-top: 14px;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary .meta {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  summary .meta.done {
+    color: var(--ok);
+    font-weight: 700;
+  }
+  .items {
+    padding: 0 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sub {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 12px 0 2px;
+  }
+  label.item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 4px;
+    min-height: 44px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  label.item:hover {
+    background: var(--accent-soft);
+  }
+  label.item input {
+    width: 22px;
+    height: 22px;
+    margin: 1px 0 0;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+  }
+  label.item span {
+    min-width: 0;
+  }
+  label.item input:checked + span {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  label.item small {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .note {
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .note b {
+    font-family: var(--font-display);
+  }
+  code {
+    font-size: 13px;
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+</style>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Quicksand:wght@400;500;600;700&display=swap"
+/>
+
+<main>
+  <header class="top">
+    <h1>Roteiro de testes do app</h1>
+    <p class="intro">
+      Marque cada item depois de testar no Expo Go. O progresso fica salvo neste
+      navegador.
+    </p>
+    <div
+      class="bar"
+      role="progressbar"
+      aria-label="Progresso geral"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <span id="fill"></span>
+    </div>
+    <div class="count">
+      <span id="total">0 de 0 itens</span
+      ><button class="reset" id="reset" type="button">Limpar marcações</button>
+    </div>
+  </header>
+
+  <div class="note">
+    <b>Antes de começar:</b> Docker aberto, backend em
+    <code>192.168.1.39:3000</code>, Expo com o QR code e o celular no mesmo
+    Wi‑Fi. O envio de e-mails usa o sandbox do Resend, que só entrega para o
+    e-mail dono da conta do Resend. Use esse e-mail nos testes de código.
+  </div>
+
+  <div id="sections"></div>
+</main>
+
+<script>
+  var SECTIONS = [
+    {
+      id: 'prep',
+      title: '0. Preparação',
+      groups: [
+        {
+          items: [
+            'Expo Go abre o app sem tela vermelha de erro',
+            'Banco de dev com dados: rode o seed (apaga o banco de dev) ou crie sua conta de teste',
+            'Tenho acesso à caixa de entrada do e-mail usado nos testes de código',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'entrada',
+      title: '1. Tela inicial de entrada',
+      groups: [
+        {
+          items: [
+            'Logo, "Bem-vindo!", botão "Entrar com Google" e botão "Entrar com e-mail e senha" aparecem',
+            'Aviso "Ao entrar com Google, você concorda…" aparece no pé da tela, dentro da área segura',
+            'Link para "Criar conta" leva ao cadastro',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'cadastro',
+      title: '2. Cadastro',
+      groups: [
+        {
+          title: 'Passo 1: e-mail',
+          items: [
+            'Voltar (topo esquerdo, abaixo da barra de status) volta para a tela de entrada, sem empilhar telas',
+            'Contador de passos (5 pontos) aparece no topo direito',
+            'Checkbox "Quero receber novidades e ofertas do Rememberly" já vem marcado e desmarca ao tocar',
+            'E-mail inválido mostra erro',
+            'E-mail já cadastrado mostra "Este e-mail já está associado a outra conta." e não avança',
+            'E-mail novo avança e o código chega por e-mail (voltar e continuar de novo não envia outro código; só o Reenviar)',
+          ],
+        },
+        {
+          title: 'Passo 2: código',
+          items: [
+            'Campo de 6 dígitos aceita o código; "Verificar" só habilita com 6 dígitos',
+            'Código errado mostra erro e permanece na tela',
+            '"Reenviar" fica desabilitado com "Reenviar em Ns" e libera após 60 segundos',
+            'Reenviar gera novo código, reinicia a contagem e mostra o aviso "Novo código enviado…" em verde (não como erro)',
+            'Após 5 pedidos de código na mesma hora, aparece "Muitas tentativas…"',
+            'Código correto avança para o nome',
+          ],
+        },
+        {
+          title: 'Passo 3: nome e sobrenome',
+          items: [
+            'Dois campos: Nome e Sobrenome; "Continuar" só habilita com os dois',
+            'Nome ou sobrenome com 1 letra é recusado; também com números ou símbolos (aceita acento, espaço, hífen e apóstrofo; 2 a 60 caracteres)',
+            'Voltar daqui mostra "E-mail verificado. Você já pode continuar." com o botão Continuar, sem pedir o código de novo',
+            'Trocar o e-mail no passo 1 depois de verificado exige um novo código',
+          ],
+        },
+        {
+          title: 'Passo 4: senha',
+          items: [
+            'Placeholders: "Senha" no primeiro campo e "Confirme a senha" no segundo (sem pontinhos)',
+            'Campos Senha e Confirme a senha; "Continuar" só habilita com os dois',
+            'Senhas diferentes mostram "As senhas são diferentes."',
+            'Senha com menos de 8 caracteres mostra erro',
+            'Voltar daqui retorna ao nome sem perder a verificação do e-mail',
+          ],
+        },
+        {
+          title: 'Passo 5: aniversário e termos',
+          items: [
+            'Dia, mês e ano; dia respeita o número de dias do mês',
+            'Menor de 12 anos é recusado com mensagem',
+            'Links de Termos e Privacidade abrem',
+            '"Criar minha conta" só habilita com aniversário e Termos aceitos',
+            'Conta criada: entra direto no app (ou mostra "Sua conta está pronta!")',
+          ],
+        },
+        {
+          title: 'Geral',
+          items: [
+            'Teclado abre sem a tela "pular" ou esconder o campo e o botão',
+            'Nada fica atrás da barra de status ou do indicador inferior do iPhone',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'login',
+      title: '3. Entrar com e-mail e senha',
+      groups: [
+        {
+          items: [
+            'Uma tela só: título "Qual é o seu e-mail e a sua senha?", campos de e-mail e senha, "Esqueci minha senha" e "Entrar"',
+            '"Entrar" só habilita com os dois campos preenchidos',
+            'Senha ou e-mail incorretos mostram erro, e o erro some ao digitar de novo',
+            'Ao voltar e abrir de novo a tela, a mensagem de erro antiga não aparece',
+            'Login correto leva ao app',
+            'Voltar leva à tela de entrada',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'esqueci',
+      title: '4. Esqueci a senha',
+      groups: [
+        {
+          items: [
+            'Passo 1: e-mail; conta só com Google mostra aviso para entrar pelo Google',
+            'Passo 2: código por e-mail (mesmo modelo do cadastro, texto de redefinição)',
+            '"Reenviar" com contagem de 60 segundos e limite de 5 códigos por hora',
+            'Aviso de novo código enviado aparece em verde',
+            'Código errado mostra erro',
+            'Passo 3: placeholders "Nova senha" e "Confirme a senha"; senhas diferentes mostram erro',
+            'Ao salvar, entra direto no app, sem tela intermediária de "Senha redefinida"',
+            'Sair e entrar com a senha nova funciona',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'onboarding',
+      title: '5. Onboarding (primeiro acesso)',
+      groups: [
+        {
+          items: [
+            'Aparece após criar a conta; 5 telas: boas-vindas, eventos, grupos, presentes, perfil',
+            'Avançar, pular e o botão Voltar (topo esquerdo, a partir da 2ª tela) funcionam; a lista de presentes mostra imagens',
+            'Ao concluir, vai para o Início e não volta a aparecer',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'inicio',
+      title: '6. Início',
+      groups: [
+        {
+          items: [
+            'Seção "Hoje" e próximos aniversários/eventos aparecem em ordem',
+            '"Faltam x dias" correto; evento de hoje destacado',
+            'Estados vazios: sem eventos, sem grupos',
+            'Tocar em um aniversário abre os presentes daquela pessoa',
+            'Voltar dessa tela retorna ao Início (sem loop entre telas)',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'eventos',
+      title: '7. Eventos',
+      groups: [
+        {
+          items: [
+            'Lista com subtítulo e alinhamentos corretos; estado vazio com botão de adicionar',
+            'Adicionar evento: título, tipo, dia/mês (ano opcional), lembrete (0, 1, 3, 7, 15, 30)',
+            'Detalhe do evento abre como página',
+            'Editar salva as alterações',
+            'Excluir pede confirmação e remove',
+            'Modal de ativar notificações aparece após o primeiro evento criado',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'grupos',
+      title: '8. Grupos',
+      groups: [
+        {
+          items: [
+            'Lista de grupos e estado vazio',
+            'Criar grupo',
+            'Detalhe com abas Eventos, Membros e Ajustes',
+            'Foto do grupo: escolher da galeria, tirar foto e remover',
+            'Convite: compartilhar o link; abrir o link em outro usuário entra no grupo',
+            'Convite sem login leva ao login e depois ao grupo',
+            'Sair do grupo pede confirmação',
+            'Dono do grupo não consegue excluir a conta sem tratar os grupos',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'presentes',
+      title: '9. Presentes',
+      groups: [
+        {
+          title: 'Minha lista',
+          items: [
+            'Lista com miniaturas de foto, estado vazio e herói de contagem regressiva',
+            'Adicionar presente: link é obrigatório (sem link, mostra "Informe o link do presente.")',
+            'Botão "Adicionar presente" fica visível, dentro da área segura, também com o teclado aberto',
+            'Foto do presente: adicionar, trocar e remover',
+            'Editar e excluir presente',
+            'Compartilhar com grupos (ícone de compartilhar, cartão dos grupos)',
+          ],
+        },
+        {
+          title: 'Lista de outra pessoa',
+          items: [
+            'Tocar no aniversário abre a lista direto, com todos os itens e a pílula de disponibilidade abaixo do nome/descrição',
+            'Tocar em um item abre a janela de reservar',
+            'Reservar, liberar a reserva e marcar como comprado',
+            'Voltar retorna à tela de origem (Início, Eventos ou Grupo), sem loop',
+            'Meu aniversário: a lista mostra a versão "Meu aniversário"',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'perfil',
+      title: '10. Perfil e conta',
+      groups: [
+        {
+          items: [
+            'Perfil mostra foto/inicial, nome e as linhas de menu',
+            'Informações pessoais: campos Nome e Sobrenome (sobrenome opcional); nome de 1 letra ou com números é recusado; salvar atualiza o nome no app',
+            'Foto de perfil: galeria, câmera e remover',
+            'Datas especiais: ligar e desligar datas comemorativas',
+            'Notificações: matriz Push/E-mail para Eventos e Novidades; estado "desativadas" quando o sistema nega a permissão',
+            'Termos e privacidade abrem',
+            'Mais opções da conta: Sair funciona e volta para a entrada',
+            'Excluir conta: pede a frase "Excluir minha conta" e a senha (conta Google: código)',
+            'Voltar de cada tela leva à anterior',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'geral',
+      title: '11. Navegação e visual (geral)',
+      groups: [
+        {
+          items: [
+            'Barra de abas flutuante: Início, Eventos, Grupos, Presentes, Perfil',
+            'Botão voltar do sistema/gesto funciona em todas as telas e não cria laços',
+            'Nenhuma tela com conteúdo atrás da barra de status ou do botão home',
+            'Teclado não cobre campos nem botões nas telas com formulário',
+            'Fontes Fredoka (títulos) e Quicksand (texto) carregam',
+            'Sem mensagem "Sua sessão expirou" ao abrir o app depois de um tempo parado',
+            'Fechar e abrir o app mantém a sessão',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'email',
+      title: '12. E-mails e notificações',
+      groups: [
+        {
+          items: [
+            'E-mail de código de cadastro chega com o código de 6 dígitos',
+            'E-mail de redefinição de senha usa o mesmo modelo, com texto de redefinição',
+            'Saudação dos e-mails usa o primeiro nome',
+            'Permissão de push: aceitar e recusar se refletem na tela de notificações',
+          ],
+        },
+      ],
+    },
+  ];
+
+  var KEY = 'rememberly-roteiro-v2';
+  var state = {};
+  try {
+    state = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+  } catch (e) {
+    state = {};
+  }
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  var root = document.getElementById('sections');
+  var boxes = [];
+  SECTIONS.forEach(function (sec, si) {
+    var d = document.createElement('details');
+    d.open = si < 2;
+    var s = document.createElement('summary');
+    var t = document.createElement('h2');
+    t.textContent = sec.title;
+    var m = document.createElement('span');
+    m.className = 'meta';
+    s.appendChild(t);
+    s.appendChild(m);
+    d.appendChild(s);
+    var wrap = document.createElement('div');
+    wrap.className = 'items';
+    var secBoxes = [];
+    sec.groups.forEach(function (g, gi) {
+      if (g.title) {
+        var h = document.createElement('div');
+        h.className = 'sub';
+        h.textContent = g.title;
+        wrap.appendChild(h);
+      }
+      g.items.forEach(function (text, ii) {
+        var id = sec.id + '-' + gi + '-' + ii;
+        var l = document.createElement('label');
+        l.className = 'item';
+        var c = document.createElement('input');
+        c.type = 'checkbox';
+        c.id = id;
+        c.checked = !!state[id];
+        var sp = document.createElement('span');
+        sp.textContent = text;
+        l.appendChild(c);
+        l.appendChild(sp);
+        wrap.appendChild(l);
+        secBoxes.push(c);
+        boxes.push(c);
+        c.addEventListener('change', function () {
+          state[id] = c.checked;
+          save();
+          update();
+        });
+      });
+    });
+    d.appendChild(wrap);
+    root.appendChild(d);
+    d._meta = m;
+    d._boxes = secBoxes;
+  });
+
+  function update() {
+    var done = boxes.filter(function (b) {
+      return b.checked;
+    }).length;
+    document.getElementById('total').textContent =
+      done + ' de ' + boxes.length + ' itens';
+    var pct = boxes.length ? Math.round((done / boxes.length) * 100) : 0;
+    document.getElementById('fill').style.width = pct + '%';
+    document.querySelector('.bar').setAttribute('aria-valuenow', pct);
+    root.querySelectorAll('details').forEach(function (d) {
+      var n = d._boxes.filter(function (b) {
+        return b.checked;
+      }).length;
+      d._meta.textContent = n + '/' + d._boxes.length;
+      d._meta.className = 'meta' + (n === d._boxes.length ? ' done' : '');
+    });
+  }
+  document.getElementById('reset').addEventListener('click', function () {
+    state = {};
+    save();
+    boxes.forEach(function (b) {
+      b.checked = false;
+    });
+    update();
+  });
+  update();
+</script>

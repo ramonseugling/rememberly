@@ -86,4 +86,15 @@ describe('first and last name', () => {
     expect(data.last_name).toBe('Lima');
     expect(data.name).toBe('Ana Lima');
   });
+
+  it('returns 400 for one-letter names or names with digits', async () => {
+    for (const body of [
+      { first_name: 'A', last_name: 'Silva' },
+      { first_name: 'Ana', last_name: 'S' },
+      { first_name: 'Ana3', last_name: 'Silva' },
+    ]) {
+      const { response } = await register(body);
+      expect(response.status).toBe(400);
+    }
+  });
 });

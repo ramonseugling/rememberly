@@ -50,7 +50,7 @@ The app is open to people aged 12 or older. `POST /api/v1/users` (registration) 
 
 ## Terms acceptance
 
-`POST /api/v1/users` requires `accepted_terms: true` (boolean, literally `true`) in the JSON body, together with the existing fields. A missing, `false` or non-boolean value answers `400 ValidationError` with message `Aceite os Termos de Uso e a Política de Privacidade para criar a conta.` and no user is created. On `201` the server stores `users.terms_accepted_at = now()` and `users.terms_version = LEGAL_VERSION` (`lib/legal/shared.ts`, currently `2026-11-10`; bump it whenever the Terms or Privacy texts change). Neither column is returned by any API response.
+`POST /api/v1/users` requires `accepted_terms: true` (boolean, literally `true`) in the JSON body, together with the existing fields. A missing, `false` or non-boolean value answers `400 ValidationError` with message `Aceite os Termos de Uso e a Política de Privacidade para criar a conta.` and no user is created. On `201` the server stores `users.terms_accepted_at = now()` and `users.terms_version = LEGAL_VERSION` (`lib/legal/shared.ts`, currently `2026-11-12`; bump it whenever the Terms or Privacy texts change). Neither column is returned by any API response.
 
 Social sign-up (Google web callback, mobile Google login, native Google/Apple) sends no field: continuing past the "Ao continuar..." notice is the acceptance, and the same two columns are recorded when the account row is created. Signing in again never changes them. Accounts created before this feature keep both columns `NULL` and are not prompted.
 
@@ -62,12 +62,22 @@ The sign-up steps can confirm the e-mail before the account exists:
 2. `POST /api/v1/otp/verify` with `{ email, otp_code }` consumes the code and answers `200 { verification_token }` (64 hex characters, valid for 30 minutes, only a SHA-256 hash is stored). A wrong code answers `400` and counts as an attempt (5 per code).
 3. `POST /api/v1/users` accepts `verification_token` instead of `otp_code`. The token must belong to the same e-mail, be unused and unexpired. It is only consumed after the account is created, so a rejected request (for example under-age or terms not accepted) can be retried with the same token. The old `otp_code` field still works, so the web sign-up is unchanged; one of the two is required.
 
+### Public gift list link
+
+- Each list has a random 22-character code (`gift_lists.share_token`, created on first use). `GET /api/v1/gifts/share-link` returns `{ token }` for the signed-in owner; `POST` replaces it, so links shared before stop working.
+- `GET /api/v1/public/gift-lists/:token` needs no login. It returns `{ owner, groups: [], items, viewer_is_owner, viewer_signed_in }`; each item has `availability` (`available`, `reserved` or `purchased`) and `reserved_by_me` (only true for a signed-in viewer's own reservation). Nobody but the reserver learns who reserved. The owner sees plain items without availability.
+- Reserving still needs a session. `PUT /api/v1/gifts/:id/reservation` accepts an optional `token` in the body; with a valid code a signed-in person outside the owner's groups can reserve. Reservations made this way are not released when group access changes (`gift_reservations.via_link`).
+- `GET /api/v1/users/:id/gifts?token=<code>` also opens the list for a signed-in person outside the groups.
+- The web page `/gift-list?list=<code>` shows the list, and its Open Graph image is `/api/v1/og/gift-list?list=<code>` (the old `?user=<id>` form keeps only the preview and the app prompt).
+
 ### Code limit and names
 
 - `POST /api/v1/otp` and `POST /api/v1/password/forgot` issue at most 5 codes per e-mail per hour (`otp.isRateLimited`); the 6th answers `429 TooManyRequestsError`. The 60-second wait between resends is enforced only by the app.
 - Users have `first_name` and `last_name` (nullable) besides the full `name`. `POST /api/v1/users` and `PATCH /api/v1/users` accept `first_name`/`last_name` (preferred) or a single `name`, which is split at the first space. The server always keeps `name = first_name + " " + last_name`. `GET /api/v1/mobile/me` returns all three. E-mail and push greetings use the first name.
 
 ## Photos (profile and group)
+
+**Google profile photo.** On a Google login (web OAuth, the mobile OAuth callback and the native Google token) the server copies the account picture into the avatar storage when the person has no avatar yet (`models/google-avatar.ts`). Only HTTPS `*.googleusercontent.com` URLs are fetched (5 s timeout, 2 MB limit, no redirects), a photo the person uploaded is never replaced, and any failure is logged and ignored so the login still succeeds.
 
 Added with BE-PHOTO-01. Both endpoints use the shared `authenticatedController` (Bearer or cookie) and take the **raw image bytes** as the request body with an `image/*` `Content-Type` (not multipart). The server accepts JPEG, PNG and WebP up to 2 MB, strips metadata, applies the EXIF orientation, crops to a 512 × 512 square and stores it as WebP.
 

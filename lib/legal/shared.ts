@@ -16,7 +16,7 @@ export interface LegalDocument {
 export const LEGAL_LAST_UPDATED = '10 de novembro de 2026';
 
 // Stored in users.terms_version when an account is created. Bump it whenever the Terms of Use or Privacy Policy texts change.
-export const LEGAL_VERSION = '2026-11-10';
+export const LEGAL_VERSION = '2026-11-12';
 
 // Controller details. CPF and street address are intentionally not published; a lawyer confirms whether they are required.
 export const COMPANY_NAME = 'Ramon Seugling';

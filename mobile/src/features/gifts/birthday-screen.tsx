@@ -24,6 +24,7 @@ import { useAuthenticatedApi, useResource } from '../../data/hooks';
 import { ConfettiLayer } from './confetti';
 import type { ConfettiPiece } from './confetti';
 import { availabilityLabel, reserveError, reserveRequest } from './member';
+import { listCode } from '../../navigation/intents';
 import type { MemberGiftItem, MemberList, ReserveAction } from './member';
 import { birthdayCard, firstName, giftHost } from './model';
 import { birthdayHeadline, groupsLabel } from './birthday-copy';
@@ -50,14 +51,20 @@ const confetti: readonly ConfettiPiece[] = [
 export function BirthdayScreen() {
   const params = useLocalSearchParams<{
     userId?: string | string[];
+    list?: string | string[];
     from?: string | string[];
   }>();
   const origin = parseOrigin(params.from);
   const userId = Array.isArray(params.userId)
     ? params.userId[0]
     : params.userId;
+  const code = Array.isArray(params.list) ? params.list[0] : params.list;
   const list = useResource<MemberList>(
-    userId ? `/api/v1/users/${encodeURIComponent(userId)}/gifts` : null,
+    listCode(code)
+      ? `/api/v1/public/gift-lists/${code}`
+      : userId
+        ? `/api/v1/users/${encodeURIComponent(userId)}/gifts`
+        : null,
   );
   const { request } = useAuthenticatedApi();
   const [groupsOpen, setGroupsOpen] = useState(false);
@@ -92,7 +99,11 @@ export function BirthdayScreen() {
     busy.current = true;
     setPending(true);
     setError(null);
-    const { path, method, body } = reserveRequest(item.id, action);
+    const { path, method, body } = reserveRequest(
+      item.id,
+      action,
+      listCode(code) ? code : undefined,
+    );
     try {
       await request(path, { method, body });
       if (!mounted.current) return;
@@ -135,7 +146,7 @@ export function BirthdayScreen() {
             <View style={styles.stack}>
               <DsFeedback tone="error" message={list.error} />
               <DsText role="caption" style={styles.muted}>
-                Você só vê pessoas que estão em um grupo com você.
+                Confira o link ou peça um novo a quem compartilhou.
               </DsText>
             </View>
           )}

@@ -101,6 +101,7 @@ export default function ForgotPasswordScreen() {
         title="Conta criada com Google"
         pending={task.pending}
         message={task.message}
+        notice={task.notice}
       >
         <View style={local.feedback}>
           <DsText accessible={false} style={local.emoji}>
@@ -126,6 +127,7 @@ export default function ForgotPasswordScreen() {
         title="Senha redefinida!"
         pending={task.pending}
         message={task.message}
+        notice={task.notice}
       >
         <View style={local.feedback}>
           <DsText accessible={false} style={local.emoji}>
@@ -148,6 +150,7 @@ export default function ForgotPasswordScreen() {
       title={title}
       pending={task.pending}
       message={task.message}
+      notice={task.notice}
       counter={<AuthStepDots step={step} total={STEPS} />}
       back={
         <AuthBack
@@ -215,7 +218,7 @@ export default function ForgotPasswordScreen() {
             hideLabel
             label="Nova senha"
             icon="password"
-            placeholder="••••••••"
+            placeholder="Nova senha"
             value={password}
             onChangeText={(value) => {
               setPassword(value);

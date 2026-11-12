@@ -3,6 +3,7 @@ import { NotFoundError } from 'infra/errors';
 import { presentGiftItem } from 'models/gift';
 import type { GiftItem } from 'models/gift';
 import giftReservation from 'models/gift-reservation';
+import giftShare from 'models/gift-share';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -34,7 +35,11 @@ async function findVisibleOwners(viewerId: string) {
   }[];
 }
 
-async function findListForViewer(viewerId: string, ownerId: string) {
+async function findListForViewer(
+  viewerId: string,
+  ownerId: string,
+  token: string | null = null,
+) {
   if (!UUID.test(ownerId)) throw listNotFound();
   const owner = await database.query(
     `SELECT u.id, u.name, u.avatar_url, u.birth_day, u.birth_month, u.birth_year, l.id AS list_id
@@ -42,9 +47,9 @@ async function findListForViewer(viewerId: string, ownerId: string) {
      WHERE u.id = $2
        AND ($1 = u.id OR EXISTS (
          SELECT 1 FROM gift_lists l2 WHERE l2.user_id = u.id
-           AND ${canView('l2')}
+           AND (${canView('l2')} OR l2.share_token = $3)
        ))`,
-    [viewerId, ownerId],
+    [viewerId, ownerId, token],
   );
   const row = owner.rows[0];
   if (!row) throw listNotFound();
@@ -102,13 +107,59 @@ async function findListForViewer(viewerId: string, ownerId: string) {
 function listNotFound() {
   return new NotFoundError({
     message: 'Lista de presentes não encontrada.',
-    action: 'Você precisa estar em um grupo com essa pessoa.',
+    action: 'Confira o link ou peça um novo para quem compartilhou.',
   });
+}
+
+// Anyone with the link can read the list; the viewer is optional (signed out
+// readers see availability but can never reserve).
+async function findListByToken(token: string, viewerId: string | null) {
+  const ownerId = await giftShare.findOwnerIdByToken(token);
+  if (!ownerId) throw listNotFound();
+  const base = await findListForViewer(viewerId ?? ownerId, ownerId, token);
+  if (viewerId !== null)
+    return {
+      ...base,
+      viewer_is_owner: viewerId === ownerId,
+      viewer_signed_in: true,
+    };
+  const list = await database.query(
+    'SELECT id FROM gift_lists WHERE user_id = $1',
+    [ownerId],
+  );
+  const claims = new Map(
+    list.rows[0]
+      ? (await giftReservation.findForList(list.rows[0].id as string)).map(
+          (claim) => [claim.item_id, claim],
+        )
+      : [],
+  );
+  return {
+    ...base,
+    viewer_is_owner: false,
+    viewer_signed_in: false,
+    items: base.items.map((item) => {
+      const {
+        availability: _a,
+        reserved_by_me: _r,
+        ...plain
+      } = item as GiftItem & {
+        availability?: string;
+        reserved_by_me?: boolean;
+      };
+      return {
+        ...plain,
+        availability: claims.get(item.id)?.status ?? 'available',
+        reserved_by_me: false,
+      };
+    }),
+  };
 }
 
 const giftVisibility = {
   findVisibleOwners,
   findListForViewer,
+  findListByToken,
 };
 
 export default giftVisibility;

@@ -3,6 +3,7 @@ import { ChevronRight, Gift, Plus } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -37,10 +38,9 @@ import {
   reservedTitle,
 } from './model';
 import type { GiftItem, GiftList, GiftPayload, GiftPhotoChange } from './model';
-import { giftLink } from './link';
+import { giftLink, whatsappUrl } from './link';
 import { GiftThumb } from './gift-thumb';
 import { PHOTO_CONTENT_TYPE } from '../photo/photo-rules';
-import { ShareSheet } from './share-sheet';
 import { apiConfiguration } from '../../config/environment';
 
 type Change =
@@ -55,7 +55,6 @@ type Change =
 export function GiftsScreen() {
   const list = useResource<GiftList>('/api/v1/gifts');
   const profile = useResource<{ user: ProfileUser }>('/api/v1/mobile/me');
-  const [sharing, setSharing] = useState(false);
   const { request } = useAuthenticatedApi();
   const pull = usePullRefresh();
   const [editor, setEditor] = useState<{ item?: GiftItem } | null>(null);
@@ -149,6 +148,22 @@ export function GiftsScreen() {
   const items = list.data?.items ?? [];
   const limit = list.data?.limit ?? 50;
   const user = profile.data?.user;
+  async function shareOnWhatsApp() {
+    if (!user) return;
+    try {
+      const { token } = await request<{ token: string }>(
+        '/api/v1/gifts/share-link',
+      );
+      const urls = whatsappUrl(
+        giftLink(apiConfiguration.apiOrigin, token),
+        card?.days ?? null,
+      );
+      await Linking.openURL(urls.app).catch(() => Linking.openURL(urls.web));
+    } catch {
+      setError('Não foi possível abrir o WhatsApp.');
+    }
+  }
+
   const card = user
     ? birthdayCard(
         user.birth_day,
@@ -185,7 +200,13 @@ export function GiftsScreen() {
             name={firstName(user.name)}
             photoUri={user.avatar_url ?? null}
             card={card}
-            onShare={empty ? undefined : () => setSharing(true)}
+            onShare={
+              empty
+                ? undefined
+                : () => {
+                    void shareOnWhatsApp();
+                  }
+            }
           >
             {!empty && !list.error && (
               <>
@@ -270,8 +291,8 @@ export function GiftsScreen() {
                     role="caption"
                     style={[styles.centered, styles.muted]}
                   >
-                    Adicione o que você quer ganhar e compartilhe com seus
-                    grupos para ninguém errar no presente.
+                    Adicione o que você quer ganhar e compartilhe o link com
+                    quem quiser para ninguém errar no presente.
                   </DsText>
                 </View>
                 <DsButton
@@ -304,12 +325,6 @@ export function GiftsScreen() {
           </View>
         )}
       </ScrollView>
-      {sharing && user && (
-        <ShareSheet
-          link={giftLink(apiConfiguration.apiOrigin, user.id)}
-          onClose={() => setSharing(false)}
-        />
-      )}
       {editor && (
         <GiftEditor
           item={editor.item}

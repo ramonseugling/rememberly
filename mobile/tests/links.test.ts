@@ -153,6 +153,28 @@ test('accepts gift list links for a valid user id only', () => {
     assert.equal(parseNativeLink(bad), null, bad);
 });
 
+test('accepts public gift list links by list code only', () => {
+  const code = 'Kq3vT9mXw2LpZr8YbN4cHg';
+  const intent = { kind: 'gift-list-code', code };
+  assert.deepEqual(
+    parseNativeLink(`rememberly://gift-list?list=${code}`),
+    intent,
+  );
+  assert.deepEqual(
+    parseNativeLink(`https://rememberly.com.br/gift-list?list=${code}`),
+    intent,
+  );
+  assert.equal(intentPath(intent as never), `/gift-list?list=${code}`);
+  assert.equal(pendingPath(intent as never), `/(tabs)/birthday?list=${code}`);
+  for (const bad of [
+    'rememberly://gift-list?list=short',
+    `rememberly://gift-list?list=${code}x`,
+    `rememberly://gift-list?list=${code}&user=1`,
+    `https://evil.com/gift-list?list=${code}`,
+  ])
+    assert.equal(parseNativeLink(bad), null, bad);
+});
+
 test('opens a pending gift list link on the member list after login', () => {
   const id = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
   assert.equal(

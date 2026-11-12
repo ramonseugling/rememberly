@@ -6,8 +6,7 @@ export type PublicTransport = (
 ) => Promise<Pick<Response, 'status' | 'url' | 'redirected' | 'json'>>;
 
 const KNOWN_BAD_REQUESTS: Record<string, string> = {
-  'Este e-mail já está em uso.':
-    'Este e-mail já está associado a outra conta. Entre com ela ou recupere a senha.',
+  'Este e-mail já está em uso.': 'Este e-mail já está associado a outra conta.',
   'Verificação inválida ou expirada.':
     'A confirmação expirou. Volte e peça um novo código.',
   'Código de verificação incorreto.':
@@ -217,6 +216,20 @@ export function createPublicAuthApi(
   };
 }
 
+const NAME_PATTERN = /^\p{L}[\p{L}\s'.-]*$/u;
+
+export function nameError(
+  value: string,
+  label: 'nome' | 'sobrenome',
+): string | null {
+  const text = value.trim();
+  if (text.length < 2 || text.length > 60)
+    return `Informe seu ${label} com 2 a 60 caracteres.`;
+  return NAME_PATTERN.test(text)
+    ? null
+    : `Use apenas letras, espaços, hífen ou apóstrofo no ${label}.`;
+}
+
 export function emailError(value: string): string | null {
   return value.trim().length <= 254 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
@@ -229,7 +242,7 @@ export function passwordError(
 ): string | null {
   if (value.length < 8 || value.length > 72)
     return 'Use uma senha entre 8 e 72 caracteres.';
-  return value === confirmation ? null : 'As senhas não coincidem.';
+  return value === confirmation ? null : 'As senhas são diferentes.';
 }
 export function registrationError(
   input: Registration,

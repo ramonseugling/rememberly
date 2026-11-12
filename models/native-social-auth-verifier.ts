@@ -98,6 +98,10 @@ export async function verifyNativeIdentityToken(
         typeof payload.name === 'string' && payload.name.trim()
           ? payload.name.trim().slice(0, 100)
           : 'Rememberly user',
+      picture:
+        provider === 'google' && typeof payload.picture === 'string'
+          ? payload.picture
+          : undefined,
     };
   } catch (error) {
     if (error instanceof NativeSocialAuthError) throw error;

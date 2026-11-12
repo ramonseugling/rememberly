@@ -51,7 +51,7 @@ test('validates sizes and only accepts plain http(s) links', () => {
     'loja',
     'https://user:pw@x.com',
   ])
-    assert.match(giftPayload({ ...base, link }).error ?? '', /http/);
+    assert.match(giftPayload({ ...base, link }).error ?? '', /link válido/);
   assert.equal(
     giftPayload({ ...base, link: 'https://loja.com/fone' }).error,
     null,
@@ -126,13 +126,21 @@ test('builds the birthday card with date and age', () => {
 test('builds the shareable gift list link and the WhatsApp message', async () => {
   const { giftLink, whatsappUrl } =
     await import('../src/features/gifts/link.ts');
-  const id = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+  const id = 'Kq3vT9mXw2LpZr8YbN4cHg';
   const link = giftLink('https://rememberly.com.br', id);
-  assert.equal(link, `https://rememberly.com.br/gift-list?user=${id}`);
+  assert.equal(link, `https://rememberly.com.br/gift-list?list=${id}`);
   const urls = whatsappUrl(link);
   assert.ok(urls.app.startsWith('whatsapp://send?text='));
   assert.ok(urls.web.startsWith('https://wa.me/?text='));
   assert.ok(decodeURIComponent(urls.web).includes(link));
+  const { giftShareMessage } = await import('../src/features/gifts/link.ts');
+  assert.match(
+    giftShareMessage(5, link),
+    /^Faltam 5 dias para o meu aniversário/,
+  );
+  assert.match(giftShareMessage(1, link), /^Falta 1 dia/);
+  assert.match(giftShareMessage(0, link), /^Hoje é o meu aniversário/);
+  assert.match(giftShareMessage(null, link), /Entra aqui: /);
 });
 
 test('writes the birthday page headline and group chip', async () => {

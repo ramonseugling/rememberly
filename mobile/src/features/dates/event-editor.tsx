@@ -7,7 +7,6 @@ import {
   DsField,
   DsFeedback,
   DsSelect,
-  DsSheet,
   DsText,
 } from '../../design-system';
 import { tokens } from '../../design-system/tokens';
@@ -19,7 +18,6 @@ interface EventEditorProps {
   item?: AgendaItem;
   pending: boolean;
   error: string | null;
-  onClose: () => void;
   onSave: (payload: EventPayload) => void;
   onDelete?: () => void;
 }
@@ -43,7 +41,6 @@ export const EventEditor = ({
   item,
   pending,
   error,
-  onClose,
   onSave,
   onDelete,
 }: EventEditorProps) => {
@@ -65,11 +62,7 @@ export const EventEditor = ({
     if (result.payload) onSave(result.payload);
   }
   return (
-    <DsSheet
-      title={item ? 'Editar evento' : 'Adicionar evento'}
-      pending={pending}
-      onClose={onClose}
-    >
+    <View style={styles.form}>
       <DsField
         label="Título"
         accessibilityLabel="Título do evento"
@@ -195,11 +188,12 @@ export const EventEditor = ({
           }}
         />
       )}
-    </DsSheet>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  form: { gap: 16 },
   field: { gap: 8 },
   description: { color: tokens.colors.textMuted },
   row: { flexDirection: 'row', gap: 12 },

@@ -59,6 +59,28 @@ async function setUserAvatar(userId: string, input: Buffer) {
   return { avatar_url: url as string };
 }
 
+// Used by the Google import: only fills an empty avatar, so a photo the
+// person uploaded is never replaced.
+async function setUserAvatarIfEmpty(userId: string, input: Buffer) {
+  const current = await database.query(
+    'SELECT avatar_url FROM users WHERE id = $1',
+    [userId],
+  );
+  if (!current.rows[0] || current.rows[0].avatar_url) return null;
+  const processed = await processPhoto(input);
+  const url = await getStorage().put(
+    `avatars/${userId}.webp`,
+    processed,
+    'image/webp',
+  );
+  const updated = await database.query(
+    `UPDATE users SET avatar_url = $1, updated_at = NOW()
+     WHERE id = $2 AND avatar_url IS NULL RETURNING avatar_url`,
+    [url, userId],
+  );
+  return (updated.rows[0]?.avatar_url as string | undefined) ?? null;
+}
+
 async function removeUserAvatar(userId: string) {
   const previous = await database.query(
     'SELECT avatar_url FROM users WHERE id = $1',
@@ -151,6 +173,7 @@ const photo = {
   setGiftPhoto,
   removeGiftPhoto,
   setUserAvatar,
+  setUserAvatarIfEmpty,
   removeUserAvatar,
   setGroupPhoto,
   removeGroupPhoto,

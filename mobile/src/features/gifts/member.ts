@@ -48,13 +48,21 @@ export function availabilityLabel(item: MemberGiftItem): string | null {
 export function reserveRequest(
   itemId: string,
   action: ReserveAction,
-): { path: string; method: 'PUT' | 'DELETE'; body?: { status: string } } {
+  code?: string,
+): {
+  path: string;
+  method: 'PUT' | 'DELETE';
+  body?: { status: string; token?: string };
+} {
   const path = `/api/v1/gifts/${itemId}/reservation`;
   if (action === 'cancel') return { path, method: 'DELETE' };
   return {
     path,
     method: 'PUT',
-    body: { status: action === 'reserve' ? 'reserved' : 'purchased' },
+    body: {
+      status: action === 'reserve' ? 'reserved' : 'purchased',
+      ...(code ? { token: code } : {}),
+    },
   };
 }
 

@@ -1,11 +1,14 @@
 import { Gift, Trash2 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import {
@@ -231,20 +234,50 @@ const GiftEditorBody = ({
   );
 };
 
-export const GiftEditor = (props: GiftEditorProps) => (
-  <Modal
-    animationType="slide"
-    presentationStyle="fullScreen"
-    visible
-    onRequestClose={() => {
-      if (!props.pending) props.onClose();
-    }}
-  >
-    <SafeAreaProvider>
-      <GiftEditorBody {...props} />
-    </SafeAreaProvider>
-  </Modal>
-);
+// Slides in from the right like a pushed screen; the Modal only provides the
+// full-screen layer above the tab bar.
+export const GiftEditor = (props: GiftEditorProps) => {
+  const { width } = useWindowDimensions();
+  const offset = useRef(new Animated.Value(width)).current;
+  useEffect(() => {
+    Animated.timing(offset, {
+      toValue: 0,
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [offset]);
+  const { onClose, pending } = props;
+  const close = useCallback(() => {
+    Animated.timing(offset, {
+      toValue: width,
+      duration: 220,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) onClose();
+    });
+  }, [offset, onClose, width]);
+  return (
+    <Modal
+      animationType="none"
+      transparent
+      statusBarTranslucent
+      visible
+      onRequestClose={() => {
+        if (!pending) close();
+      }}
+    >
+      <SafeAreaProvider>
+        <Animated.View
+          style={[styles.fill, { transform: [{ translateX: offset }] }]}
+        >
+          <GiftEditorBody {...props} onClose={close} />
+        </Animated.View>
+      </SafeAreaProvider>
+    </Modal>
+  );
+};
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.colors.background },

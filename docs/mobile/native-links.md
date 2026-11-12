@@ -4,12 +4,13 @@ The app accepts validated Rememberly invitations and gift-list links. Password r
 
 ## Accepted inputs
 
-| Input                                                  | Result                                                                         |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `rememberly://join-group?code=abc12_-3`                | Explicit invitation confirmation                                               |
-| `https://rememberly.com.br/join-group?code=abc12_-3`   | Same validated invitation when delivered to the app                            |
-| `rememberly://gift-list?user=<user UUID>`              | Opens that person's gift list (signed-in) or asks to sign in first             |
-| `https://rememberly.com.br/gift-list?user=<user UUID>` | Website page with an "Open in the app" button until Universal Links are set up |
+| Input                                                  | Result                                                                            |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `rememberly://join-group?code=abc12_-3`                | Explicit invitation confirmation                                                  |
+| `https://rememberly.com.br/join-group?code=abc12_-3`   | Same validated invitation when delivered to the app                               |
+| `rememberly://gift-list?user=<user UUID>`              | Opens that person's gift list (signed-in) or asks to sign in first                |
+| `rememberly://gift-list?list=<22-char list code>`      | Opens the public gift list by its share code (signed-in) or asks to sign in first |
+| `https://rememberly.com.br/gift-list?user=<user UUID>` | Website page with an "Open in the app" button until Universal Links are set up    |
 
 The `rememberly:///path` and `rememberly://app/path` forms are accepted too. Only the exact `/join-group` and `/gift-list` paths and their single expected parameter are allowed. Links reject other hosts, credentials, ports outside the exact origin, fragments, duplicate or unknown parameters, whitespace, encoding tricks, normalized traversal, malformed values, and inputs over 512 characters. Invitation codes match the server's eight lowercase base64url characters.
 

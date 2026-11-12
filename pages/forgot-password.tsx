@@ -150,7 +150,7 @@ export default function ForgotPassword() {
     setError('');
 
     if (password !== passwordConfirm) {
-      setError('As senhas não coincidem.');
+      setError('As senhas são diferentes.');
       return;
     }
 

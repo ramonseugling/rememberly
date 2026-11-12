@@ -9,5 +9,8 @@ export default authenticatedController({ GET: handleGet });
 
 async function handleGet(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
-  res.status(200).json(await giftVisibility.findListForViewer(req.user.id, id));
+  const token = typeof req.query.token === 'string' ? req.query.token : null;
+  res
+    .status(200)
+    .json(await giftVisibility.findListForViewer(req.user.id, id, token));
 }

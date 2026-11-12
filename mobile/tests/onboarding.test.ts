@@ -5,6 +5,7 @@ import {
   isLastStep,
   nextStepIndex,
   onboardingStorageKey,
+  previousStepIndex,
   parseOnboardingSeen,
 } from '../src/features/onboarding/onboarding-rules.ts';
 
@@ -39,4 +40,9 @@ test('seen flag is per environment, origin and user and only accepts 1', () => {
   assert.equal(parseOnboardingSeen('1'), true);
   assert.equal(parseOnboardingSeen('0'), false);
   assert.equal(parseOnboardingSeen(null), false);
+});
+
+test('going back never leaves the first step', () => {
+  assert.equal(previousStepIndex(3), 2);
+  assert.equal(previousStepIndex(0), 0);
 });

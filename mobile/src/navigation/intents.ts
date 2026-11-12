@@ -1,6 +1,7 @@
 export type LinkIntent =
   | { kind: 'invitation'; code: string }
-  | { kind: 'gift-list'; userId: string };
+  | { kind: 'gift-list'; userId: string }
+  | { kind: 'gift-list-code'; code: string };
 export type NotificationIntent = {
   kind: 'notification';
   tab: 'dates' | 'groups' | 'occasions' | 'birthday' | 'home';
@@ -10,6 +11,9 @@ export type PendingIntent = LinkIntent | NotificationIntent;
 
 export function inviteCode(value: unknown): value is string {
   return typeof value === 'string' && /^[a-z0-9_-]{8}$/.test(value);
+}
+export function listCode(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{22}$/.test(value);
 }
 export function resourceId(value: unknown): value is string {
   return (
@@ -59,6 +63,8 @@ export function parseNativeLink(
       return { kind: 'invitation', code: value };
     if (path === '/gift-list' && key === 'user' && resourceId(value))
       return { kind: 'gift-list', userId: value };
+    if (path === '/gift-list' && key === 'list' && listCode(value))
+      return { kind: 'gift-list-code', code: value };
     return null;
   } catch {
     return null;
@@ -66,13 +72,15 @@ export function parseNativeLink(
 }
 
 export function intentPath(intent: LinkIntent): string {
-  return intent.kind === 'invitation'
-    ? `/join-group?code=${intent.code}`
-    : `/gift-list?user=${intent.userId}`;
+  if (intent.kind === 'invitation') return `/join-group?code=${intent.code}`;
+  if (intent.kind === 'gift-list-code') return `/gift-list?list=${intent.code}`;
+  return `/gift-list?user=${intent.userId}`;
 }
 
 export function pendingPath(intent: PendingIntent): string {
   if (intent.kind === 'invitation') return intentPath(intent);
+  if (intent.kind === 'gift-list-code')
+    return `/(tabs)/birthday?list=${intent.code}`;
   if (intent.kind === 'gift-list')
     return `/(tabs)/birthday?userId=${intent.userId}`;
   return notificationPath(intent);

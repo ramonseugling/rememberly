@@ -13,8 +13,13 @@ export default authenticatedController({
 
 async function handlePut(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
-  const { status } = parseSchema(reserveGiftSchema, req.body);
-  const reservation = await giftReservation.reserve(req.user.id, id, status);
+  const { status, token } = parseSchema(reserveGiftSchema, req.body);
+  const reservation = await giftReservation.reserve(
+    req.user.id,
+    id,
+    status,
+    token ?? null,
+  );
   res.status(200).json({
     item_id: reservation.item_id,
     availability: reservation.status,

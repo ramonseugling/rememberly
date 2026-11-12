@@ -29,16 +29,27 @@ const birthdayFields = {
     .max(new Date().getFullYear(), 'O ano não pode ser no futuro.'),
 };
 
+const PERSON_NAME_PATTERN = /^\p{L}[\p{L}\s'.-]*$/u;
+
 const firstNameField = z
   .string()
   .trim()
-  .min(1, 'O nome é obrigatório.')
-  .max(60, 'O nome deve ter no máximo 60 caracteres.');
+  .min(2, 'O nome deve ter pelo menos 2 caracteres.')
+  .max(60, 'O nome deve ter no máximo 60 caracteres.')
+  .regex(
+    PERSON_NAME_PATTERN,
+    'O nome deve conter apenas letras, espaços, hífen ou apóstrofo.',
+  );
 
 const lastNameField = z
   .string()
   .trim()
-  .max(60, 'O sobrenome deve ter no máximo 60 caracteres.');
+  .max(60, 'O sobrenome deve ter no máximo 60 caracteres.')
+  .refine(
+    (value) =>
+      value === '' || (value.length >= 2 && PERSON_NAME_PATTERN.test(value)),
+    'O sobrenome deve ter ao menos 2 letras e apenas letras, espaços, hífen ou apóstrofo.',
+  );
 
 export const createUserSchema = z
   .object({
@@ -388,6 +399,10 @@ export const reserveGiftSchema = z
       invalid_type_error: 'Status de reserva inválido.',
       message: 'Status de reserva inválido.',
     }),
+    token: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{22}$/, 'Código da lista inválido.')
+      .optional(),
   })
   .strict();
 

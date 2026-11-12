@@ -60,6 +60,10 @@ export function isLastStep(index: number): boolean {
   return index >= ONBOARDING_STEPS.length - 1;
 }
 
+export function previousStepIndex(index: number): number {
+  return Math.max(index - 1, 0);
+}
+
 export function nextStepIndex(index: number): number {
   return Math.min(index + 1, ONBOARDING_STEPS.length - 1);
 }

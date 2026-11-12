@@ -99,7 +99,7 @@ export function HomeScreen() {
             </Pressable>
           )}
         </View>
-        {agenda.loading && (
+        {agenda.loading && !agenda.data && (
           <ActivityIndicator
             accessibilityLabel="Carregando próximos eventos"
             color={tokens.colors.brand}
@@ -117,7 +117,7 @@ export function HomeScreen() {
             />
           </>
         )}
-        {!agenda.loading && !agenda.error && !birthdays.length && (
+        {!!agenda.data && !agenda.error && !birthdays.length && (
           <DsEmptyState
             compact
             illustration={
@@ -216,7 +216,7 @@ export function HomeScreen() {
             </Pressable>
           )}
         </View>
-        {groups.loading && (
+        {groups.loading && !groups.data && (
           <ActivityIndicator
             accessibilityLabel="Carregando grupos"
             color={tokens.colors.brand}
@@ -234,7 +234,7 @@ export function HomeScreen() {
             />
           </>
         )}
-        {!groups.loading && !groups.error && !groups.data?.length && (
+        {!!groups.data && !groups.error && !groups.data.length && (
           <DsEmptyState
             compact
             illustration={

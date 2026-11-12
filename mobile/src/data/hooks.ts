@@ -11,6 +11,29 @@ export function useAuthenticatedApi() {
   return useMemo(() => ({ request: controller.request }), [controller]);
 }
 
+// Last good response per user and path, so a screen shows its previous data at
+// once when focused again and refreshes in the background.
+const resourceCache = new Map<string, unknown>();
+const RESOURCE_CACHE_LIMIT = 40;
+
+function rememberResource(key: string, data: unknown) {
+  resourceCache.delete(key);
+  resourceCache.set(key, data);
+  while (resourceCache.size > RESOURCE_CACHE_LIMIT) {
+    const oldest = resourceCache.keys().next().value;
+    if (oldest === undefined) break;
+    resourceCache.delete(oldest);
+  }
+}
+
+export function clearResourceCache() {
+  resourceCache.clear();
+}
+
+function cacheKey(userId: string | undefined, path: string | null) {
+  return userId && path ? `${userId}:${path}` : null;
+}
+
 export function useResource<T>(path: string | null): {
   data: T | null;
   loading: boolean;
@@ -20,6 +43,10 @@ export function useResource<T>(path: string | null): {
   const { state } = useSession();
   const { request } = useAuthenticatedApi();
   const scope = state.status === 'authenticated' ? state.identity : null;
+  const key = cacheKey(scope?.user.id, path);
+  useEffect(() => {
+    if (!scope) clearResourceCache();
+  }, [scope]);
   const mounted = useRef(true);
   const sequence = useRef(0);
   const pending = useRef<AbortController | null>(null);
@@ -61,7 +88,7 @@ export function useResource<T>(path: string | null): {
       data:
         previous.scope === scope && previous.path === path
           ? previous.data
-          : null,
+          : (((key ? resourceCache.get(key) : null) as T | null) ?? null),
       loading: true,
       error: null,
     }));
@@ -72,6 +99,7 @@ export function useResource<T>(path: string | null): {
         current === sequence.current &&
         !abort.signal.aborted
       ) {
+        if (key) rememberResource(key, data);
         setResult({ scope, path, data, loading: false, error: null });
       }
     } catch (error) {
@@ -95,7 +123,7 @@ export function useResource<T>(path: string | null): {
         });
       }
     }
-  }, [cancel, path, request, scope]);
+  }, [cancel, key, path, request, scope]);
 
   useFocusEffect(
     useCallback(() => {
@@ -103,17 +131,25 @@ export function useResource<T>(path: string | null): {
       return () => {
         cancel();
         if (mounted.current)
-          setResult({ scope, path, data: null, loading: false, error: null });
+          setResult((previous) => ({ ...previous, loading: false }));
       };
     }, [cancel, path, reload, scope]),
   );
 
   const matching =
     result.scope === scope && result.path === path && scope !== null;
+  const cached = (key ? resourceCache.get(key) : null) as T | null | undefined;
+  const data = matching ? (result.data ?? cached ?? null) : (cached ?? null);
+  const error = matching ? result.error : null;
   return {
-    data: matching ? result.data : null,
-    loading: matching ? result.loading : !!scope && !!path,
-    error: matching ? result.error : null,
+    data,
+    loading:
+      data === null && !error
+        ? !!scope && !!path
+        : matching
+          ? result.loading
+          : false,
+    error,
     reload,
   };
 }

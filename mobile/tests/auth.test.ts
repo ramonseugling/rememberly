@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   createPublicAuthApi,
   emailError,
+  nameError,
   passwordError,
   PublicAuthError,
   registrationError,
@@ -380,4 +381,13 @@ test('verifyResetCode posts to the fixed endpoint and returns only a well-formed
     response({ reset_token: 'short' }),
   );
   await assert.rejects(broken.verifyResetCode('sam@example.com', '123456'));
+});
+
+test('names need 2 to 60 letters and refuse digits and symbols', () => {
+  assert.equal(nameError('Ana', 'nome'), null);
+  assert.equal(nameError("D'Ávila-Souza", 'sobrenome'), null);
+  assert.match(nameError('A', 'nome') ?? '', /2 a 60 caracteres/);
+  assert.match(nameError('a'.repeat(61), 'nome') ?? '', /2 a 60 caracteres/);
+  assert.match(nameError('Ana3', 'nome') ?? '', /apenas letras/);
+  assert.match(nameError('@na', 'sobrenome') ?? '', /apenas letras/);
 });

@@ -51,7 +51,7 @@ export const privacyDocument: LegalDocument = {
           ],
         },
         {
-          p: 'Se você entrar com o Google, recebemos do Google o seu nome, e-mail e identificador da conta Google. Não temos acesso à sua senha do Google.',
+          p: 'Se você entrar com o Google, recebemos do Google o seu nome, e-mail, identificador da conta Google e a sua foto de perfil. Copiamos a foto para o nosso armazenamento e a usamos como foto do seu perfil, só se você ainda não tiver uma; você pode trocá-la ou removê-la quando quiser. Não temos acesso à sua senha do Google.',
         },
       ],
     },

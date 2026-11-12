@@ -44,23 +44,27 @@ export default function App({ Component, pageProps }: AppProps) {
         />
         <link rel="canonical" href={canonicalUrl} />
         <meta
+          key="og:title"
           property="og:title"
           content="Rememberly | Adicione uma data. Lembre todos os anos."
         />
         <meta
+          key="og:description"
           property="og:description"
           content="Crie grupos com amigos e família. Cada pessoa cadastra o próprio aniversário e todo mundo recebe lembretes no dia certo."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
+        <meta key="og:url" property="og:url" content={canonicalUrl} />
         <meta property="og:site_name" content="Rememberly" />
         <meta property="og:locale" content="pt_BR" />
         <meta
+          key="og:image"
           property="og:image"
           content="https://rememberly.com.br/images/brand/new-3d-logo.png"
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
+          key="twitter:image"
           name="twitter:image"
           content="https://rememberly.com.br/images/brand/new-3d-logo.png"
         />

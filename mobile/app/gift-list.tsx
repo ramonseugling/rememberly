@@ -10,19 +10,35 @@ import {
   tokens,
 } from '../src/design-system';
 import { useIntents } from '../src/navigation/provider';
-import { resourceId } from '../src/navigation/intents';
+import { listCode, resourceId } from '../src/navigation/intents';
 import { useSession } from '../src/session/provider';
 
 export default function GiftListLinkScreen() {
-  const params = useLocalSearchParams<{ user?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    user?: string | string[];
+    list?: string | string[];
+  }>();
   const user = Array.isArray(params.user) ? params.user[0] : params.user;
   const userId = resourceId(user) ? user : null;
+  const rawCode = Array.isArray(params.list) ? params.list[0] : params.list;
+  const code = listCode(rawCode) ? rawCode : null;
+  const valid = !!userId || !!code;
+  const pendingIntent = code
+    ? ({ kind: 'gift-list-code', code } as const)
+    : userId
+      ? ({ kind: 'gift-list', userId } as const)
+      : null;
   const { state } = useSession();
   const { enqueue, clear } = useIntents();
 
-  if (userId && state.status === 'authenticated')
+  if (valid && state.status === 'authenticated')
     return (
-      <Redirect href={{ pathname: '/(tabs)/birthday', params: { userId } }} />
+      <Redirect
+        href={{
+          pathname: '/(tabs)/birthday',
+          params: code ? { list: code } : { userId: userId! },
+        }}
+      />
     );
 
   const restoring = state.status === 'restoring';
@@ -36,22 +52,22 @@ export default function GiftListLinkScreen() {
           </DsEmptyIcon>
           <View style={styles.copy}>
             <DsText role="title" style={styles.center}>
-              {userId ? 'Lista de presentes' : 'Link inválido'}
+              {valid ? 'Lista de presentes' : 'Link inválido'}
             </DsText>
             <DsText style={[styles.center, styles.muted]}>
-              {userId
-                ? 'Entre ou crie sua conta para ver a lista. Ela só aparece para quem está em um grupo com quem compartilhou. O link fica guardado até você terminar.'
+              {valid
+                ? 'Entre ou crie sua conta para ver a lista e reservar um presente. O link fica guardado até você terminar.'
                 : 'Este link de lista de presentes é inválido. Peça um novo link a quem compartilhou.'}
             </DsText>
           </View>
-          {userId && (
+          {valid && pendingIntent && (
             <>
               <DsButton
                 label="Entrar para continuar"
                 disabled={restoring}
                 style={styles.primary}
                 onPress={() => {
-                  enqueue({ kind: 'gift-list', userId });
+                  enqueue(pendingIntent);
                   router.push('/login');
                 }}
               />
@@ -61,7 +77,7 @@ export default function GiftListLinkScreen() {
                 disabled={restoring}
                 style={styles.primary}
                 onPress={() => {
-                  enqueue({ kind: 'gift-list', userId });
+                  enqueue(pendingIntent);
                   router.push('/signup');
                 }}
               />

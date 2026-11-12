@@ -2,12 +2,13 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DsButton, DsText, tokens } from '../../design-system';
+import { DsBackHeader, DsButton, DsText, tokens } from '../../design-system';
 import { OnboardingArt } from './onboarding-art';
 import {
   ONBOARDING_STEPS,
   isLastStep,
   nextStepIndex,
+  previousStepIndex,
 } from './onboarding-rules';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -42,6 +43,14 @@ export const OnboardingScreen = ({ onFinish }: OnboardingScreenProps) => {
         ]}
       >
         <View style={styles.top}>
+          <View style={styles.backSlot}>
+            {index > 0 && (
+              <DsBackHeader
+                label="Voltar"
+                onPress={() => setIndex(previousStepIndex(index))}
+              />
+            )}
+          </View>
           {step.skippable && (
             <DsButton
               label="Pular"
@@ -108,10 +117,14 @@ const styles = StyleSheet.create({
   top: {
     flexShrink: 0,
     height: 56,
-    paddingHorizontal: 24,
+    paddingLeft: 12,
+    paddingRight: 24,
     paddingTop: 8,
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
+  backSlot: { minWidth: 80 },
   body: {
     flexGrow: 1,
     alignItems: 'center',

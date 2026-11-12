@@ -3,6 +3,7 @@ import type { JWTVerifyGetKey } from 'jose';
 import { LEGAL_VERSION } from '@/lib/legal/shared';
 import { splitName } from '@/lib/person-name';
 import database from 'infra/database';
+import googleAvatar from 'models/google-avatar';
 import {
   NativeSocialAuthError,
   type NativeSocialProvider,
@@ -126,6 +127,8 @@ export async function exchangeNativeSocialIdentity(
       [challengeId],
     );
     await client.query('COMMIT');
+    if (provider === 'google')
+      await googleAvatar.importIfMissing(user.id, identity.picture);
     return created;
   } catch (error) {
     await client.query('ROLLBACK');

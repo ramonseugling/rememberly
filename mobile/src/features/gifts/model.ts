@@ -78,7 +78,7 @@ export function giftPayload(form: GiftForm): {
     return fail('O nome do presente deve ter no máximo 100 caracteres.');
   if (!link) return fail('Informe o link do presente.');
   if (link.length > 2000 || !validLink(link))
-    return fail('Informe um link que comece com http:// ou https://.');
+    return fail('Informe um link válido.');
   if (description.length > 500)
     return fail('A descrição deve ter no máximo 500 caracteres.');
   return {

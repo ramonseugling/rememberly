@@ -73,7 +73,7 @@ function validateLink(link: string) {
   ) {
     throw new ValidationError({
       message: 'O link do presente é inválido.',
-      action: 'Informe um link que comece com http:// ou https://.',
+      action: 'Informe um link válido.',
     });
   }
 }

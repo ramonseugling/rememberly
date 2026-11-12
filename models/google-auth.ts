@@ -3,6 +3,7 @@ import { LEGAL_VERSION } from '@/lib/legal/shared';
 import { splitName } from '@/lib/person-name';
 import database from 'infra/database';
 import { ServiceError, ValidationError } from 'infra/errors';
+import googleAvatar from 'models/google-avatar';
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
@@ -11,6 +12,7 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 interface GoogleUserProfile {
   email: string;
   name: string;
+  picture?: string;
 }
 
 function getAuthorizationUrl(
@@ -89,6 +91,7 @@ async function getUserProfile(accessToken: string): Promise<GoogleUserProfile> {
   return {
     email: data.email,
     name: data.name ?? data.email.split('@')[0],
+    picture: typeof data.picture === 'string' ? data.picture : undefined,
   };
 }
 
@@ -97,11 +100,13 @@ async function findOrCreateUser(profile: GoogleUserProfile) {
 
   if (existingUser) {
     log.info('google_auth_existing_user', { userId: existingUser.id });
+    await googleAvatar.importIfMissing(existingUser.id, profile.picture);
     return existingUser;
   }
 
   const newUser = await createUser(profile);
   log.info('google_auth_new_user', { userId: newUser.id });
+  await googleAvatar.importIfMissing(newUser.id, profile.picture);
   return newUser;
 }
 

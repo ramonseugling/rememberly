@@ -69,14 +69,15 @@ function OccasionsContent() {
     busy.current = true;
     setPending(item.key);
     setFailure(null);
-    const enabled = desiredEnabled ?? !(confirmed[item.key] ?? item.enabled);
+    const previous = confirmed[item.key] ?? item.enabled;
+    const enabled = desiredEnabled ?? !previous;
+    setConfirmed((current) => ({ ...current, [item.key]: enabled }));
     try {
       await request(
         `/api/v1/commemorative-dates/${encodeURIComponent(item.key)}`,
         { method: enabled ? 'PUT' : 'DELETE' },
       );
       if (!mounted.current) return;
-      setConfirmed((current) => ({ ...current, [item.key]: enabled }));
       await reload();
     } catch (cause) {
       if (
@@ -84,6 +85,7 @@ function OccasionsContent() {
         (!(cause instanceof ApiError) ||
           !['stale', 'cancelled'].includes(cause.kind))
       ) {
+        setConfirmed((current) => ({ ...current, [item.key]: previous }));
         setFailure({ key: item.key, enabled });
       }
     } finally {
@@ -114,7 +116,7 @@ function OccasionsContent() {
         <View style={styles.header}>
           <DsText role="title">Datas especiais</DsText>
           <DsText role="caption" style={styles.muted}>
-            Ative para não esquecer de comprar aquele presente. Avisamos 7 dias
+            Ative para não esquecer de comprar um presente. Avisamos 7 dias
             antes de cada evento.
           </DsText>
         </View>
@@ -153,7 +155,7 @@ function OccasionsContent() {
             <View key={item.key} style={styles.item}>
               <DsListCard
                 title={label}
-                subtitle={`${pending === item.key ? 'Salvando… · ' : ''}${daysUntilLabel(item.days_until)} · ${civilDateLabel(item.next_date)}`}
+                subtitle={`${daysUntilLabel(item.days_until)} · ${civilDateLabel(item.next_date)}`}
                 icon={
                   <DsText accessible={false} style={styles.emoji}>
                     {item.emoji}
@@ -164,7 +166,6 @@ function OccasionsContent() {
                     accessibilityLabel={`${enabled ? 'Desativar' : 'Ativar'} lembrete para ${label}`}
                     accessibilityState={{ busy: pending === item.key }}
                     value={enabled}
-                    disabled={pending !== null}
                     onValueChange={(next) => void toggle(item, next)}
                   />
                 }

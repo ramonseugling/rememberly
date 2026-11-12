@@ -1,4 +1,5 @@
 import { isAtLeastAge, MIN_AGE } from './age.ts';
+import { nameError } from '../auth/api.ts';
 
 export type ProfileUser = {
   id: string;
@@ -53,12 +54,10 @@ export function profileUpdate(
 } {
   const first_name = form.first_name.trim();
   const last_name = form.last_name.trim();
-  if (first_name.length < 1 || first_name.length > 60) {
-    throw new Error('Informe um nome com até 60 caracteres.');
-  }
-  if (last_name.length > 60) {
-    throw new Error('O sobrenome pode ter até 60 caracteres.');
-  }
+  const nameProblem =
+    nameError(first_name, 'nome') ??
+    (last_name ? nameError(last_name, 'sobrenome') : null);
+  if (nameProblem) throw new Error(nameProblem);
   const body: ReturnType<typeof profileUpdate> = { first_name, last_name };
   const fields = [
     ['day', 'birth_day', 1, 31],

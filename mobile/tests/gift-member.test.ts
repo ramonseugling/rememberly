@@ -75,6 +75,11 @@ test('maps actions to API requests', () => {
     body: { status: 'reserved' },
   });
   assert.equal(reserveRequest('x', 'purchase').body?.status, 'purchased');
+  assert.equal(
+    reserveRequest('x', 'reserve', 'Kq3vT9mXw2LpZr8YbN4cHg').body?.token,
+    'Kq3vT9mXw2LpZr8YbN4cHg',
+  );
+  assert.equal(reserveRequest('x', 'reserve').body?.token, undefined);
   assert.deepEqual(reserveRequest('x', 'cancel'), {
     path: '/api/v1/gifts/x/reservation',
     method: 'DELETE',

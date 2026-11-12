@@ -1,5 +1,5 @@
-import { createElement, useCallback, useEffect, useRef, useState } from 'react';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   ActivityIndicator,
   SectionList,
@@ -8,162 +8,52 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import {
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  Users,
-} from 'lucide-react-native';
+import { Calendar, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
 import {
   DsButton,
-  DsAvatar,
   DsBrandHeader,
-  DsChip,
   DsEmptyIcon,
   DsEmptyState,
   DsFeedback,
-  DsSheet,
   DsText,
 } from '../../design-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  ApiError,
-  useAuthenticatedApi,
-  usePullRefresh,
-  useResource,
-} from '../../data/hooks';
+import { usePullRefresh, useResource } from '../../data/hooks';
 import { DsDateCard } from '../../design-system/date-card';
 import { birthdayRoute } from '../gifts/birthday-route';
 import { dateSections } from './sections';
 import { tokens } from '../../design-system/tokens';
-import { useNotificationPrompt } from '../notifications';
-import { EventEditor } from './event-editor';
-import { eventIcon } from './event-icon';
-import { editableEventId, eventTypeLabel, monthNames } from './model';
-import type { Agenda, AgendaItem, EventPayload } from './model';
+import type { Agenda, AgendaItem } from './model';
 
 export function DatesScreen() {
   const params = useLocalSearchParams<{ eventId?: string | string[] }>();
-  const [viewedId, setViewedId] = useState<string | null>(null);
   const listRef = useRef<SectionList<AgendaItem>>(null);
   const [expanded, setExpanded] = useState(false);
   const { data, loading, error, reload } = useResource<Agenda>(
     '/api/v1/mobile/agenda',
   );
-  const { request } = useAuthenticatedApi();
   const pull = usePullRefresh();
-  const [editor, setEditor] = useState<{ item?: AgendaItem } | null>(null);
-  const [pending, setPending] = useState(false);
-  const [mutationError, setMutationError] = useState<string | null>(null);
-  const busy = useRef(false);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
-  function openEditor(item?: AgendaItem) {
-    if (busy.current || (item && !editableEventId(item))) return;
-    setMutationError(null);
-    setEditor({ item });
+  function openEvent(item: AgendaItem) {
+    if (item.source.kind === 'group_birthday') {
+      router.navigate(birthdayRoute(item.source.user_id, 'events'));
+      return;
+    }
+    router.navigate({
+      pathname: '/(tabs)/event',
+      params: { id: item.id, mode: 'view' },
+    });
+  }
+  function addEvent() {
+    router.navigate({ pathname: '/(tabs)/event', params: { mode: 'new' } });
   }
 
   useEffect(() => {
     if (!data || typeof params.eventId !== 'string') return;
-    const item = data.items.find((item) => item.id === params.eventId);
-    setViewedId(item?.id ?? null);
-    if (!item) setMutationError('Este evento não está mais disponível.');
+    const item = data.items.find((entry) => entry.id === params.eventId);
     router.setParams({ eventId: undefined });
+    if (item) openEvent(item);
   }, [data, params.eventId]);
-  useFocusEffect(
-    useCallback(
-      () => () => {
-        setViewedId(null);
-      },
-      [],
-    ),
-  );
-  const { maybePrompt, element: promptElement } = useNotificationPrompt();
-  const viewed = data?.items.find((item) => item.id === viewedId);
-
-  async function save(payload: EventPayload) {
-    if (!mounted.current || busy.current) return;
-    const id = editor?.item ? editableEventId(editor.item) : null;
-    const firstEvent =
-      !id && !data?.items.some((item) => item.source.kind === 'personal_event');
-    if (editor?.item && !id) return;
-    busy.current = true;
-    setPending(true);
-    setMutationError(null);
-    try {
-      await request(
-        id ? `/api/v1/events/${encodeURIComponent(id)}` : '/api/v1/events',
-        {
-          method: id ? 'PATCH' : 'POST',
-          body: payload,
-        },
-      );
-      if (!mounted.current) return;
-      setEditor(null);
-      await reload();
-      if (firstEvent) void maybePrompt();
-    } catch (error) {
-      if (
-        mounted.current &&
-        (!(error instanceof ApiError) ||
-          !['stale', 'cancelled'].includes(error.kind))
-      ) {
-        setMutationError(
-          error instanceof ApiError
-            ? error.message
-            : 'Não foi possível salvar este evento. Tente novamente.',
-        );
-      }
-    } finally {
-      busy.current = false;
-      if (mounted.current) setPending(false);
-    }
-  }
-
-  function deleteItem(item: AgendaItem) {
-    const id = editableEventId(item);
-    if (!id || busy.current) return;
-    void remove(id);
-  }
-
-  async function remove(id: string) {
-    if (!mounted.current || busy.current) return;
-    busy.current = true;
-    setPending(true);
-    setMutationError(null);
-    try {
-      await request(`/api/v1/events/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-      if (mounted.current) {
-        setEditor(null);
-        await reload();
-      }
-    } catch (error) {
-      if (
-        mounted.current &&
-        (!(error instanceof ApiError) ||
-          !['stale', 'cancelled'].includes(error.kind))
-      ) {
-        setMutationError(
-          error instanceof ApiError
-            ? error.message
-            : 'Não foi possível excluir este evento. Tente novamente.',
-        );
-      }
-    } finally {
-      busy.current = false;
-      if (mounted.current) setPending(false);
-    }
-  }
 
   const grouped = dateSections(data?.items ?? [], expanded, data?.today);
   const isEmpty = !!data && !error && data.items.length === 0;
@@ -233,8 +123,7 @@ export function DatesScreen() {
                 <DsButton
                   label="Adicionar evento"
                   icon={<Plus size={20} color={tokens.colors.onPrimary} />}
-                  disabled={pending}
-                  onPress={() => openEditor()}
+                  onPress={addEvent}
                   style={styles.addButton}
                 />
               </View>
@@ -245,12 +134,9 @@ export function DatesScreen() {
                 color={tokens.colors.primary}
               />
             )}
-            {(error || (!editor && mutationError)) && (
+            {error && (
               <View style={styles.errorCard}>
-                <DsFeedback
-                  message={error || mutationError || ''}
-                  tone="error"
-                />
+                <DsFeedback message={error || ''} tone="error" />
                 {error && (
                   <DsButton
                     variant="outline"
@@ -265,7 +151,7 @@ export function DatesScreen() {
           </View>
         }
         ListEmptyComponent={
-          !loading && !error ? (
+          isEmpty ? (
             <View style={styles.emptyContainer}>
               <DsBrandHeader />
               <DsEmptyState
@@ -278,89 +164,17 @@ export function DatesScreen() {
                 description="Cadastre aniversários e datas importantes e receba um aviso no dia de cada um."
                 actionLabel="Adicionar meu primeiro evento"
                 actionIcon={<Plus size={20} color={tokens.colors.onPrimary} />}
-                onAction={() => openEditor()}
+                onAction={addEvent}
               />
             </View>
           ) : undefined
         }
         renderItem={({ item }) => (
           <View style={styles.cardSpacing}>
-            <DsDateCard
-              item={item}
-              disabled={pending}
-              onView={() =>
-                item.source.kind === 'group_birthday'
-                  ? router.navigate(
-                      birthdayRoute(item.source.user_id, 'events'),
-                    )
-                  : setViewedId(item.id)
-              }
-            />
+            <DsDateCard item={item} onView={() => openEvent(item)} />
           </View>
         )}
       />
-      {viewed && !editor && (
-        <DsSheet visible title={viewed.title} onClose={() => setViewedId(null)}>
-          <View style={styles.detail}>
-            <DsAvatar name={viewed.title} size={64} />
-            <View style={styles.detailInfo}>
-              <View style={styles.detailRow}>
-                {createElement(eventIcon(viewed.type), {
-                  size: 18,
-                  color: tokens.colors.brand,
-                })}
-                <DsText role="label">{eventTypeLabel(viewed)}</DsText>
-              </View>
-              <View style={styles.detailRow}>
-                <Calendar size={18} color={tokens.colors.textMuted} />
-                <DsText role="label">
-                  {viewed.event_day} de {monthNames[viewed.event_month - 1]}
-                </DsText>
-              </View>
-              {viewed.source.kind === 'group_birthday' && (
-                <DsChip
-                  label={viewed.source.group_name}
-                  icon={<Users size={14} color={tokens.colors.textMuted} />}
-                />
-              )}
-            </View>
-          </View>
-          {editableEventId(viewed) && (
-            <DsButton
-              label="Editar evento"
-              style={styles.detailAction}
-              onPress={() => {
-                setViewedId(null);
-                openEditor(viewed);
-              }}
-            />
-          )}
-        </DsSheet>
-      )}
-      {promptElement}
-      {editor && (
-        <EventEditor
-          item={editor.item}
-          pending={pending}
-          error={mutationError}
-          onClose={() => {
-            if (!busy.current) {
-              setEditor(null);
-              setMutationError(null);
-            }
-          }}
-          onDelete={
-            editor.item
-              ? () => {
-                  if (editor.item) deleteItem(editor.item);
-                }
-              : undefined
-          }
-          onSave={(payload) => {
-            void save(payload);
-          }}
-        />
-      )}
     </SafeAreaView>
   );
 }

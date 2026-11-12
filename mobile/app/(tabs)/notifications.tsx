@@ -194,46 +194,48 @@ function NotificationsContent() {
         )}
         {data && (
           <>
-            <View style={styles.status}>
-              <View
-                style={[
-                  styles.statusIcon,
-                  status !== 'on' && styles.statusIconOff,
-                ]}
-              >
-                {status === 'on' ? (
-                  <Bell size={22} color={tokens.colors.brand} />
-                ) : (
-                  <BellOff size={22} color={tokens.colors.textMuted} />
-                )}
+            {status !== 'unsupported' && (
+              <View style={styles.status}>
+                <View
+                  style={[
+                    styles.statusIcon,
+                    status !== 'on' && styles.statusIconOff,
+                  ]}
+                >
+                  {status === 'on' ? (
+                    <Bell size={22} color={tokens.colors.brand} />
+                  ) : (
+                    <BellOff size={22} color={tokens.colors.textMuted} />
+                  )}
+                </View>
+                <View style={styles.statusCopy}>
+                  <DsText role="label">{copy.title}</DsText>
+                  <DsText role="caption" style={styles.muted}>
+                    {copy.description}
+                  </DsText>
+                  {status === 'off' && (
+                    <DsButton
+                      label="Ativar notificações"
+                      disabled={pending}
+                      onPress={() => setPush(true)}
+                    />
+                  )}
+                  {(status === 'off' || status === 'denied') && (
+                    <DsButton
+                      label="Abrir configurações do aparelho"
+                      variant="text"
+                      onPress={() => {
+                        void Linking.openSettings().catch(() =>
+                          setError(
+                            'Não foi possível abrir as configurações. Abra-as manualmente no aparelho.',
+                          ),
+                        );
+                      }}
+                    />
+                  )}
+                </View>
               </View>
-              <View style={styles.statusCopy}>
-                <DsText role="label">{copy.title}</DsText>
-                <DsText role="caption" style={styles.muted}>
-                  {copy.description}
-                </DsText>
-                {status === 'off' && (
-                  <DsButton
-                    label="Ativar notificações"
-                    disabled={pending}
-                    onPress={() => setPush(true)}
-                  />
-                )}
-                {(status === 'off' || status === 'denied') && (
-                  <DsButton
-                    label="Abrir configurações do aparelho"
-                    variant="text"
-                    onPress={() => {
-                      void Linking.openSettings().catch(() =>
-                        setError(
-                          'Não foi possível abrir as configurações. Abra-as manualmente no aparelho.',
-                        ),
-                      );
-                    }}
-                  />
-                )}
-              </View>
-            </View>
+            )}
             {error && <DsFeedback tone="error" message={error} />}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
@@ -251,8 +253,7 @@ function NotificationsContent() {
                 <View style={styles.rowCopy}>
                   <DsText role="label">Eventos</DsText>
                   <DsText role="caption" style={styles.muted}>
-                    Aniversários, Dia das Mães, Dia dos Pais e mais, no dia e
-                    com a antecedência de cada evento
+                    Eventos e Datas especiais, no dia e com antecedência
                   </DsText>
                 </View>
                 <DsToggle

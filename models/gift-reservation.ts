@@ -27,6 +27,7 @@ async function releaseStale(client: Client, listId: string) {
      USING gift_items i, gift_lists l
      WHERE r.item_id = i.id AND i.list_id = l.id AND l.id = $1
        AND r.status = 'reserved'
+       AND r.via_link = false
        AND NOT EXISTS (
          SELECT 1 FROM group_members viewer_member
          JOIN group_members owner_member
@@ -69,6 +70,7 @@ async function reserve(
   viewerId: string,
   itemId: string,
   status: ReservationStatus,
+  token: string | null = null,
 ) {
   if (!UUID.test(itemId)) throw itemNotFound();
   return withClient(async (client) => {
@@ -79,24 +81,25 @@ async function reserve(
          JOIN group_members owner_member
            ON owner_member.group_id = viewer_member.group_id AND owner_member.user_id = l.user_id
          WHERE viewer_member.user_id = $2
-              ) AS can_view
+              ) AS can_view,
+              ($3::text IS NOT NULL AND l.share_token = $3) AS has_link
        FROM gift_items i JOIN gift_lists l ON l.id = i.list_id
        WHERE i.id = $1
        FOR UPDATE OF i`,
-      [itemId, viewerId],
+      [itemId, viewerId, token],
     );
     const row = target.rows[0];
-    if (!row || !row.can_view || row.owner_id === viewerId)
+    if (!row || !(row.can_view || row.has_link) || row.owner_id === viewerId)
       throw itemNotFound();
     await releaseStale(client, row.list_id);
     const inserted = await client.query(
-      `INSERT INTO gift_reservations (item_id, user_id, status)
-       VALUES ($1, $2, $3)
+      `INSERT INTO gift_reservations (item_id, user_id, status, via_link)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (item_id) DO UPDATE
          SET status = excluded.status, updated_at = now()
          WHERE gift_reservations.user_id = excluded.user_id
        RETURNING item_id, user_id, status`,
-      [itemId, viewerId, status],
+      [itemId, viewerId, status, !row.can_view],
     );
     if (!inserted.rows[0]) {
       throw new ConflictError({

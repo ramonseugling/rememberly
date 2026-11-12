@@ -4,6 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import { StyleSheet, TextInput, View } from 'react-native';
 import {
   DsCheckbox,
+  DsFeedback,
   DsOtpInput,
   DsSelect,
   DsText,
@@ -23,6 +24,7 @@ import {
 } from '../src/features/auth/ui';
 import {
   emailError,
+  nameError,
   passwordError,
   registrationDetailsError,
 } from '../src/features/auth/api';
@@ -60,6 +62,7 @@ export default function SignupScreen() {
   const [verificationToken, setVerificationToken] = useState<string | null>(
     null,
   );
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const resend = useResendCooldown();
@@ -81,6 +84,7 @@ export default function SignupScreen() {
         setConfirmation('');
         setCode('');
         setVerificationToken(null);
+        setSentTo(null);
       },
       [],
     ),
@@ -91,20 +95,20 @@ export default function SignupScreen() {
     setStep(next);
   }
   function submitName() {
-    const first = firstName.trim().length;
-    const last = lastName.trim().length;
-    if (first < 1 || first > 60) {
-      task.setMessage('Informe seu nome com até 60 caracteres.');
-      return;
-    }
-    if (last < 1 || last > 60) {
-      task.setMessage('Informe seu sobrenome com até 60 caracteres.');
+    const error =
+      nameError(firstName, 'nome') ?? nameError(lastName, 'sobrenome');
+    if (error) {
+      task.setMessage(error);
       return;
     }
     go(4);
   }
   function sendCode() {
     if (busy) return;
+    if (verificationToken || sentTo === address) {
+      go(2);
+      return;
+    }
     const error = emailError(address);
     if (error) {
       task.setMessage(error);
@@ -115,6 +119,7 @@ export default function SignupScreen() {
       if (signal.aborted) return;
       setCode('');
       setVerificationToken(null);
+      setSentTo(address);
       resend.start();
       setStep(2);
     });
@@ -198,6 +203,7 @@ export default function SignupScreen() {
       title={registered ? 'Sua conta está pronta!' : current}
       pending={busy}
       message={task.message ?? state.message}
+      notice={task.notice}
       back={
         registered ? undefined : (
           <AuthBack
@@ -205,10 +211,7 @@ export default function SignupScreen() {
             disabled={busy}
             onPress={() => {
               if (step === 1) backToLogin();
-              else if (step === 3) {
-                setVerificationToken(null);
-                go(2);
-              } else go(step - 1);
+              else go(step - 1);
             }}
           />
         )
@@ -238,7 +241,10 @@ export default function SignupScreen() {
                 icon="email"
                 placeholder="seu@email.com"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  setVerificationToken(null);
+                }}
                 editable={!busy}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -260,7 +266,16 @@ export default function SignupScreen() {
               />
             </>
           )}
-          {step === 2 && (
+          {step === 2 && verificationToken && (
+            <>
+              <DsFeedback
+                tone="success"
+                message="E-mail verificado. Você já pode continuar."
+              />
+              <AuthAction label="Continuar" onPress={() => go(3)} />
+            </>
+          )}
+          {step === 2 && !verificationToken && (
             <>
               <DsOtpInput value={code} onChange={setCode} disabled={busy} />
               <AuthAction
@@ -321,7 +336,7 @@ export default function SignupScreen() {
                 hideLabel
                 label="Senha"
                 icon="password"
-                placeholder="••••••••"
+                placeholder="Senha"
                 value={password}
                 onChangeText={setPassword}
                 editable={!busy}

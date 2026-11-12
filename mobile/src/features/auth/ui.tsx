@@ -37,7 +37,12 @@ export const publicAuth = createPublicAuthApi(
 export function useAuthTask() {
   const { controller } = useSession();
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessageState] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const setMessage = useCallback((value: string | null) => {
+    setMessageState(value);
+    setNotice(null);
+  }, []);
   const active = useRef<AbortController | null>(null);
   const focused = useRef(false);
   const cancel = useCallback(() => {
@@ -66,7 +71,7 @@ export function useAuthTask() {
       focused.current && active.current === abort && !abort.signal.aborted;
     try {
       const result = await action(abort.signal);
-      if (current() && result) setMessage(result);
+      if (current() && result) setNotice(result);
     } catch (error) {
       if (current())
         setMessage(
@@ -81,13 +86,14 @@ export function useAuthTask() {
       }
     }
   }
-  return { pending, message, setMessage, run, cancel };
+  return { pending, message, notice, setMessage, run, cancel };
 }
 
 interface AuthPageProps {
   title: string;
   pending: boolean;
   message: string | null;
+  notice?: string | null;
   counter?: ReactNode;
   back?: ReactNode;
 }
@@ -96,6 +102,7 @@ interface AuthPageProps {
 export function AuthPage({
   title,
   message,
+  notice,
   counter,
   back,
   children,
@@ -118,6 +125,7 @@ export function AuthPage({
             {title}
           </DsText>
           {message && <DsFeedback tone="error" message={message} />}
+          {!message && notice && <DsFeedback tone="success" message={notice} />}
           {children}
         </ScrollView>
       </SafeAreaView>
