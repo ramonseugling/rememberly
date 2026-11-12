@@ -37,7 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={quicksand.className}>
       <Head>
-        <title>Rememberly | Adicione uma data. Lembre todos os anos.</title>
+        <title>Rememberly | Pequenas lembranças. Grandes conexões.</title>
         <meta
           name="description"
           content="Crie grupos com amigos e família. Cada pessoa cadastra o próprio aniversário e todo mundo recebe lembretes no dia certo."
@@ -46,7 +46,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta
           key="og:title"
           property="og:title"
-          content="Rememberly | Adicione uma data. Lembre todos os anos."
+          content="Rememberly | Pequenas lembranças. Grandes conexões."
         />
         <meta
           key="og:description"

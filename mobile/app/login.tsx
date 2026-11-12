@@ -41,7 +41,7 @@ export default function LoginScreen() {
                 Bem-vindo!
               </DsText>
               <DsText role="caption" style={[local.center, local.muted]}>
-                Entre para nunca mais esquecer uma data importante.
+                Pequenas lembranças. Grandes conexões.
               </DsText>
             </View>
             {state.message && (

@@ -16,7 +16,7 @@ export interface OnboardingStep {
 export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Lembre das datas. Fortaleça conexões.',
+    title: 'Pequenas lembranças. Grandes conexões.',
     description:
       'O Rememberly avisa você dos aniversários e datas importantes de família, amigos e colegas.',
     action: 'Vamos lá',

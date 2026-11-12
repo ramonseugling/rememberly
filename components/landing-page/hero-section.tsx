@@ -42,9 +42,11 @@ export const HeroSection = () => {
             className="flex flex-col items-center text-center lg:items-start lg:text-left order-2 lg:order-1"
           >
             <h1 className="text-hero font-heading font-bold tracking-tight mb-5 text-balance">
-              <span className="block text-foreground">Adicione uma data.</span>
+              <span className="block text-foreground">
+                Pequenas lembranças.
+              </span>
               <span className="block text-brand-gradient pb-2">
-                Lembre todos os anos.
+                Grandes conexões.
               </span>
             </h1>
 

@@ -171,7 +171,7 @@ function NotificationsContent() {
         <View style={styles.header}>
           <DsText role="title">Notificações</DsText>
           <DsText role="caption" style={styles.muted}>
-            Escolha como você quer ser lembrado dos eventos importantes.
+            Escolha como você quer receber os avisos do Rememberly.
           </DsText>
         </View>
         {preferences.loading && !data && (
