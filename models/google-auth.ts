@@ -1,6 +1,6 @@
 import { log } from 'next-axiom';
 import { LEGAL_VERSION } from '@/lib/legal/shared';
-import { splitName } from '@/lib/person-name';
+import { splitSocialName } from '@/lib/person-name';
 import database from 'infra/database';
 import { ServiceError, ValidationError } from 'infra/errors';
 import googleAvatar from 'models/google-avatar';
@@ -120,7 +120,7 @@ async function findUserByEmail(email: string) {
 }
 
 async function createUser(profile: GoogleUserProfile) {
-  const split = splitName(profile.name);
+  const split = splitSocialName(profile.name);
   const result = await database.query(
     `INSERT INTO users (name, first_name, last_name, email, terms_accepted_at, terms_version)
      VALUES ($1, $2, $3, $4, NOW(), $5)

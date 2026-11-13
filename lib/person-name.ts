@@ -14,6 +14,12 @@ export function splitName(fullName: string): PersonName {
   };
 }
 
+// Keeps only letters and single spaces, so names imported from Google/Apple
+// pass the same rule the profile form enforces.
+export function splitSocialName(fullName: string): PersonName {
+  return splitName(fullName.replace(/[^\p{L}\s]/gu, ''));
+}
+
 export function joinName(firstName: string, lastName?: string | null) {
   return [firstName, lastName]
     .map((part) => part?.trim())

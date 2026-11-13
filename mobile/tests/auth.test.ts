@@ -385,7 +385,13 @@ test('verifyResetCode posts to the fixed endpoint and returns only a well-formed
 
 test('names need 2 to 60 letters and refuse digits and symbols', () => {
   assert.equal(nameError('Ana', 'nome'), null);
-  assert.equal(nameError("D'Ávila-Souza", 'sobrenome'), null);
+  assert.equal(nameError('Ávila Souza', 'sobrenome'), null);
+  assert.equal(
+    nameError("D'Ávila", 'sobrenome'),
+    'Use apenas letras no sobrenome.',
+  );
+  assert.equal(nameError('Ana-Maria', 'nome'), 'Use apenas letras no nome.');
+  assert.equal(nameError('Ana  Maria', 'nome'), 'Use apenas letras no nome.');
   assert.match(nameError('A', 'nome') ?? '', /2 a 60 caracteres/);
   assert.match(nameError('a'.repeat(61), 'nome') ?? '', /2 a 60 caracteres/);
   assert.match(nameError('Ana3', 'nome') ?? '', /apenas letras/);

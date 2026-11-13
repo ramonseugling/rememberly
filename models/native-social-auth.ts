@@ -1,7 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { JWTVerifyGetKey } from 'jose';
 import { LEGAL_VERSION } from '@/lib/legal/shared';
-import { splitName } from '@/lib/person-name';
+import { splitSocialName } from '@/lib/person-name';
 import database from 'infra/database';
 import googleAvatar from 'models/google-avatar';
 import {
@@ -102,7 +102,7 @@ export async function exchangeNativeSocialIdentity(
         [identity.email],
       );
       if (existing.rows.length) throw new NativeSocialAuthError('collision');
-      const split = splitName(identity.name);
+      const split = splitSocialName(identity.name);
       user = (
         await client.query(
           `INSERT INTO users (name, first_name, last_name, email, marketing_consent, terms_accepted_at, terms_version) VALUES ($1, $2, $3, $4, false, NOW(), $5) RETURNING id, name, email`,

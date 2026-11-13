@@ -87,14 +87,25 @@ describe('first and last name', () => {
     expect(data.name).toBe('Ana Lima');
   });
 
-  it('returns 400 for one-letter names or names with digits', async () => {
+  it('returns 400 for one-letter names or names with digits or symbols', async () => {
     for (const body of [
       { first_name: 'A', last_name: 'Silva' },
       { first_name: 'Ana', last_name: 'S' },
       { first_name: 'Ana3', last_name: 'Silva' },
+      { first_name: 'Ana-Maria', last_name: 'Silva' },
+      { first_name: 'Ana', last_name: "D'Ávila" },
     ]) {
       const { response } = await register(body);
       expect(response.status).toBe(400);
     }
+  });
+
+  it('explains that only letters are allowed', async () => {
+    const { response } = await register({
+      first_name: 'Ana-Maria',
+      last_name: 'Silva',
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toBe('Use apenas letras no nome.');
   });
 });

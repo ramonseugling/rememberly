@@ -35,6 +35,7 @@ import { GroupAvatar } from '../groups/group-avatar';
 import type { Group } from '../groups/model';
 import type { ProfileUser } from '../account/forms';
 import { firstName, homeBirthdays, homeGroups } from './model';
+import { HomeWelcome } from './welcome';
 
 export function HomeScreen() {
   const { state } = useSession();
@@ -45,6 +46,13 @@ export function HomeScreen() {
     profile.data?.user.name ?? state.identity?.user.name ?? '',
   );
   const birthdays = homeBirthdays(agenda.data?.items ?? []);
+  const welcome =
+    !!agenda.data &&
+    !agenda.error &&
+    !birthdays.length &&
+    !!groups.data &&
+    !groups.error &&
+    !groups.data.length;
   const pull = usePullRefresh();
   const refresh = () => {
     pull.run(() =>
@@ -68,7 +76,6 @@ export function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.greeting}>
             <DsText role="title">Olá, {name}! 👋</DsText>
-            <DsText role="caption">Aqui estão suas próximas celebrações</DsText>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -82,191 +89,208 @@ export function HomeScreen() {
             />
           </Pressable>
         </View>
-        <View style={styles.heading}>
-          <DsText role="section" style={styles.headingText}>
-            Próximos eventos
-          </DsText>
-          {birthdays.length > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ver todos os eventos"
-              onPress={() => router.navigate('/(tabs)/events')}
-              style={styles.all}
-            >
-              <DsText role="caption" style={styles.link}>
-                Ver todos
-              </DsText>
-            </Pressable>
-          )}
-        </View>
-        {agenda.loading && !agenda.data && (
-          <ActivityIndicator
-            accessibilityLabel="Carregando próximos eventos"
-            color={tokens.colors.brand}
-          />
-        )}
-        {agenda.error && (
-          <>
-            <DsFeedback tone="error" message={agenda.error} />
-            <DsButton
-              variant="text"
-              label="Tentar carregar eventos novamente"
-              onPress={() => {
-                void agenda.reload();
-              }}
-            />
-          </>
-        )}
-        {!!agenda.data && !agenda.error && !birthdays.length && (
-          <DsEmptyState
-            compact
-            illustration={
-              <DsEmptyIcon>
-                <CalendarPlus size={26} color={tokens.colors.brand} />
-              </DsEmptyIcon>
+        {welcome ? (
+          <HomeWelcome
+            onAddEvent={() =>
+              router.navigate({
+                pathname: '/(tabs)/event',
+                params: { mode: 'new' },
+              })
             }
-            title="Nenhum evento por aqui"
-            description="Cadastre aniversários e datas importantes para receber um aviso no dia."
-            actionLabel="Adicionar evento"
-            actionIcon={<Plus size={20} color={tokens.colors.onPrimary} />}
-            onAction={() => router.navigate('/(tabs)/events')}
+            onCreateGroup={allGroups}
           />
-        )}
-        <View style={styles.list}>
-          {birthdays.map((item) => {
-            const today = item.days_until === 0;
-            const contents = (
-              <View style={styles.eventContent}>
-                <DsAvatar
-                  name={item.title}
-                  size={56}
-                  photoUri={item.avatar_url}
+        ) : (
+          <>
+            <View style={styles.heading}>
+              <DsText role="section" style={styles.headingText}>
+                Próximos eventos
+              </DsText>
+              {birthdays.length > 0 && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ver todos os eventos"
+                  onPress={() => router.navigate('/(tabs)/events')}
+                  style={styles.all}
+                >
+                  <DsText role="caption" style={styles.link}>
+                    Ver todos
+                  </DsText>
+                </Pressable>
+              )}
+            </View>
+            {agenda.loading && !agenda.data && (
+              <ActivityIndicator
+                accessibilityLabel="Carregando próximos eventos"
+                color={tokens.colors.brand}
+              />
+            )}
+            {agenda.error && (
+              <>
+                <DsFeedback tone="error" message={agenda.error} />
+                <DsButton
+                  variant="text"
+                  label="Tentar carregar eventos novamente"
+                  onPress={() => {
+                    void agenda.reload();
+                  }}
                 />
-                <View style={styles.eventCopy}>
-                  <View style={styles.eventTitle}>
-                    <DsText role="label" style={{ flexShrink: 1 }}>
-                      {item.title}
-                    </DsText>
-                    <DsDaysBadge
-                      days={item.days_until}
-                      nextYear={item.is_next_year}
-                    />
-                  </View>
-                  <View style={styles.type}>
-                    <Cake size={14} color={tokens.colors.brand} />
-                    <DsText role="caption">Aniversário</DsText>
-                  </View>
-                  {today && (
-                    <View style={styles.eventAction}>
-                      <DsText role="caption" style={styles.link}>
-                        Ver evento
-                      </DsText>
-                      <ChevronRight size={14} color={tokens.colors.primary} />
-                    </View>
-                  )}
-                </View>
-              </View>
-            );
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Ver aniversário de ${item.title}, ${today ? 'hoje' : `em ${item.days_until} dias`}`}
-                onPress={() =>
-                  item.source.kind === 'group_birthday'
-                    ? router.navigate(
-                        birthdayRoute(item.source.user_id, 'home'),
-                      )
-                    : router.navigate({
-                        pathname: '/(tabs)/events',
-                        params: { eventId: item.id },
-                      })
+              </>
+            )}
+            {!!agenda.data && !agenda.error && !birthdays.length && (
+              <DsEmptyState
+                compact
+                illustration={
+                  <DsEmptyIcon>
+                    <CalendarPlus size={26} color={tokens.colors.brand} />
+                  </DsEmptyIcon>
                 }
-                style={({ pressed }) => [
-                  styles.event,
-                  today && styles.today,
-                  pressed && { opacity: 0.75 },
-                ]}
-              >
-                {today ? (
-                  <LinearGradient colors={tokens.celebration}>
-                    {contents}
-                  </LinearGradient>
-                ) : (
-                  contents
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-        <View style={styles.heading}>
-          <DsText role="section" style={styles.headingText}>
-            Meus grupos
-          </DsText>
-          {!!groups.data?.length && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ver todos os grupos"
-              onPress={allGroups}
-              style={styles.all}
-            >
-              <DsText role="caption" style={styles.link}>
-                Ver todos
+                title="Nenhum evento por aqui"
+                description="Cadastre aniversários e datas importantes para receber um aviso no dia."
+                actionLabel="Adicionar evento"
+                actionIcon={<Plus size={20} color={tokens.colors.onPrimary} />}
+                onAction={() => router.navigate('/(tabs)/events')}
+              />
+            )}
+            <View style={styles.list}>
+              {birthdays.map((item) => {
+                const today = item.days_until === 0;
+                const contents = (
+                  <View style={styles.eventContent}>
+                    <DsAvatar
+                      name={item.title}
+                      size={56}
+                      photoUri={item.avatar_url}
+                    />
+                    <View style={styles.eventCopy}>
+                      <View style={styles.eventTitle}>
+                        <DsText role="label" style={{ flexShrink: 1 }}>
+                          {item.title}
+                        </DsText>
+                        <DsDaysBadge
+                          days={item.days_until}
+                          nextYear={item.is_next_year}
+                        />
+                      </View>
+                      <View style={styles.type}>
+                        <Cake size={14} color={tokens.colors.brand} />
+                        <DsText role="caption">Aniversário</DsText>
+                      </View>
+                      {today && (
+                        <View style={styles.eventAction}>
+                          <DsText role="caption" style={styles.link}>
+                            Ver evento
+                          </DsText>
+                          <ChevronRight
+                            size={14}
+                            color={tokens.colors.primary}
+                          />
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+                return (
+                  <Pressable
+                    key={item.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ver aniversário de ${item.title}, ${today ? 'hoje' : `em ${item.days_until} dias`}`}
+                    onPress={() =>
+                      item.source.kind === 'group_birthday'
+                        ? router.navigate(
+                            birthdayRoute(item.source.user_id, 'home'),
+                          )
+                        : router.navigate({
+                            pathname: '/(tabs)/events',
+                            params: { eventId: item.id },
+                          })
+                    }
+                    style={({ pressed }) => [
+                      styles.event,
+                      today && styles.today,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                  >
+                    {today ? (
+                      <LinearGradient colors={tokens.celebration}>
+                        {contents}
+                      </LinearGradient>
+                    ) : (
+                      contents
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.heading}>
+              <DsText role="section" style={styles.headingText}>
+                Meus grupos
               </DsText>
-            </Pressable>
-          )}
-        </View>
-        {groups.loading && !groups.data && (
-          <ActivityIndicator
-            accessibilityLabel="Carregando grupos"
-            color={tokens.colors.brand}
-          />
-        )}
-        {groups.error && (
-          <>
-            <DsFeedback tone="error" message={groups.error} />
-            <DsButton
-              variant="text"
-              label="Tentar carregar grupos novamente"
-              onPress={() => {
-                void groups.reload();
-              }}
-            />
+              {!!groups.data?.length && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ver todos os grupos"
+                  onPress={allGroups}
+                  style={styles.all}
+                >
+                  <DsText role="caption" style={styles.link}>
+                    Ver todos
+                  </DsText>
+                </Pressable>
+              )}
+            </View>
+            {groups.loading && !groups.data && (
+              <ActivityIndicator
+                accessibilityLabel="Carregando grupos"
+                color={tokens.colors.brand}
+              />
+            )}
+            {groups.error && (
+              <>
+                <DsFeedback tone="error" message={groups.error} />
+                <DsButton
+                  variant="text"
+                  label="Tentar carregar grupos novamente"
+                  onPress={() => {
+                    void groups.reload();
+                  }}
+                />
+              </>
+            )}
+            {!!groups.data && !groups.error && !groups.data.length && (
+              <DsEmptyState
+                compact
+                illustration={
+                  <DsEmptyIcon>
+                    <Users size={26} color={tokens.colors.brand} />
+                  </DsEmptyIcon>
+                }
+                title="Comemore junto de quem importa"
+                description="Crie um grupo e compartilhe aniversários com família, amigos ou colegas."
+                actionLabel="Criar meu primeiro grupo"
+                actionVariant="soft"
+                actionIcon={<Plus size={20} color={tokens.colors.actionText} />}
+                onAction={allGroups}
+              />
+            )}
+            <View style={styles.list}>
+              {homeGroups(groups.data ?? []).map((group) => (
+                <DsRow
+                  key={group.id}
+                  title={group.name}
+                  subtitle={`${group.member_count} ${group.member_count === 1 ? 'membro' : 'membros'}`}
+                  leading={<GroupAvatar group={group} size={48} />}
+                  style={styles.group}
+                  onPress={() =>
+                    router.navigate({
+                      pathname: '/(tabs)/groups',
+                      params: { groupId: group.id },
+                    })
+                  }
+                />
+              ))}
+            </View>
           </>
         )}
-        {!!groups.data && !groups.error && !groups.data.length && (
-          <DsEmptyState
-            compact
-            illustration={
-              <DsEmptyIcon>
-                <Users size={26} color={tokens.colors.brand} />
-              </DsEmptyIcon>
-            }
-            title="Comemore junto de quem importa"
-            description="Crie um grupo e compartilhe aniversários com família, amigos ou colegas."
-            actionLabel="Criar meu primeiro grupo"
-            actionVariant="soft"
-            actionIcon={<Plus size={20} color={tokens.colors.actionText} />}
-            onAction={allGroups}
-          />
-        )}
-        <View style={styles.list}>
-          {homeGroups(groups.data ?? []).map((group) => (
-            <DsRow
-              key={group.id}
-              title={group.name}
-              subtitle={`${group.member_count} ${group.member_count === 1 ? 'membro' : 'membros'}`}
-              leading={<GroupAvatar group={group} size={48} />}
-              style={styles.group}
-              onPress={() =>
-                router.navigate({
-                  pathname: '/(tabs)/groups',
-                  params: { groupId: group.id },
-                })
-              }
-            />
-          ))}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

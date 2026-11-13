@@ -216,7 +216,7 @@ export function createPublicAuthApi(
   };
 }
 
-const NAME_PATTERN = /^\p{L}[\p{L}\s'.-]*$/u;
+const NAME_PATTERN = /^\p{L}+(?: \p{L}+)*$/u;
 
 export function nameError(
   value: string,
@@ -225,9 +225,7 @@ export function nameError(
   const text = value.trim();
   if (text.length < 2 || text.length > 60)
     return `Informe seu ${label} com 2 a 60 caracteres.`;
-  return NAME_PATTERN.test(text)
-    ? null
-    : `Use apenas letras, espaços, hífen ou apóstrofo no ${label}.`;
+  return NAME_PATTERN.test(text) ? null : `Use apenas letras no ${label}.`;
 }
 
 export function emailError(value: string): string | null {

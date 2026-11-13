@@ -29,17 +29,14 @@ const birthdayFields = {
     .max(new Date().getFullYear(), 'O ano não pode ser no futuro.'),
 };
 
-const PERSON_NAME_PATTERN = /^\p{L}[\p{L}\s'.-]*$/u;
+const PERSON_NAME_PATTERN = /^\p{L}+(?: \p{L}+)*$/u;
 
 const firstNameField = z
   .string()
   .trim()
   .min(2, 'O nome deve ter pelo menos 2 caracteres.')
   .max(60, 'O nome deve ter no máximo 60 caracteres.')
-  .regex(
-    PERSON_NAME_PATTERN,
-    'O nome deve conter apenas letras, espaços, hífen ou apóstrofo.',
-  );
+  .regex(PERSON_NAME_PATTERN, 'Use apenas letras no nome.');
 
 const lastNameField = z
   .string()
@@ -48,7 +45,7 @@ const lastNameField = z
   .refine(
     (value) =>
       value === '' || (value.length >= 2 && PERSON_NAME_PATTERN.test(value)),
-    'O sobrenome deve ter ao menos 2 letras e apenas letras, espaços, hífen ou apóstrofo.',
+    'O sobrenome deve ter ao menos 2 letras. Use apenas letras no sobrenome.',
   );
 
 export const createUserSchema = z
